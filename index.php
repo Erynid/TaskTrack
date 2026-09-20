@@ -4,9 +4,9 @@
  * Landing Page Responsif dan Aksesibel berbasis PHP Standar, Flexbox/Grid, dan Komponen Reusable.
  * Dibangun dengan panduan taste-skill anti-slop: tipografi terkalibrasi, layout bento, bebas em-dash, dan ikon SVG presisi.
  */
-require_once __DIR__ . '/templates/components/stat-card.php';
-require_once __DIR__ . '/templates/components/feature-card.php';
-require_once __DIR__ . '/templates/components/task-card.php';
+require_once __DIR__ . '/components/stat-card.php';
+require_once __DIR__ . '/components/feature-card.php';
+require_once __DIR__ . '/components/task-card.php';
 
 $current_year = date('Y');
 $page_title = "TaskTrack: Tracker Tugas dan Deadline Kuliah Mahasiswa";
