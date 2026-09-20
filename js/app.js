@@ -747,8 +747,29 @@
     }
 
     // -------------------------------------------------------------------------
-    // 13. Pintasan Keyboard Global (Aksesibilitas)
+    // 13. Pintasan Keyboard Global & Mobile Menu Toggle
     // -------------------------------------------------------------------------
+    const menuToggleBtn = document.getElementById('btn-menu-toggle');
+    const primaryNav = document.getElementById('primary-nav');
+
+    if (menuToggleBtn && primaryNav) {
+        menuToggleBtn.addEventListener('click', () => {
+            const isOpen = primaryNav.classList.toggle('open');
+            menuToggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            announce(isOpen ? 'Menu navigasi dibuka' : 'Menu navigasi ditutup');
+        });
+
+        // Tutup menu otomatis saat link navigasi diklik pada mobile
+        primaryNav.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                if (primaryNav.classList.contains('open')) {
+                    primaryNav.classList.remove('open');
+                    menuToggleBtn.setAttribute('aria-expanded', 'false');
+                }
+            });
+        });
+    }
+
     document.addEventListener('keydown', (e) => {
         // Alt + N: Loncat langsung ke Tambah Tugas
         if (e.altKey && (e.key === 'n' || e.key === 'N')) {

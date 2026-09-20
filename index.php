@@ -1,13 +1,17 @@
 <?php
 /**
- * TaskTrack - Papan Manajemen & Pemantau Deadline Tugas Mahasiswa
- * Dibangun menggunakan PHP Standar dan HTML5 Semantik Aksesibel.
+ * TaskTrack - Web Tracker Tugas & Deadline Kuliah
+ * Landing Page Responsif & Aksesibel berbasis PHP Standar, Flexbox/Grid, dan Komponen Reusable.
  */
-$current_year = date('Y');
-$page_title = "TaskTrack — Papan Manajemen & Pemantau Deadline Tugas Kuliah";
-$meta_description = "Aplikasi manajemen tugas kuliah berbasis Kanban 3 kolom dengan drag and drop interaktif, auto-sorting deadline, indikator kritis warna, dan integrasi link LMS.";
+require_once __DIR__ . '/templates/components/stat-card.php';
+require_once __DIR__ . '/templates/components/feature-card.php';
+require_once __DIR__ . '/templates/components/task-card.php';
 
-// Data contoh tugas awal (server-side seed jika belum ada di localStorage)
+$current_year = date('Y');
+$page_title = "TaskTrack — Web Tracker Tugas & Deadline Kuliah Mahasiswa";
+$meta_description = "Landing page dan aplikasi visual tracker berbasis Kanban 3 kolom untuk mahasiswa. Drag and drop interaktif, auto-sorting deadline, indikator warna kritis, dan integrasi link LMS.";
+
+// Data Awal Tugas Mahasiswa
 $initial_tasks = [
     [
         'id' => 'task-1',
@@ -15,7 +19,7 @@ $initial_tasks = [
         'course' => 'Pemrograman Web Lanjut',
         'deadline' => date('Y-m-d\TH:i', strtotime('+18 hours')),
         'status' => 'todo',
-        'urgency' => 'critical', // < 24 jam
+        'urgency' => 'critical',
         'lms_url' => 'https://lms.universitas.ac.id/mod/assign/view.php?id=101',
         'instructions' => 'Buat struktur folder MVC murni menggunakan PHP native tanpa framework. Sertakan file index.php, Router.php, dan Controller dasar sesuai modul praktikum 4.'
     ],
@@ -25,7 +29,7 @@ $initial_tasks = [
         'course' => 'Sistem Basis Data',
         'deadline' => date('Y-m-d\TH:i', strtotime('+2 days 4 hours')),
         'status' => 'inprogress',
-        'urgency' => 'warning', // < 3 hari
+        'urgency' => 'warning',
         'lms_url' => 'https://lms.universitas.ac.id/mod/assign/view.php?id=204',
         'instructions' => 'Lakukan perancangan ERD dan normalisasi tabel transaksi klinik hingga bentuk 3NF beserta DDL script MySQL.'
     ],
@@ -35,7 +39,7 @@ $initial_tasks = [
         'course' => 'Rekayasa Perangkat Lunak',
         'deadline' => date('Y-m-d\TH:i', strtotime('+5 days 10 hours')),
         'status' => 'inprogress',
-        'urgency' => 'safe', // > 3 hari
+        'urgency' => 'safe',
         'lms_url' => 'https://lms.universitas.ac.id/mod/assign/view.php?id=305',
         'instructions' => 'Susun dokumen SRS standar IEEE 830 mencakup use case diagram, activity diagram, dan non-functional requirements.'
     ],
@@ -45,7 +49,7 @@ $initial_tasks = [
         'course' => 'Jaringan Komputer',
         'deadline' => date('Y-m-d\TH:i', strtotime('-1 day')),
         'status' => 'done',
-        'urgency' => 'done', // selesai
+        'urgency' => 'done',
         'lms_url' => 'https://lms.universitas.ac.id/mod/assign/view.php?id=402',
         'instructions' => 'Praktikum Packet Tracer menghubungkan 3 router dengan routing statis dan konfigurasi DHCP server.'
     ]
@@ -65,21 +69,21 @@ $initial_tasks = [
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Stylesheet Utama -->
+    <!-- Stylesheet Utama (CSS Custom Properties, Flexbox, Grid, Media Queries, Focus-Visible) -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <!-- Skip to Content Link untuk Aksesibilitas Keyboard (WCAG 2.4.1) -->
     <a href="#main-content" class="skip-link">Loncat langsung ke konten utama</a>
 
-    <!-- Notifikasi Live Region untuk Pembaca Layar (Screen Reader) -->
+    <!-- Notifikasi Live Region untuk Pembaca Layar (WCAG 4.1.3) -->
     <div id="a11y-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
-    <!-- Header Aplikasi & Navigasi -->
+    <!-- Header Aplikasi & Navigasi Responsif -->
     <header class="app-header" role="banner">
         <div class="header-container">
             <div class="brand-area">
-                <a href="index.php" class="brand-logo" aria-label="TaskTrack - Halaman Utama">
+                <a href="#hero" class="brand-logo" aria-label="TaskTrack - Halaman Utama">
                     <svg class="logo-icon" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img">
                         <rect width="32" height="32" rx="8" fill="url(#logo-grad)"/>
                         <path d="M9 16.5L14 21.5L23 10.5" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
@@ -92,14 +96,33 @@ $initial_tasks = [
                     </svg>
                     <span class="brand-text">Task<strong>Track</strong></span>
                 </a>
-                <span class="brand-badge" aria-label="Versi Proyek">Semester Project</span>
+                <span class="brand-badge" aria-label="Versi Proyek">v1.2 Landing</span>
             </div>
 
+            <!-- Tombol Toggle Menu Mobile -->
+            <button type="button" id="btn-menu-toggle" class="btn-menu-toggle" aria-expanded="false" aria-controls="primary-nav" aria-label="Buka Menu Navigasi">
+                <span class="hamburger-bar" aria-hidden="true"></span>
+                <span class="hamburger-bar" aria-hidden="true"></span>
+                <span class="hamburger-bar" aria-hidden="true"></span>
+            </button>
+
             <!-- Navigasi Utama -->
-            <nav class="app-nav" aria-label="Navigasi Utama Aplikasi">
+            <nav id="primary-nav" class="app-nav" aria-label="Navigasi Utama Aplikasi">
                 <ul class="nav-list">
                     <li class="nav-item">
-                        <a href="#kanban-section" class="nav-link active" aria-current="page">
+                        <a href="#hero" class="nav-link">
+                            <span class="nav-icon" aria-hidden="true">🏠</span>
+                            <span>Beranda</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#features" class="nav-link">
+                            <span class="nav-icon" aria-hidden="true">✨</span>
+                            <span>Fitur</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#kanban-section" class="nav-link active">
                             <span class="nav-icon" aria-hidden="true">📋</span>
                             <span>Papan Kanban</span>
                         </a>
@@ -119,9 +142,9 @@ $initial_tasks = [
                 </ul>
             </nav>
 
-            <!-- Aksi Header: Notifikasi & Autentikasi Pengguna -->
+            <!-- Aksi Header: Izin Notifikasi & Modal Login Pengguna -->
             <div class="header-actions">
-                <button type="button" id="btn-notification-prompt" class="btn-icon" aria-label="Pengaturan Izin Notifikasi Web Push" title="Aktifkan Web Push Notification">
+                <button type="button" id="btn-notification-prompt" class="btn-icon" aria-label="Pengaturan Izin Web Push Notification" title="Aktifkan Web Push Notification">
                     <span class="icon-bell" aria-hidden="true">🔔</span>
                     <span id="notif-badge" class="badge-dot" aria-label="Status notifikasi aktif"></span>
                 </button>
@@ -139,57 +162,170 @@ $initial_tasks = [
     <!-- Konten Utama (Main Landmark) -->
     <main id="main-content" class="app-main" tabindex="-1">
         
-        <!-- SECTION 1: Ringkasan Metrik, Banner Notifikasi, & Filter Mata Kuliah -->
-        <section id="hero-overview" class="section-overview" aria-labelledby="heading-overview">
+        <!-- SECTION 1: HERO LANDING PAGE -->
+        <section id="hero" class="section-hero" aria-labelledby="heading-hero">
             <div class="section-container">
-                <div class="section-header-block">
-                    <h1 class="main-title">TaskTrack — Pemantau Deadline & Papan Tugas Mahasiswa</h1>
-                    <p class="section-subtitle">Kelola tugas kuliah berdasar skala urgensi waktu, integrasi portal e-learning, dan alur kerja Kanban 3 kolom yang fleksibel.</p>
-                </div>
-
-                <!-- Banner Opt-in Web Push Notification (Peringatan H-1 & H-3 Jam) -->
-                <div id="notification-banner" class="notification-banner" role="region" aria-label="Pemberitahuan Izin Notifikasi">
-                    <div class="notif-banner-content">
-                        <span class="notif-banner-icon" aria-hidden="true">⏰</span>
-                        <div class="notif-banner-text">
-                            <strong>Aktifkan Peringatan Web Push Notification</strong>
-                            <p>Dapatkan peringatan otomatis di browser & ponsel saat tugas mendekati <strong>H-1 Hari</strong> dan <strong>H-3 Jam</strong> sebelum deadline.</p>
+                <div class="hero-content-wrap">
+                    <div class="hero-text-block">
+                        <div class="hero-pill-badge" role="note">
+                            <span class="badge-icon" aria-hidden="true">🚀</span>
+                            <span>Visual Tracker Tugas & Deadline Kuliah</span>
+                        </div>
+                        <h1 id="heading-hero" class="hero-title">
+                            Kelola Tugas Kuliah Tanpa Panik <span class="text-gradient">Terlewat Deadline</span>
+                        </h1>
+                        <p class="hero-description">
+                            TaskTrack memadukan fleksibilitas <strong>Papan Kanban 3 Kolom</strong>, integrasi instan ke portal <strong>LMS kampus</strong>, peringatan otomatis <strong>Web Push H-1 & H-3 Jam</strong>, serta indikator visual warna kritis untuk memprioritaskan antrean tugas kuliah Anda.
+                        </p>
+                        
+                        <div class="hero-cta-group">
+                            <a href="#kanban-section" class="btn btn-primary btn-lg">
+                                <span aria-hidden="true">📋</span>
+                                <span>Buka Papan Kanban</span>
+                            </a>
+                            <a href="#features" class="btn btn-secondary btn-lg">
+                                <span aria-hidden="true">🔍</span>
+                                <span>Pelajari Fitur Unggulan</span>
+                            </a>
                         </div>
                     </div>
-                    <div class="notif-banner-actions">
-                        <button type="button" id="btn-enable-push" class="btn btn-primary btn-sm">Izinkan Notifikasi</button>
-                        <button type="button" id="btn-dismiss-banner" class="btn btn-secondary btn-sm" aria-label="Tutup pemberitahuan notifikasi">Nanti Saja</button>
+
+                    <!-- Banner Opt-in Web Push Notification (Peringatan H-1 & H-3 Jam) -->
+                    <div id="notification-banner" class="notification-banner" role="region" aria-label="Pemberitahuan Izin Notifikasi">
+                        <div class="notif-banner-content">
+                            <span class="notif-banner-icon" aria-hidden="true">⏰</span>
+                            <div class="notif-banner-text">
+                                <strong>Aktifkan Peringatan Web Push Notification</strong>
+                                <p>Dapatkan peringatan otomatis di browser & ponsel saat tugas mendekati <strong>H-1 Hari</strong> dan <strong>H-3 Jam</strong> sebelum deadline.</p>
+                            </div>
+                        </div>
+                        <div class="notif-banner-actions">
+                            <button type="button" id="btn-enable-push" class="btn btn-primary btn-sm">Izinkan Notifikasi</button>
+                            <button type="button" id="btn-dismiss-banner" class="btn btn-secondary btn-sm" aria-label="Tutup pemberitahuan notifikasi">Nanti Saja</button>
+                        </div>
+                    </div>
+
+                    <!-- Reusable Component: Metrik Statistik Tugas (CSS Grid & Flexbox) -->
+                    <div class="metrics-grid" role="region" aria-label="Statistik Ringkasan Tugas">
+                        <?php
+                        renderStatCard([
+                            'id' => 'stat-total-tasks',
+                            'label' => 'Total Tugas',
+                            'value' => '4',
+                            'desc' => 'Tersimpan di sistem',
+                            'type' => 'total'
+                        ]);
+                        renderStatCard([
+                            'id' => 'stat-urgent-tasks',
+                            'label' => 'Kritis (< 24 Jam)',
+                            'value' => '1',
+                            'desc' => 'Perlu segera diselesaikan',
+                            'type' => 'urgent',
+                            'color_class' => 'text-danger'
+                        ]);
+                        renderStatCard([
+                            'id' => 'stat-progress-tasks',
+                            'label' => 'Sedang Berjalan',
+                            'value' => '2',
+                            'desc' => 'Dalam pengerjaan',
+                            'type' => 'progress',
+                            'color_class' => 'text-warning'
+                        ]);
+                        renderStatCard([
+                            'id' => 'stat-done-tasks',
+                            'label' => 'Tugas Selesai',
+                            'value' => '1',
+                            'desc' => 'Tuntas dikumpulkan',
+                            'type' => 'done',
+                            'color_class' => 'text-success'
+                        ]);
+                        ?>
                     </div>
                 </div>
+            </div>
+        </section>
 
-                <!-- Bar Metrik Cepat -->
-                <div class="metrics-grid" role="region" aria-label="Statistik Tugas">
-                    <div class="metric-card metric-total">
-                        <span class="metric-label">Total Tugas</span>
-                        <span class="metric-value" id="stat-total-tasks">4</span>
-                        <span class="metric-desc">Tersimpan di sistem</span>
+        <!-- SECTION 2: FITUR UNGGULAN (Landing Page Value Proposition) -->
+        <section id="features" class="section-features" aria-labelledby="heading-features">
+            <div class="section-container">
+                <div class="section-header-center">
+                    <span class="section-tag">Keunggulan Sistem</span>
+                    <h2 id="heading-features" class="section-heading">Mengapa Mahasiswa Memilih TaskTrack?</h2>
+                    <p class="section-subtext">Dirancang dengan alur kerja modern berbasis Kanban, aksesibilitas inklusif, dan otomasi tenggat waktu untuk meningkatkan produktivitas belajar.</p>
+                </div>
+
+                <!-- Reusable Component: FeatureCard Grid -->
+                <div class="features-grid">
+                    <?php
+                    renderFeatureCard([
+                        'icon' => '📌',
+                        'title' => 'Papan Kanban 3 Kolom Interaktif',
+                        'desc' => 'Visualisasikan perjalanan tugas dari Belum Dimulai (To Do), Sedang Dikerjakan (In Progress), hingga Selesai (Done) dengan drag & drop mulus.',
+                        'tag' => 'Alur Kerja Visual',
+                        'tag_class' => 'tag-primary'
+                    ]);
+                    renderFeatureCard([
+                        'icon' => '🚨',
+                        'title' => 'Warna Indikator Kritis Waktu',
+                        'desc' => 'Kartu otomatis berubah warna: Merah (< 24 jam), Kuning (< 3 hari), Hijau (> 3 hari), dan Abu-abu (selesai), lengkap dengan auto-sorting tenggat terdekat.',
+                        'tag' => 'Anti Ketinggalan',
+                        'tag_class' => 'tag-danger'
+                    ]);
+                    renderFeatureCard([
+                        'icon' => '🔔',
+                        'title' => 'Web Push Notification H-1 & H-3 Jam',
+                        'desc' => 'Notifikasi browser otomatis memberi peringatan pop-up di ponsel atau laptop saat deadline mendekati H-1 hari dan H-3 jam sebelum ditutup.',
+                        'tag' => 'Pengingat Aktif',
+                        'tag_class' => 'tag-warning'
+                    ]);
+                    renderFeatureCard([
+                        'icon' => '🌐',
+                        'title' => 'Shortcut Portal LMS & Quick Paste',
+                        'desc' => 'Tautan langsung 1-klik ke halaman tugas Moodle / Google Classroom kampus, disertai area tempel instruksi tugas panjang dari clipboard.',
+                        'tag' => 'Integrasi Kampus',
+                        'tag_class' => 'tag-success'
+                    ]);
+                    renderFeatureCard([
+                        'icon' => '♿',
+                        'title' => 'Aksesibilitas Penuh (WCAG 2.1 AA)',
+                        'desc' => 'Dukungan tombol fokus (:focus-visible), navigasi keyboard runtut (Tab/Esc), skip to content, live announcer pembaca layar, dan kontras warna teruji.',
+                        'tag' => 'Inklusif & Ramah',
+                        'tag_class' => 'tag-info'
+                    ]);
+                    renderFeatureCard([
+                        'icon' => '🔐',
+                        'title' => 'Google SSO & Fitur Remember Me',
+                        'desc' => 'Masuk instan menggunakan akun Google Mahasiswa atau email biasa dengan penyimpanan sesi persisten di perangkat Anda.',
+                        'tag' => 'Autentikasi Cepat',
+                        'tag_class' => 'tag-dark'
+                    ]);
+                    ?>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: LIVE KANBAN WORKSPACE SECTION -->
+        <section id="kanban-section" class="section-kanban" aria-labelledby="heading-kanban">
+            <div class="section-container">
+                <div class="section-title-wrap">
+                    <div>
+                        <span class="section-tag">Ruang Kerja Langsung</span>
+                        <h2 id="heading-kanban" class="section-heading">Papan Kanban Alur Kerja Tugas</h2>
+                        <p class="section-subtext">Pindahkan kartu tugas antar kolom secara <strong>Drag & Drop</strong> atau tombol pindah. Kartu otomatis terurut berdasarkan tenggat terdekat.</p>
                     </div>
-                    <div class="metric-card metric-urgent">
-                        <span class="metric-label">Kritis (&lt; 24 Jam)</span>
-                        <span class="metric-value text-danger" id="stat-urgent-tasks">1</span>
-                        <span class="metric-desc">Perlu segera diselesaikan</span>
-                    </div>
-                    <div class="metric-card metric-progress">
-                        <span class="metric-label">Sedang Berjalan</span>
-                        <span class="metric-value text-warning" id="stat-progress-tasks">2</span>
-                        <span class="metric-desc">Dalam pengerjaan</span>
-                    </div>
-                    <div class="metric-card metric-done">
-                        <span class="metric-label">Tugas Selesai</span>
-                        <span class="metric-value text-success" id="stat-done-tasks">1</span>
-                        <span class="metric-desc">Tuntas dikumpulkan</span>
+
+                    <!-- Petunjuk Warna Indikator Kritis -->
+                    <div class="urgency-legend" role="note" aria-label="Keterangan Indikator Urgensi Deadline">
+                        <span class="legend-title">Indikator Tenggat:</span>
+                        <span class="legend-item"><span class="color-dot dot-critical" aria-hidden="true"></span> &lt; 24 Jam (Kritis)</span>
+                        <span class="legend-item"><span class="color-dot dot-warning" aria-hidden="true"></span> &lt; 3 Hari (Perhatian)</span>
+                        <span class="legend-item"><span class="color-dot dot-safe" aria-hidden="true"></span> &gt; 3 Hari (Aman)</span>
+                        <span class="legend-item"><span class="color-dot dot-done" aria-hidden="true"></span> Selesai</span>
                     </div>
                 </div>
 
                 <!-- Kontrol Filter & Pencarian -->
                 <div class="filter-toolbar">
-                    <h2 id="heading-overview" class="sr-only">Filter dan Penyaringan Tugas</h2>
-                    
                     <form id="filter-form" class="filter-controls" role="search" aria-label="Filter Mata Kuliah dan Cari Tugas" onsubmit="event.preventDefault();">
                         <div class="filter-group">
                             <label for="filter-course-select" class="filter-label">
@@ -221,29 +357,8 @@ $initial_tasks = [
                         </div>
                     </form>
                 </div>
-            </div>
-        </section>
 
-        <!-- SECTION 2: Papan Kanban 3 Kolom (To Do, In Progress, Done) -->
-        <section id="kanban-section" class="section-kanban" aria-labelledby="heading-kanban">
-            <div class="section-container">
-                <div class="section-title-wrap">
-                    <div>
-                        <h2 id="heading-kanban" class="section-heading">Papan Kanban Alur Kerja</h2>
-                        <p class="section-subtext">Pindahkan kartu tugas antar kolom secara <strong>Drag & Drop</strong> atau gunakan tombol pindah. Kartu otomatis tersortir berdasarkan deadline terdekat.</p>
-                    </div>
-
-                    <!-- Petunjuk Warna Indikator Kritis -->
-                    <div class="urgency-legend" role="note" aria-label="Keterangan Indikator Urgensi Deadline">
-                        <span class="legend-title">Indikator Tenggat:</span>
-                        <span class="legend-item"><span class="color-dot dot-critical" aria-hidden="true"></span> &lt; 24 Jam (Kritis)</span>
-                        <span class="legend-item"><span class="color-dot dot-warning" aria-hidden="true"></span> &lt; 3 Hari (Perhatian)</span>
-                        <span class="legend-item"><span class="color-dot dot-safe" aria-hidden="true"></span> &gt; 3 Hari (Aman)</span>
-                        <span class="legend-item"><span class="color-dot dot-done" aria-hidden="true"></span> Selesai</span>
-                    </div>
-                </div>
-
-                <!-- 3 Kolom Papan Kanban -->
+                <!-- 3 Kolom Papan Kanban (CSS Grid & Reusable TaskCard Components) -->
                 <div class="kanban-grid" role="region" aria-label="Kolom-kolom Kanban">
                     
                     <!-- Kolom 1: To Do -->
@@ -256,32 +371,7 @@ $initial_tasks = [
                             <span class="column-counter" id="count-todo" aria-label="1 tugas di kolom belum dimulai">1</span>
                         </header>
                         <div class="column-dropzone" id="dropzone-todo" role="list" aria-label="Daftar tugas belum dimulai">
-                            <!-- Kartu Tugas 1 (Semantik <article>) -->
-                            <article class="task-card urgency-critical" id="task-1" draggable="true" role="listitem" aria-labelledby="task-title-1">
-                                <header class="task-card-header">
-                                    <span class="course-badge">Pemrograman Web Lanjut</span>
-                                    <span class="urgency-pill pill-critical">Kritis (&lt; 24 Jam)</span>
-                                </header>
-                                <h4 id="task-title-1" class="task-card-title">Implementasi Arsitektur MVC & Routing Native</h4>
-                                <div class="task-meta">
-                                    <div class="task-deadline-time">
-                                        <span class="meta-icon" aria-hidden="true">⏰</span>
-                                        <time datetime="2026-09-21T04:00" class="deadline-timer">Sisa Waktu: 18 Jam Lagi</time>
-                                    </div>
-                                    <p class="task-notes-snippet">Buat struktur folder MVC murni menggunakan PHP native tanpa framework. Sertakan file index.php, Router.php, dan Controller dasar sesuai modul praktikum 4.</p>
-                                </div>
-                                <footer class="task-card-footer">
-                                    <a href="https://lms.universitas.ac.id/mod/assign/view.php?id=101" target="_blank" rel="noopener noreferrer" class="btn-lms-shortcut" title="Buka tautan pengumpulan di LMS Kampus" aria-label="Buka halaman LMS untuk tugas Implementasi Arsitektur MVC">
-                                        <span class="lms-icon" aria-hidden="true">🔗</span>
-                                        <span>Portal LMS</span>
-                                    </a>
-                                    <div class="task-actions">
-                                        <button type="button" class="btn-action btn-move-next" data-task-id="task-1" data-next="inprogress" title="Pindah ke Sedang Dikerjakan" aria-label="Pindahkan tugas ke Sedang Dikerjakan">➡️</button>
-                                        <button type="button" class="btn-action btn-edit-task" data-task-id="task-1" title="Edit Rincian Tugas" aria-label="Edit tugas Implementasi Arsitektur MVC">✏️</button>
-                                        <button type="button" class="btn-action btn-delete-task" data-task-id="task-1" title="Hapus Tugas" aria-label="Hapus tugas Implementasi Arsitektur MVC">🗑️</button>
-                                    </div>
-                                </footer>
-                            </article>
+                            <?php renderTaskCard($initial_tasks[0]); ?>
                         </div>
                     </div>
 
@@ -295,59 +385,10 @@ $initial_tasks = [
                             <span class="column-counter" id="count-inprogress" aria-label="2 tugas di kolom sedang dikerjakan">2</span>
                         </header>
                         <div class="column-dropzone" id="dropzone-inprogress" role="list" aria-label="Daftar tugas sedang dikerjakan">
-                            <!-- Kartu Tugas 2 -->
-                            <article class="task-card urgency-warning" id="task-2" draggable="true" role="listitem" aria-labelledby="task-title-2">
-                                <header class="task-card-header">
-                                    <span class="course-badge">Sistem Basis Data</span>
-                                    <span class="urgency-pill pill-warning">&lt; 3 Hari</span>
-                                </header>
-                                <h4 id="task-title-2" class="task-card-title">Normalisasi Basis Data Relasional 3NF</h4>
-                                <div class="task-meta">
-                                    <div class="task-deadline-time">
-                                        <span class="meta-icon" aria-hidden="true">⏰</span>
-                                        <time datetime="2026-09-22T14:00" class="deadline-timer">Sisa Waktu: 2 Hari 4 Jam</time>
-                                    </div>
-                                    <p class="task-notes-snippet">Lakukan perancangan ERD dan normalisasi tabel transaksi klinik hingga bentuk 3NF beserta DDL script MySQL.</p>
-                                </div>
-                                <footer class="task-card-footer">
-                                    <a href="https://lms.universitas.ac.id/mod/assign/view.php?id=204" target="_blank" rel="noopener noreferrer" class="btn-lms-shortcut" title="Buka tautan pengumpulan di LMS Kampus" aria-label="Buka halaman LMS untuk tugas Normalisasi Basis Data 3NF">
-                                        <span class="lms-icon" aria-hidden="true">🔗</span>
-                                        <span>Portal LMS</span>
-                                    </a>
-                                    <div class="task-actions">
-                                        <button type="button" class="btn-action btn-move-next" data-task-id="task-2" data-next="done" title="Pindah ke Selesai" aria-label="Pindahkan tugas ke Selesai">✅</button>
-                                        <button type="button" class="btn-action btn-edit-task" data-task-id="task-2" title="Edit Rincian Tugas" aria-label="Edit tugas Normalisasi Basis Data 3NF">✏️</button>
-                                        <button type="button" class="btn-action btn-delete-task" data-task-id="task-2" title="Hapus Tugas" aria-label="Hapus tugas Normalisasi Basis Data 3NF">🗑️</button>
-                                    </div>
-                                </footer>
-                            </article>
-
-                            <!-- Kartu Tugas 3 -->
-                            <article class="task-card urgency-safe" id="task-3" draggable="true" role="listitem" aria-labelledby="task-title-3">
-                                <header class="task-card-header">
-                                    <span class="course-badge">Rekayasa Perangkat Lunak</span>
-                                    <span class="urgency-pill pill-safe">&gt; 3 Hari (Aman)</span>
-                                </header>
-                                <h4 id="task-title-3" class="task-card-title">Analisis Kebutuhan Sistem & Pembuatan SRS</h4>
-                                <div class="task-meta">
-                                    <div class="task-deadline-time">
-                                        <span class="meta-icon" aria-hidden="true">⏰</span>
-                                        <time datetime="2026-09-25T20:00" class="deadline-timer">Sisa Waktu: 5 Hari 10 Jam</time>
-                                    </div>
-                                    <p class="task-notes-snippet">Susun dokumen SRS standar IEEE 830 mencakup use case diagram, activity diagram, dan non-functional requirements.</p>
-                                </div>
-                                <footer class="task-card-footer">
-                                    <a href="https://lms.universitas.ac.id/mod/assign/view.php?id=305" target="_blank" rel="noopener noreferrer" class="btn-lms-shortcut" title="Buka tautan pengumpulan di LMS Kampus" aria-label="Buka halaman LMS untuk tugas Pembuatan SRS">
-                                        <span class="lms-icon" aria-hidden="true">🔗</span>
-                                        <span>Portal LMS</span>
-                                    </a>
-                                    <div class="task-actions">
-                                        <button type="button" class="btn-action btn-move-next" data-task-id="task-3" data-next="done" title="Pindah ke Selesai" aria-label="Pindahkan tugas ke Selesai">✅</button>
-                                        <button type="button" class="btn-action btn-edit-task" data-task-id="task-3" title="Edit Rincian Tugas" aria-label="Edit tugas Pembuatan SRS">✏️</button>
-                                        <button type="button" class="btn-action btn-delete-task" data-task-id="task-3" title="Hapus Tugas" aria-label="Hapus tugas Pembuatan SRS">🗑️</button>
-                                    </div>
-                                </footer>
-                            </article>
+                            <?php 
+                            renderTaskCard($initial_tasks[1]); 
+                            renderTaskCard($initial_tasks[2]); 
+                            ?>
                         </div>
                     </div>
 
@@ -361,32 +402,7 @@ $initial_tasks = [
                             <span class="column-counter" id="count-done" aria-label="1 tugas di kolom selesai">1</span>
                         </header>
                         <div class="column-dropzone" id="dropzone-done" role="list" aria-label="Daftar tugas yang sudah selesai">
-                            <!-- Kartu Tugas 4 -->
-                            <article class="task-card urgency-done" id="task-4" draggable="true" role="listitem" aria-labelledby="task-title-4">
-                                <header class="task-card-header">
-                                    <span class="course-badge">Jaringan Komputer</span>
-                                    <span class="urgency-pill pill-done">Selesai</span>
-                                </header>
-                                <h4 id="task-title-4" class="task-card-title">Konfigurasi Subnetting & Routing Statis Cisco</h4>
-                                <div class="task-meta">
-                                    <div class="task-deadline-time">
-                                        <span class="meta-icon" aria-hidden="true">✓</span>
-                                        <time datetime="2026-09-19T23:59" class="deadline-timer">Tuntas Terkumpul</time>
-                                    </div>
-                                    <p class="task-notes-snippet">Praktikum Packet Tracer menghubungkan 3 router dengan routing statis dan konfigurasi DHCP server.</p>
-                                </div>
-                                <footer class="task-card-footer">
-                                    <a href="https://lms.universitas.ac.id/mod/assign/view.php?id=402" target="_blank" rel="noopener noreferrer" class="btn-lms-shortcut" title="Buka tautan pengumpulan di LMS Kampus" aria-label="Buka halaman LMS untuk tugas Konfigurasi Subnetting Cisco">
-                                        <span class="lms-icon" aria-hidden="true">🔗</span>
-                                        <span>Portal LMS</span>
-                                    </a>
-                                    <div class="task-actions">
-                                        <button type="button" class="btn-action btn-move-next" data-task-id="task-4" data-next="todo" title="Kembalikan ke Belum Dimulai" aria-label="Kembalikan tugas ke Belum Dimulai">↩️</button>
-                                        <button type="button" class="btn-action btn-edit-task" data-task-id="task-4" title="Edit Rincian Tugas" aria-label="Edit tugas Konfigurasi Subnetting Cisco">✏️</button>
-                                        <button type="button" class="btn-action btn-delete-task" data-task-id="task-4" title="Hapus Tugas" aria-label="Hapus tugas Konfigurasi Subnetting Cisco">🗑️</button>
-                                    </div>
-                                </footer>
-                            </article>
+                            <?php renderTaskCard($initial_tasks[3]); ?>
                         </div>
                     </div>
 
@@ -394,13 +410,14 @@ $initial_tasks = [
             </div>
         </section>
 
-        <!-- SECTION 3: Form Manajemen Tugas (CRUD) & Quick Input Instruksi LMS -->
+        <!-- SECTION 4: FORM MANAJEMEN TUGAS (CRUD) & QUICK INPUT LMS -->
         <section id="task-management" class="section-management" aria-labelledby="heading-management">
             <div class="section-container">
                 <div class="form-wrapper-card">
                     <header class="form-header">
-                        <h2 id="heading-management" class="section-heading">Manajemen Tugas & Quick Input Instruksi</h2>
-                        <p class="section-subtext">Isi formulir di bawah ini untuk menambahkan kartu tugas baru ke papan Kanban atau memperbarui data tugas kuliah Anda.</p>
+                        <span class="section-tag">Manajemen & Entri</span>
+                        <h2 id="heading-management" class="section-heading">Tambah & Kelola Tugas Kuliah</h2>
+                        <p class="section-subtext">Isi formulir terstruktur di bawah ini untuk menambahkan tugas baru ke papan Kanban atau memperbarui data tugas kuliah Anda.</p>
                     </header>
 
                     <!-- Formulir Manajemen Tugas Lengkap (<form>) -->
@@ -504,12 +521,13 @@ $initial_tasks = [
             </div>
         </section>
 
-        <!-- SECTION 4: Checklist Aksesibilitas Web Dasar (Rubrik Penilaian Semester) -->
+        <!-- SECTION 5: CHECKLIST AKSESIBILITAS DASAR (Accessibility Audit) -->
         <section id="accessibility-checklist" class="section-accessibility" aria-labelledby="heading-accessibility">
             <div class="section-container">
                 <div class="section-header-block">
+                    <span class="section-tag">Audit Kualitas Web</span>
                     <h2 id="heading-accessibility" class="section-heading">Checklist Aksesibilitas Dasar (WCAG 2.1 AA)</h2>
-                    <p class="section-subtext">Evaluasi kepatuhan aksesibilitas web sesuai standar proyek semester untuk memastikan aplikasi dapat diakses semua pengguna, termasuk difabel dan pengguna keyboard.</p>
+                    <p class="section-subtext">Evaluasi kepatuhan aksesibilitas web sesuai standar proyek semester untuk memastikan aplikasi dapat diakses semua pengguna, termasuk pengguna keyboard dan pembaca layar.</p>
                 </div>
 
                 <div class="a11y-table-responsive">
@@ -525,20 +543,20 @@ $initial_tasks = [
                         <tbody>
                             <tr>
                                 <th scope="row">1. Semantic HTML5 Structure</th>
-                                <td>Navigasi, Main, Section, Article, Form, Footer</td>
-                                <td>Penggunaan elemen semantik native (<code>&lt;header&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;main&gt;</code>, 4x <code>&lt;section&gt;</code>, <code>&lt;article&gt;</code> untuk kartu tugas, <code>&lt;form&gt;</code>, dan <code>&lt;footer&gt;</code>).</td>
+                                <td>Navigasi, Main, 5 Section, Article, Form, Footer</td>
+                                <td>Penggunaan elemen semantik native (<code>&lt;header&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;main&gt;</code>, 5x <code>&lt;section&gt;</code>, <code>&lt;article&gt;</code> kartu tugas, <code>&lt;form&gt;</code>, dan <code>&lt;footer&gt;</code>).</td>
                                 <td><span class="badge-status badge-success">✓ Terpenuhi</span></td>
                             </tr>
                             <tr>
                                 <th scope="row">2. Logical Heading Hierarchy</th>
                                 <td>Tingkatan H1 hingga H4 runtut</td>
-                                <td>Halaman diawali satu <code>&lt;h1&gt;</code> utama, diikuti <code>&lt;h2&gt;</code> untuk setiap section, <code>&lt;h3&gt;</code> untuk kolom dan rincian formulir, serta <code>&lt;h4&gt;</code> untuk setiap judul kartu tugas.</td>
+                                <td>Halaman diawali satu <code>&lt;h1&gt;</code> utama, diikuti <code>&lt;h2&gt;</code> untuk setiap section, <code>&lt;h3&gt;</code> untuk kolom dan rincian formulir/fitur, serta <code>&lt;h4&gt;</code> untuk judul kartu tugas.</td>
                                 <td><span class="badge-status badge-success">✓ Terpenuhi</span></td>
                             </tr>
                             <tr>
-                                <th scope="row">3. Keyboard Navigability & Skip Link</th>
-                                <td>Fokus Tab runtut + Skip to Content</td>
-                                <td>Tersedia tautan <code>.skip-link</code> di paling atas dokumen untuk melewati navigasi langsung ke konten utama. Seluruh tombol dan kartu dapat difokuskan via keyboard dengan indikator <code>:focus-visible</code> tegas.</td>
+                                <th scope="row">3. Keyboard Navigability & Focus-Visible</th>
+                                <td>Fokus Tab runtut, Skip Link & :focus-visible</td>
+                                <td>Tersedia <code>.skip-link</code> untuk melompati navigasi. Seluruh tombol, link, dan kartu memiliki styling <code>:focus-visible</code> tegas (3px solid dengan offset) dan dapat dinavigasi via keyboard.</td>
                                 <td><span class="badge-status badge-success">✓ Terpenuhi</span></td>
                             </tr>
                             <tr>
@@ -550,13 +568,13 @@ $initial_tasks = [
                             <tr>
                                 <th scope="row">5. High Contrast & Urgency Indicators</th>
                                 <td>Kontras warna WCAG AA (&gt; 4.5:1)</td>
-                                <td>Indikator urgensi deadline tidak hanya mengandalkan warna, melainkan disertai teks status eksplisit (Kritis, Perhatian, Aman, Selesai) dan kontras warna teks yang memenuhi standar rasio kontras.</td>
+                                <td>Indikator urgensi deadline tidak hanya mengandalkan warna, melainkan disertai teks status eksplisit (Kritis, Perhatian, Aman, Selesai) dan rasio kontras teks teruji.</td>
                                 <td><span class="badge-status badge-success">✓ Terpenuhi</span></td>
                             </tr>
                             <tr>
                                 <th scope="row">6. ARIA Roles & Screen Reader Alerts</th>
                                 <td>Landmark ARIA & <code>aria-live</code></td>
-                                <td>Pemberitahuan perubahan status tugas dan pesan interaktif menggunakan elemen <code>aria-live="polite"</code> sehingga pengguna pembaca layar mengetahui perubahan secara real-time.</td>
+                                <td>Perubahan status tugas dan aksi interaktif diumumkan via elemen <code>aria-live="polite"</code> sehingga pengguna pembaca layar mendapatkan konteks pembaruan.</td>
                                 <td><span class="badge-status badge-success">✓ Terpenuhi</span></td>
                             </tr>
                         </tbody>
@@ -623,14 +641,15 @@ $initial_tasks = [
                 <div class="brand-area">
                     <span class="brand-text">Task<strong>Track</strong></span>
                 </div>
-                <p class="footer-desc">Aplikasi manajemen tugas individu semester dengan fokus aksesibilitas web, pemantauan deadline cerdas, dan interaksi Kanban responsif.</p>
+                <p class="footer-desc">Aplikasi visual tracker tugas dan deadline kuliah mahasiswa dengan alur kerja Kanban 3 kolom, desain responsif multi-device, dan aksesibilitas inklusif.</p>
                 <p class="copyright-text">&copy; <?php echo $current_year; ?> TaskTrack Mahasiswa. Dibangun untuk Memenuhi Tugas Individu Semester.</p>
             </div>
 
             <div class="footer-col footer-links">
                 <h3 class="footer-heading">Navigasi Halaman</h3>
                 <ul class="footer-nav-list">
-                    <li><a href="#hero-overview">Ringkasan & Filter</a></li>
+                    <li><a href="#hero">Beranda & Ringkasan</a></li>
+                    <li><a href="#features">Fitur Unggulan</a></li>
                     <li><a href="#kanban-section">Papan Kanban 3 Kolom</a></li>
                     <li><a href="#task-management">Formulir Tambah Tugas</a></li>
                     <li><a href="#accessibility-checklist">Checklist Aksesibilitas</a></li>
