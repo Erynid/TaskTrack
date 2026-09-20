@@ -1,93 +1,77 @@
-# TaskTrack — Papan Manajemen & Pemantau Deadline Tugas Mahasiswa
+# TaskTrack - Web Tracker Tugas & Deadline Kuliah
 
-TaskTrack adalah aplikasi web manajemen tugas kuliah berbasis papan Kanban 3 kolom interaktif (*To Do*, *In Progress*, *Done*) yang dibangun menggunakan **PHP Standar**, **HTML5 Semantik**, **Modern CSS**, dan **Vanilla JavaScript**. Aplikasi ini dirancang khusus untuk mahasiswa agar dapat memprioritaskan tugas kuliah berdasarkan tenggat waktu (*deadline*), mengintegrasikan tautan pengumpulan ke portal LMS kampus (*Moodle, Google Classroom, Canvas*), serta mempermudah input instruksi tugas panjang secara cepat.
-
----
-
-## 🚀 Fitur Utama
-
-1. **Autentikasi Pengguna**:
-   - Pilihan masuk menggunakan **Google SSO** (Single Sign-On Mahasiswa) atau akun email/kata sandi biasa.
-   - Fitur **Ingat Sesi (*Remember Me*)** menggunakan `localStorage` untuk sesi persisten atau `sessionStorage` untuk sesi sekali pakai.
-2. **Papan Kanban 3 Kolom**:
-   - Visualisasi alur kerja tugas terstruktur: **Belum Dimulai (*To Do*)**, **Sedang Dikerjakan (*In Progress*)**, dan **Selesai (*Done*)**.
-3. **Drag & Drop Interaktif**:
-   - Memindahkan kartu tugas antar kolom secara mulus menggunakan **HTML5 Drag and Drop API** dengan efek visual *dragover*, serta tombol pintas manual untuk pengguna keyboard dan layar sentuh.
-4. **Manajemen Tugas (CRUD)**:
-   - Menambah tugas baru, menampilkan rincian tugas, memperbarui (*edit*), dan menghapus (*delete*) kartu tugas dengan konfirmasi yang aman.
-5. **Link Pengumpulan Tugas (LMS Shortcut)**:
-   - Menyimpan URL halaman penugasan e-learning dan menyediakan tombol pintasan langsung `🔗 Portal LMS` yang membuka tab baru secara aman (`target="_blank" rel="noopener noreferrer"`).
-6. **Quick Input Teks Instruksi**:
-   - Area teks luas khusus untuk menyalin dan menempel (*copy-paste*) instruksi tugas panjang dari portal e-learning dosen, lengkap dengan tombol pintas baca dari *clipboard*.
-7. **Web Push Notification & Opt-in Prompt**:
-   - Banner opt-in izin notifikasi browser di awal masuk dashboard.
-   - Peringatan otomatis (*pop-up notification*) saat tugas mendekati **H-1 Hari** (< 24 jam) dan **H-3 Jam** sebelum tenggat waktu.
-8. **Warna Indikator Kritis (Urgency Color Coding)**:
-   - Kartu tugas otomatis berubah warna dan label berdasarkan sisa waktu tenggat:
-     - 🔴 **Merah (Kritis)**: Sisa waktu < 24 jam atau telah melewati tenggat.
-     - 🟡 **Kuning (Perhatian)**: Sisa waktu < 3 hari (72 jam).
-     - 🟢 **Hijau (Aman)**: Sisa waktu > 3 hari.
-     - ⚪ **Abu-abu (Selesai)**: Tugas telah tuntas dikumpulkan di kolom *Done*.
-9. **Auto-Sorting Deadline**:
-   - Algoritma pengurutan otomatis dalam setiap kolom menempatkan tugas dengan tenggat waktu paling dekat di posisi teratas.
-10. **Filter Mata Kuliah & Live Search**:
-    - Dropdown penyaring dinamis untuk melihat tugas mata kuliah tertentu (*Pemrograman Web Lanjut, Sistem Basis Data, RPL, Jaringan Komputer, dll.*) serta input pencarian judul/materi tugas *realtime*.
-11. **Desain Responsif & Modern**:
-    - Tampilan adaptif untuk layar HP, tablet, maupun laptop dengan tipografi modern (*Plus Jakarta Sans*), aksen *glassmorphism*, dan kontras tinggi.
+TaskTrack adalah aplikasi visual tracker berbasis Kanban yang dirancang untuk mempermudah mahasiswa mengelola antrean tugas serta mengantisipasi batas waktu pengumpulan (deadline). Dibangun sebagai **Landing Page responsif dan aksesibel** menggunakan **PHP Standar**, **HTML5 Semantik**, **CSS Custom Properties**, **Flexbox & CSS Grid**, serta **Vanilla JavaScript**.
 
 ---
 
-## 🏛️ Struktur Semantik HTML5
+## 🏛️ Struktur Halaman & Komponen Reusable
 
-Halaman dibangun dengan memenuhi standar HTML5 semantik dan hierarki heading yang logis:
+Halaman dibangun menggunakan PHP standar dengan fokus semantik HTML, hierarki heading logis, serta modularitas komponen:
 
-- **Skip to Content Link**: `<a href="#main-content" class="skip-link">` untuk akses cepat pengguna keyboard.
-- **Navigasi (`<nav role="navigation">`)**: Menu navigasi utama, branding logo SVG, status notifikasi, dan tombol akun.
-- **Konten Utama (`<main id="main-content">`)**:
-  - **Section 1 (`<section id="hero-overview">`)**: `<h1>` judul aplikasi, banner opt-in notifikasi web push, kartu metrik statistik tugas (*Total, Kritis, Sedang Berjalan, Selesai*), dan bilah penyaring (*filter toolbar*).
-  - **Section 2 (`<section id="kanban-section">`)**: `<h2>` Papan Kanban Alur Kerja, keterangan warna indikator kritis, 3 kolom alur kerja dengan dropzone, serta kartu-kartu tugas semantik.
-  - **Section 3 (`<section id="task-management">`)**: `<h2>` Formulir CRUD tugas lengkap (`<form id="task-form">`), fieldset informasi pokok, integrasi link LMS, dan quick input teks instruksi.
-  - **Section 4 (`<section id="accessibility-checklist">`)**: `<h2>` Checklist Evaluasi Aksesibilitas Web Dasar (WCAG 2.1 AA).
-- **Elemen Kartu Tugas (`<article class="task-card">`)**: Setiap tugas dibungkus dalam tag `<article>` semantik dengan header mata kuliah, heading `<h4>` judul tugas, penghitung waktu tenggat, cuplikan catatan, tombol pintasan LMS, dan tombol aksi (*move, edit, delete*).
-- **Footer (`<footer role="contentinfo">`)**: Hak cipta, navigasi sekunder tautan internal, dan panduan pintasan tombol keyboard (*Tab, Enter, Spasi, Esc, Alt+N*).
-- **Dialog Modal (`<dialog id="auth-modal">`)**: Jendela dialog autentikasi dengan tombol Google SSO dan formulir login email.
-
-### Hierarki Heading yang Logis
-```
-└── <h1> TaskTrack — Pemantau Deadline & Papan Tugas Mahasiswa
-    ├── <h2> id="heading-overview" : Filter dan Penyaringan Tugas
-    ├── <h2> id="heading-kanban"   : Papan Kanban Alur Kerja
-    │   ├── <h3> id="col-title-todo"       : Belum Dimulai (To Do)
-    │   ├── <h3> id="col-title-inprogress" : Sedang Dikerjakan (In Progress)
-    │   └── <h3> id="col-title-done"       : Selesai (Done)
-    │       └── <h4> Judul Kartu Tugas Mahasiswa (<article>)
-    ├── <h2> id="heading-management" : Manajemen Tugas & Quick Input Instruksi
-    ├── <h2> id="heading-accessibility" : Checklist Aksesibilitas Dasar (WCAG 2.1 AA)
-    └── <h3> Panduan Navigasi Footer
-```
+* **Navigasi (`<nav>`):** Navigasi responsif dengan tautan cepat menuju Beranda (`#hero`), Fitur (`#features`), Kanban Board (`#kanban-section`), Form Tambah Tugas (`#task-management`), dan Checklist Aksesibilitas (`#accessibility-checklist`), dilengkapi tombol toggle menu untuk layar *mobile*.
+* **Konten Utama (`<main id="main-content">`):** Menampung seluruh konten dan alur kerja aplikasi dengan skip link di posisi teratas.
+* **5 Section Semantik:**
+  1. **Section Hero (`<section id="hero">`):** Headline persuasif, CTA ganda, banner opt-in notifikasi web push, dan ringkasan metrik statistik.
+  2. **Section Fitur Unggulan (`<section id="features">`):** Value proposition aplikasi menampilkan 6 keunggulan utama mahasiswa.
+  3. **Section Papan Kanban (`<section id="kanban-section">`):** Workspace visual 3 kolom (To Do, In Progress, Done) dengan filter mata kuliah dan live search.
+  4. **Section Form Tambah Tugas (`<section id="task-management">`):** Formulir CRUD tugas lengkap dengan link LMS dan quick paste instruksi e-learning.
+  5. **Section Checklist Aksesibilitas (`<section id="accessibility-checklist">`):** Tabel audit kepatuhan WCAG 2.1 AA.
+* **Minimal 3 Komponen Reusable:**
+  1. **`TaskCard` (`templates/components/task-card.php` / `<article class="task-card">`):** Komponen kartu tugas independen dengan header mata kuliah, lencana urgensi waktu, judul tugas `<h4>`, countdown timer, cuplikan instruksi, link pengumpulan LMS, serta tombol aksi alur kerja (*move, edit, delete*).
+  2. **`StatMetricCard` (`templates/components/stat-card.php` / `<div class="metric-card">`):** Komponen kartu metrik ringkasan dengan label metrik, nilai numerik real-time, dan deskripsi konteks.
+  3. **`FeatureCard` (`templates/components/feature-card.php` / `<div class="feature-card">`):** Komponen kartu keunggulan fitur landing page dengan gelembung ikon, tag kategori, judul `<h3>`, dan deskripsi manfaat.
+* **Article (`<article>`):** Komponen kartu tugas semantik independen dengan informasi mata kuliah, urgensi waktu, dan link pengumpulan.
+* **Form (`<form>`):** Formulir penambahan dan pembaruan tugas dengan validasi input standar HTML5.
+* **Footer (`<footer>`):** Metadata hak cipta, navigasi sekunder, serta panduan pintasan tombol keyboard.
 
 ---
 
-## ♿ Checklist Aksesibilitas Dasar (WCAG 2.1 AA)
+## 📱 Pengujian & Dokumentasi Tampilan Multi-Device
 
-| No | Kriteria Aksesibilitas | Implementasi pada TaskTrack | Status |
-| :-: | :--- | :--- | :---: |
-| 1 | **Semantic HTML5 Structure** | Menggunakan elemen `<header>`, `<nav>`, `<main>`, 4x `<section>`, `<article>`, `<form>`, dan `<footer>`. | ✅ Terpenuhi |
-| 2 | **Logical Heading Hierarchy** | Struktur heading runtut dari `<h1>` hingga `<h4>` tanpa ada tingkatan yang terlewati. | ✅ Terpenuhi |
-| 3 | **Keyboard Navigability & Skip Link** | Tautan `.skip-link` tersedia untuk melompati navigasi. Seluruh interaksi, modal, dan kartu dapat dinavigasi via tombol <kbd>Tab</kbd>, <kbd>Enter</kbd>, <kbd>Spasi</kbd>, dan <kbd>Esc</kbd>. | ✅ Terpenuhi |
-| 4 | **Form Labels & Associations** | Setiap field form dihubungkan secara eksplisit dengan `<label for="...">` dan `id`, dilengkapi teks panduan `aria-describedby`. | ✅ Terpenuhi |
-| 5 | **High Contrast & Urgency Indicators** | Rasio kontras teks terhadap latar memenuhi rasio minimum 4.5:1 (WCAG AA). Indikator tenggat dilengkapi teks deskriptif eksplisit selain kode warna. | ✅ Terpenuhi |
-| 6 | **ARIA Live Region & Announcements** | Tersedia elemen `<div id="a11y-announcer" aria-live="polite">` yang secara otomatis mengumumkan aksi penambahan, pengeditan, penghapusan, dan perpindahan status tugas untuk pembaca layar (*screen reader*). | ✅ Terpenuhi |
+TaskTrack telah diuji pada tiga kelompok ukuran layar utama menggunakan **CSS Grid**, **Flexbox**, **CSS Custom Properties (`:root`)**, dan **Media Queries**:
+
+| Ukuran Layar / Viewport | Tata Letak (Grid & Flexbox) | Penyesuaian Komponen & Responsivitas | Status Uji |
+| :--- | :--- | :--- | :---: |
+| **Desktop**<br>(`> 1024px`, misal 1440x900) | • Header horizontal penuh dengan menu sejajar.<br>• Metrics Grid: 4 kolom sejajar.<br>• Features Grid: 3 kolom sejajar.<br>• Kanban Grid: 3 kolom sejajar (*To Do*, *In Progress*, *Done*).<br>• Footer: 3 kolom (Info, Navigasi, Panduan Keyboard). | Tata letak luas dengan drag-and-drop antar kolom sangat leluasa, tampilan dashboard profesional, dan efisiensi ruang optimal. | ✅ Lulus Uji |
+| **Tablet**<br>(`768px - 1024px`, misal iPad 768x1024) | • Metrics Grid bertransformasi menjadi 2 kolom x 2 baris.<br>• Features Grid bertransformasi menjadi 2 kolom.<br>• Kanban Grid mengalir vertikal yang nyaman di-scroll.<br>• Footer bertransformasi menjadi 2 kolom. | Padding dan ukuran font otomatis disesuaikan proporsional, target sentuh tombol tetap nyaman tanpa elemen berhimpitan. | ✅ Lulus Uji |
+| **Mobile**<br>(`< 768px`, misal iPhone/Android 375x667 - 414x896) | • Header dilengkapi tombol hamburger toggle responsif.<br>• Navigasi collapsible dapat dibuka-tutup dengan aksesibilitas `aria-expanded`.<br>• Metrics Grid, Features Grid, dan Kanban Grid bertransformasi menjadi 1 kolom (*single-column flow*).<br>• Form row dan tombol aksi bertumpuk vertikal (*full-width*). | Target sentuh tombol memenuhi standar aksesibilitas mobile (minimal 44x44px), tidak ada *horizontal overflow* (scroll samping tidak diinginkan). | ✅ Lulus Uji |
+
+---
+
+## ♿ Checklist Aksesibilitas Dasar (Accessibility Audit)
+
+Sesuai standar WCAG 2.1 AA dan rubrik penilaian proyek:
+
+- [x] **Hierarki Heading Teratur:** Penggunaan `<h1>` tunggal pada judul landing page, diikuti `<h2>` untuk setiap section utama, `<h3>` untuk kolom Kanban dan kartu fitur, serta `<h4>` untuk judul kartu tugas `<article>`.
+- [x] **Form Labels & Associations:** Semua input form dihubungkan secara eksplisit menggunakan atribut `for` dan `id` berpasangan, dilengkapi bantuan deskripsi `aria-describedby`.
+- [x] **Keyboard Navigation & :focus-visible:** Seluruh elemen interaktif (tombol, tautan, input, dan kartu) memiliki indikator visual `:focus-visible` kontras tinggi (outline 3px solid `#4f46e5` dengan offset 2px) yang jelas bagi pengguna navigasi keyboard (<kbd>Tab</kbd>, <kbd>Enter</kbd>, <kbd>Spasi</kbd>, <kbd>Esc</kbd>).
+- [x] **Skip to Content Link:** Tautan `.skip-link` tersedia di paling atas halaman untuk melompati navigasi langsung ke `<main id="main-content">`.
+- [x] **ARIA Semantics & Live Region:** Menggunakan landmark semantik (`role="banner"`, `role="contentinfo"`, `role="region"`, `role="list"`, `role="listitem"`), `aria-label`, serta elemen `<div id="a11y-announcer" aria-live="polite">` untuk mengumumkan perubahan status tugas secara real-time ke pembaca layar (*screen reader*).
+- [x] **Kontras Warna & Teks Alternatif:** Rasio kontras teks terhadap latar belakang memenuhi standar WCAG AA (> 4.5:1). Indikator tenggat waktu tidak hanya mengandalkan warna, melainkan dilengkapi label teks eksplisit (*Kritis*, *Perhatian*, *Aman*, *Selesai*).
+
+---
+
+## 🎨 Sistem Desain CSS Custom Properties
+
+Stylesheet utama ([css/style.css](file:///c:/laragon/www/TaskTrack/css/style.css)) dibangun menggunakan design token variabel CSS:
+- **Warna Pokok:** `--color-primary: #4f46e5;`, `--color-primary-light: #eef2ff;`
+- **Warna Permukaan:** `--bg-body: #f8fafc;`, `--bg-surface: #ffffff;`, `--border-color: #e2e8f0;`
+- **Tipografi Kontras Tinggi:** `--text-main: #0f172a;`, `--text-muted: #475569;`
+- **Indikator Skala Urgensi:**
+  - 🔴 Kritis (< 24 Jam): `--urgency-critical: #ef4444;`
+  - 🟡 Perhatian (< 3 Hari): `--urgency-warning: #f59e0b;`
+  - 🟢 Aman (> 3 Hari): `--urgency-safe: #10b981;`
+  - ⚪ Selesai: `--urgency-done: #64748b;`
 
 ---
 
 ## 💻 Cara Menjalankan Proyek
 
-### Opsi 1: Menggunakan Web Server Laragon (Rekomendasi)
+### Opsi 1: Menggunakan Laragon (Direkomendasikan)
 1. Buka aplikasi **Laragon**.
-2. Pastikan proyek berada di direktori `C:\laragon\www\TaskTrack`.
+2. Pastikan folder proyek berada di `C:\laragon\www\TaskTrack`.
 3. Klik tombol **Start All** pada Laragon.
-4. Buka browser dan akses alamat:
+4. Buka peramban web dan akses:
    ```
    http://localhost/TaskTrack
    atau
@@ -95,21 +79,8 @@ Halaman dibangun dengan memenuhi standar HTML5 semantik dan hierarki heading yan
    ```
 
 ### Opsi 2: Menggunakan PHP Built-in Server
-Jalankan perintah berikut pada terminal di dalam folder proyek:
+Jalankan perintah berikut pada terminal:
 ```bash
 & "C:\laragon\bin\php\php-8.5.10-Win32-vs17-x64\php.exe" -S 127.0.0.1:8000
 ```
-Lalu buka browser di: `http://127.0.0.1:8000`
-
----
-
-## 🌿 Riwayat Alur Git & Branching
-
-- **Branch Utama**: `main`
-- **Feature Branch**: `feature/struktur-home`
-- **Daftar Commit Bermakna**:
-  1. `cad46a1` — `feat: struktur semantik html5 dasar dengan navigasi, heading hirarkis, dan konten utama`
-  2. `0d78193` — `feat: styling kanban modern, form input tugas, modal auth, dan checklist aksesibilitas`
-  3. `07feadb` — `feat: interaktivitas kanban drag-and-drop, filter matkul, quick input teks, dan web push notification`
-  4. Pembaruan dokumentasi `README.md` dan `AI_USAGE_LOG.md`.
-- **Merge**: Penggabungan dari `feature/struktur-home` ke `main` dan sinkronisasi ke remote repository GitHub `origin`.
+Buka peramban pada alamat: `http://127.0.0.1:8000`
