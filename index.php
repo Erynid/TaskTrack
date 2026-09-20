@@ -306,14 +306,14 @@ $initial_tasks = [
                 <!-- Bento Grid: Reusable FeatureCard Components -->
                 <div class="features-bento-grid">
                     <?php
-                    // Cell 1: Wide hero bento
+                    // Cell 1: Wide hero bento (Visual variation: highlight)
                     renderFeatureCard([
                         'icon' => '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>',
                         'title' => 'Papan Kanban 3 Kolom Fleksibel',
                         'desc' => 'Kelola alur kerja dari Belum Dimulai, Sedang Dikerjakan, hingga Selesai dengan interaksi drag and drop yang halus atau tombol pindah cepat.',
                         'tag' => 'Alur Visual',
                         'tag_class' => 'tag-primary',
-                        'col_span' => 'bento-col-2'
+                        'col_span' => 'bento-col-2 bento-highlight'
                     ]);
 
                     // Cell 2
@@ -325,32 +325,34 @@ $initial_tasks = [
                         'tag_class' => 'tag-danger'
                     ]);
 
-                    // Cell 3
+                    // Cell 3 (Visual variation: warning amber tint)
                     renderFeatureCard([
                         'icon' => '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>',
                         'title' => 'Web Push Notification H-1 dan H-3 Jam',
                         'desc' => 'Peringatan pop-up browser sebelum waktu pengumpulan berakhir agar tidak ada tugas atau jadwal penting yang terlewat.',
                         'tag' => 'Pengingat Aktif',
-                        'tag_class' => 'tag-warning'
+                        'tag_class' => 'tag-warning',
+                        'col_span' => 'bento-tinted-warning'
                     ]);
 
-                    // Cell 4
+                    // Cell 4 (Visual variation: success emerald tint)
                     renderFeatureCard([
                         'icon' => '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>',
                         'title' => 'Pintasan Tautan Kustom & Multi-Platform',
                         'desc' => 'Lampirkan tautan Google Drive, Zoom, GitHub, LMS, Notion, atau Figma langsung dengan label tombol yang bisa Anda atur sendiri.',
                         'tag' => 'Tautan Bebas',
-                        'tag_class' => 'tag-success'
+                        'tag_class' => 'tag-success',
+                        'col_span' => 'bento-tinted-success'
                     ]);
 
-                    // Cell 5: Wide bento
+                    // Cell 5: Wide bento (Visual variation: subtle elevated)
                     renderFeatureCard([
                         'icon' => '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>',
                         'title' => 'Quick Input Catatan, Agenda, & Instruksi',
                         'desc' => 'Salin instruksi tugas panjang, checklist to-do, atau catatan meeting dari clipboard ke kartu tugas dalam sekali klik.',
                         'tag' => 'Input Cepat',
                         'tag_class' => 'tag-primary',
-                        'col_span' => 'bento-col-2'
+                        'col_span' => 'bento-col-2 bento-subtle'
                     ]);
                     ?>
                 </div>
@@ -409,7 +411,7 @@ $initial_tasks = [
                                     <line x1="12" y1="5" x2="12" y2="19"></line>
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
-                                <span>Tugas Baru</span>
+                                <span>Tambah Tugas</span>
                             </a>
                         </div>
                     </form>
