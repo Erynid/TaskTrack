@@ -1,27 +1,30 @@
 <?php
 /**
- * Reusable Component 2: FeatureCard
- * Menampilkan kartu fitur keunggulan landing page dengan ikon, judul, deskripsi, dan tag manfaat.
+ * Reusable Component: FeatureCard
+ * Menampilkan kartu fitur keunggulan landing page bergaya Linear / modern devtool.
+ * Bebas emoji, berpusat pada ikon stroke bersih, dan tipografi hierarkis.
  *
  * @param array $props [
- *   'icon' => string,
+ *   'icon' => string (SVG markup),
  *   'title' => string,
  *   'desc' => string,
  *   'tag' => string,
- *   'tag_class' => string
+ *   'tag_class' => string,
+ *   'col_span' => string (opsional untuk bento grid)
  * ]
  */
 function renderFeatureCard(array $props): void {
-    $icon = $props['icon'] ?? '⚡';
+    $iconSvg = $props['icon'] ?? '';
     $title = htmlspecialchars($props['title'] ?? '');
     $desc = htmlspecialchars($props['desc'] ?? '');
     $tag = htmlspecialchars($props['tag'] ?? 'Fitur');
     $tagClass = htmlspecialchars($props['tag_class'] ?? 'tag-primary');
+    $colSpan = htmlspecialchars($props['col_span'] ?? '');
 ?>
-<div class="feature-card" role="article">
+<div class="feature-card <?php echo $colSpan; ?>" role="article">
     <div class="feature-card-header">
         <div class="feature-icon-bubble" aria-hidden="true">
-            <?php echo $icon; ?>
+            <?php echo $iconSvg; ?>
         </div>
         <span class="feature-tag <?php echo $tagClass; ?>"><?php echo $tag; ?></span>
     </div>

@@ -1,21 +1,22 @@
 <?php
 /**
- * TaskTrack - Web Tracker Tugas & Deadline Kuliah
- * Landing Page Responsif & Aksesibel berbasis PHP Standar, Flexbox/Grid, dan Komponen Reusable.
+ * TaskTrack: Web Tracker Tugas dan Deadline Kuliah
+ * Landing Page Responsif dan Aksesibel berbasis PHP Standar, Flexbox/Grid, dan Komponen Reusable.
+ * Dibangun dengan panduan taste-skill anti-slop: tipografi terkalibrasi, layout bento, bebas em-dash, dan ikon SVG presisi.
  */
 require_once __DIR__ . '/templates/components/stat-card.php';
 require_once __DIR__ . '/templates/components/feature-card.php';
 require_once __DIR__ . '/templates/components/task-card.php';
 
 $current_year = date('Y');
-$page_title = "TaskTrack — Web Tracker Tugas & Deadline Kuliah Mahasiswa";
+$page_title = "TaskTrack: Tracker Tugas dan Deadline Kuliah Mahasiswa";
 $meta_description = "Landing page dan aplikasi visual tracker berbasis Kanban 3 kolom untuk mahasiswa. Drag and drop interaktif, auto-sorting deadline, indikator warna kritis, dan integrasi link LMS.";
 
 // Data Awal Tugas Mahasiswa
 $initial_tasks = [
     [
         'id' => 'task-1',
-        'title' => 'Implementasi Arsitektur MVC & Routing Native',
+        'title' => 'Implementasi Arsitektur MVC dan Routing Native',
         'course' => 'Pemrograman Web Lanjut',
         'deadline' => date('Y-m-d\TH:i', strtotime('+18 hours')),
         'status' => 'todo',
@@ -35,7 +36,7 @@ $initial_tasks = [
     ],
     [
         'id' => 'task-3',
-        'title' => 'Analisis Kebutuhan Sistem & Pembuatan SRS',
+        'title' => 'Analisis Kebutuhan Sistem dan Pembuatan SRS',
         'course' => 'Rekayasa Perangkat Lunak',
         'deadline' => date('Y-m-d\TH:i', strtotime('+5 days 10 hours')),
         'status' => 'inprogress',
@@ -45,7 +46,7 @@ $initial_tasks = [
     ],
     [
         'id' => 'task-4',
-        'title' => 'Konfigurasi Subnetting & Routing Statis Cisco',
+        'title' => 'Konfigurasi Subnetting dan Routing Statis Cisco',
         'course' => 'Jaringan Komputer',
         'deadline' => date('Y-m-d\TH:i', strtotime('-1 day')),
         'status' => 'done',
@@ -79,24 +80,23 @@ $initial_tasks = [
     <!-- Notifikasi Live Region untuk Pembaca Layar (WCAG 4.1.3) -->
     <div id="a11y-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
-    <!-- Header Aplikasi & Navigasi Responsif -->
+    <!-- Header Aplikasi dan Navigasi Responsif -->
     <header class="app-header" role="banner">
         <div class="header-container">
             <div class="brand-area">
-                <a href="#hero" class="brand-logo" aria-label="TaskTrack - Halaman Utama">
-                    <svg class="logo-icon" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img">
+                <a href="#hero" class="brand-logo" aria-label="TaskTrack: Halaman Utama">
+                    <svg class="logo-icon" width="30" height="30" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img">
                         <rect width="32" height="32" rx="8" fill="url(#logo-grad)"/>
-                        <path d="M9 16.5L14 21.5L23 10.5" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M9 16.5L14 21.5L23 10.5" stroke="white" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"/>
                         <defs>
                             <linearGradient id="logo-grad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-                                <stop stop-color="#6366F1"/>
-                                <stop stop-color="#4338CA"/>
+                                <stop stop-color="#4f46e5"/>
+                                <stop stop-color="#3730a3"/>
                             </linearGradient>
                         </defs>
                     </svg>
                     <span class="brand-text">Task<strong>Track</strong></span>
                 </a>
-                <span class="brand-badge" aria-label="Versi Proyek">v1.2 Landing</span>
             </div>
 
             <!-- Tombol Toggle Menu Mobile -->
@@ -111,42 +111,59 @@ $initial_tasks = [
                 <ul class="nav-list">
                     <li class="nav-item">
                         <a href="#hero" class="nav-link">
-                            <span class="nav-icon" aria-hidden="true">🏠</span>
+                            <svg class="nav-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                            </svg>
                             <span>Beranda</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="#features" class="nav-link">
-                            <span class="nav-icon" aria-hidden="true">✨</span>
+                            <svg class="nav-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
                             <span>Fitur</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="#kanban-section" class="nav-link active">
-                            <span class="nav-icon" aria-hidden="true">📋</span>
+                            <svg class="nav-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="9" y1="3" x2="9" y2="21"></line>
+                                <line x1="15" y1="3" x2="15" y2="21"></line>
+                            </svg>
                             <span>Papan Kanban</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="#task-management" class="nav-link">
-                            <span class="nav-icon" aria-hidden="true">➕</span>
+                            <svg class="nav-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
                             <span>Tambah Tugas</span>
                         </a>
                     </li>
-
                 </ul>
             </nav>
 
-            <!-- Aksi Header: Izin Notifikasi & Modal Login Pengguna -->
+            <!-- Aksi Header: Izin Notifikasi dan Modal Login Pengguna -->
             <div class="header-actions">
                 <button type="button" id="btn-notification-prompt" class="btn-icon" aria-label="Pengaturan Izin Web Push Notification" title="Aktifkan Web Push Notification">
-                    <span class="icon-bell" aria-hidden="true">🔔</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
                     <span id="notif-badge" class="badge-dot" aria-label="Status notifikasi aktif"></span>
                 </button>
 
                 <div class="user-auth-widget">
                     <button type="button" id="btn-open-auth" class="btn-auth-trigger" aria-haspopup="dialog" aria-expanded="false">
-                        <span class="user-avatar" aria-hidden="true">👤</span>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
                         <span class="user-name" id="user-display-name">Masuk Akun</span>
                     </button>
                 </div>
@@ -162,36 +179,41 @@ $initial_tasks = [
             <div class="section-container">
                 <div class="hero-content-wrap">
                     <div class="hero-text-block">
-                        <div class="hero-pill-badge" role="note">
-                            <span class="badge-icon" aria-hidden="true">🚀</span>
-                            <span>Visual Tracker Tugas & Deadline Kuliah</span>
-                        </div>
+                        <div class="hero-eyebrow">Alur Kerja Tugas Mahasiswa</div>
                         <h1 id="heading-hero" class="hero-title">
-                            Kelola Tugas Kuliah Tanpa Panik <span class="text-gradient">Terlewat Deadline</span>
+                            Kelola antrean tugas kuliah, selesaikan sebelum tenggat.
                         </h1>
                         <p class="hero-description">
-                            TaskTrack memadukan fleksibilitas <strong>Papan Kanban 3 Kolom</strong>, integrasi instan ke portal <strong>LMS kampus</strong>, peringatan otomatis <strong>Web Push H-1 & H-3 Jam</strong>, serta indikator visual warna kritis untuk memprioritaskan antrean tugas kuliah Anda.
+                            Papan visual Kanban dengan kalkulasi urgensi otomatis, integrasi tautan LMS kampus, dan notifikasi pengingat tepat waktu.
                         </p>
                         
                         <div class="hero-cta-group">
                             <a href="#kanban-section" class="btn btn-primary btn-lg">
-                                <span aria-hidden="true">📋</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="9" y1="3" x2="9" y2="21"></line>
+                                    <line x1="15" y1="3" x2="15" y2="21"></line>
+                                </svg>
                                 <span>Buka Papan Kanban</span>
                             </a>
                             <a href="#features" class="btn btn-secondary btn-lg">
-                                <span aria-hidden="true">🔍</span>
-                                <span>Pelajari Fitur Unggulan</span>
+                                <span>Pelajari Fitur</span>
                             </a>
                         </div>
                     </div>
 
-                    <!-- Banner Opt-in Web Push Notification (Peringatan H-1 & H-3 Jam) -->
+                    <!-- Banner Opt-in Web Push Notification (Peringatan H-1 dan H-3 Jam) -->
                     <div id="notification-banner" class="notification-banner" role="region" aria-label="Pemberitahuan Izin Notifikasi">
                         <div class="notif-banner-content">
-                            <span class="notif-banner-icon" aria-hidden="true">⏰</span>
+                            <div class="notif-banner-icon" aria-hidden="true">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                            </div>
                             <div class="notif-banner-text">
                                 <strong>Aktifkan Peringatan Web Push Notification</strong>
-                                <p>Dapatkan peringatan otomatis di browser & ponsel saat tugas mendekati <strong>H-1 Hari</strong> dan <strong>H-3 Jam</strong> sebelum deadline.</p>
+                                <p>Dapatkan peringatan otomatis di browser saat tugas mendekati H-1 hari dan H-3 jam sebelum deadline.</p>
                             </div>
                         </div>
                         <div class="notif-banner-actions">
@@ -200,7 +222,7 @@ $initial_tasks = [
                         </div>
                     </div>
 
-                    <!-- Reusable Component: Metrik Statistik Tugas (CSS Grid & Flexbox) -->
+                    <!-- Reusable Component: Metrik Statistik Tugas (CSS Grid dan Flexbox) -->
                     <div class="metrics-grid" role="region" aria-label="Statistik Ringkasan Tugas">
                         <?php
                         renderStatCard([
@@ -240,59 +262,62 @@ $initial_tasks = [
             </div>
         </section>
 
-        <!-- SECTION 2: FITUR UNGGULAN (Landing Page Value Proposition) -->
+        <!-- SECTION 2: FITUR UNGGULAN (Landing Page Bento Grid) -->
         <section id="features" class="section-features" aria-labelledby="heading-features">
             <div class="section-container">
-                <div class="section-header-center">
-                    <span class="section-tag">Keunggulan Sistem</span>
-                    <h2 id="heading-features" class="section-heading">Mengapa Mahasiswa Memilih TaskTrack?</h2>
-                    <p class="section-subtext">Dirancang dengan alur kerja modern berbasis Kanban, aksesibilitas inklusif, dan otomasi tenggat waktu untuk meningkatkan produktivitas belajar.</p>
+                <div class="section-header-wrap">
+                    <h2 id="heading-features" class="section-heading">Fitur yang Membantu Anda Selesai Tepat Waktu</h2>
+                    <p class="section-subtext">Alur kerja terstruktur untuk mengurangi friksi dalam melacak tugas kuliah dan mengantisipasi batas waktu.</p>
                 </div>
 
-                <!-- Reusable Component: FeatureCard Grid -->
-                <div class="features-grid">
+                <!-- Bento Grid: Reusable FeatureCard Components -->
+                <div class="features-bento-grid">
                     <?php
+                    // Cell 1: Wide hero bento
                     renderFeatureCard([
-                        'icon' => '📌',
+                        'icon' => '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>',
                         'title' => 'Papan Kanban 3 Kolom Interaktif',
-                        'desc' => 'Visualisasikan perjalanan tugas dari Belum Dimulai (To Do), Sedang Dikerjakan (In Progress), hingga Selesai (Done) dengan drag & drop mulus.',
-                        'tag' => 'Alur Kerja Visual',
-                        'tag_class' => 'tag-primary'
+                        'desc' => 'Kelola alur kerja dari Belum Dimulai, Sedang Dikerjakan, hingga Selesai dengan interaksi drag and drop yang halus atau tombol pindah cepat.',
+                        'tag' => 'Alur Visual',
+                        'tag_class' => 'tag-primary',
+                        'col_span' => 'bento-col-2'
                     ]);
+
+                    // Cell 2
                     renderFeatureCard([
-                        'icon' => '🚨',
-                        'title' => 'Warna Indikator Kritis Waktu',
-                        'desc' => 'Kartu otomatis berubah warna: Merah (< 24 jam), Kuning (< 3 hari), Hijau (> 3 hari), dan Abu-abu (selesai), lengkap dengan auto-sorting tenggat terdekat.',
-                        'tag' => 'Anti Ketinggalan',
+                        'icon' => '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>',
+                        'title' => 'Indikator Kritis Waktu',
+                        'desc' => 'Warna kartu berubah otomatis sesuai sisa waktu (merah di bawah 24 jam, kuning di bawah 3 hari, hijau di atas 3 hari, abu-abu selesai).',
+                        'tag' => 'Otomasi Status',
                         'tag_class' => 'tag-danger'
                     ]);
+
+                    // Cell 3
                     renderFeatureCard([
-                        'icon' => '🔔',
-                        'title' => 'Web Push Notification H-1 & H-3 Jam',
-                        'desc' => 'Notifikasi browser otomatis memberi peringatan pop-up di ponsel atau laptop saat deadline mendekati H-1 hari dan H-3 jam sebelum ditutup.',
+                        'icon' => '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>',
+                        'title' => 'Web Push Notification H-1 dan H-3 Jam',
+                        'desc' => 'Peringatan pop-up browser sebelum waktu pengumpulan berakhir agar tidak ada tugas yang terlewat.',
                         'tag' => 'Pengingat Aktif',
                         'tag_class' => 'tag-warning'
                     ]);
+
+                    // Cell 4
                     renderFeatureCard([
-                        'icon' => '🌐',
-                        'title' => 'Shortcut Portal LMS & Quick Paste',
-                        'desc' => 'Tautan langsung 1-klik ke halaman tugas Moodle / Google Classroom kampus, disertai area tempel instruksi tugas panjang dari clipboard.',
+                        'icon' => '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>',
+                        'title' => 'Pintasan Langsung Portal LMS',
+                        'desc' => 'Buka tautan unggah tugas di Moodle, Google Classroom, atau Canvas secara aman dalam satu klik.',
                         'tag' => 'Integrasi Kampus',
                         'tag_class' => 'tag-success'
                     ]);
+
+                    // Cell 5: Wide bento
                     renderFeatureCard([
-                        'icon' => '♿',
-                        'title' => 'Aksesibilitas Penuh (WCAG 2.1 AA)',
-                        'desc' => 'Dukungan tombol fokus (:focus-visible), navigasi keyboard runtut (Tab/Esc), skip to content, live announcer pembaca layar, dan kontras warna teruji.',
-                        'tag' => 'Inklusif & Ramah',
-                        'tag_class' => 'tag-info'
-                    ]);
-                    renderFeatureCard([
-                        'icon' => '🔐',
-                        'title' => 'Google SSO & Fitur Remember Me',
-                        'desc' => 'Masuk instan menggunakan akun Google Mahasiswa atau email biasa dengan penyimpanan sesi persisten di perangkat Anda.',
-                        'tag' => 'Autentikasi Cepat',
-                        'tag_class' => 'tag-dark'
+                        'icon' => '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>',
+                        'title' => 'Quick Input Teks Instruksi Dosen',
+                        'desc' => 'Salin instruksi tugas panjang langsung dari clipboard ke kartu tugas tanpa harus berulang kali membuka portal kampus.',
+                        'tag' => 'Efisiensi Input',
+                        'tag_class' => 'tag-primary',
+                        'col_span' => 'bento-col-2'
                     ]);
                     ?>
                 </div>
@@ -304,14 +329,13 @@ $initial_tasks = [
             <div class="section-container">
                 <div class="section-title-wrap">
                     <div>
-                        <span class="section-tag">Ruang Kerja Langsung</span>
                         <h2 id="heading-kanban" class="section-heading">Papan Kanban Alur Kerja Tugas</h2>
-                        <p class="section-subtext">Pindahkan kartu tugas antar kolom secara <strong>Drag & Drop</strong> atau tombol pindah. Kartu otomatis terurut berdasarkan tenggat terdekat.</p>
+                        <p class="section-subtext">Pindahkan kartu tugas antar kolom dengan drag and drop atau tombol aksi. Tugas terdekat otomatis terurut di posisi teratas.</p>
                     </div>
 
                     <!-- Petunjuk Warna Indikator Kritis -->
                     <div class="urgency-legend" role="note" aria-label="Keterangan Indikator Urgensi Deadline">
-                        <span class="legend-title">Indikator Tenggat:</span>
+                        <span class="legend-title">Tenggat:</span>
                         <span class="legend-item"><span class="color-dot dot-critical" aria-hidden="true"></span> &lt; 24 Jam (Kritis)</span>
                         <span class="legend-item"><span class="color-dot dot-warning" aria-hidden="true"></span> &lt; 3 Hari (Perhatian)</span>
                         <span class="legend-item"><span class="color-dot dot-safe" aria-hidden="true"></span> &gt; 3 Hari (Aman)</span>
@@ -319,12 +343,15 @@ $initial_tasks = [
                     </div>
                 </div>
 
-                <!-- Kontrol Filter & Pencarian -->
+                <!-- Kontrol Filter dan Pencarian -->
                 <div class="filter-toolbar">
                     <form id="filter-form" class="filter-controls" role="search" aria-label="Filter Mata Kuliah dan Cari Tugas" onsubmit="event.preventDefault();">
                         <div class="filter-group">
                             <label for="filter-course-select" class="filter-label">
-                                <span class="filter-icon" aria-hidden="true">📚</span>
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                </svg>
                                 <span>Mata Kuliah:</span>
                             </label>
                             <select id="filter-course-select" class="form-select filter-select">
@@ -338,7 +365,10 @@ $initial_tasks = [
 
                         <div class="filter-group search-group">
                             <label for="search-task-input" class="filter-label">
-                                <span class="filter-icon" aria-hidden="true">🔍</span>
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
                                 <span>Cari Tugas:</span>
                             </label>
                             <input type="search" id="search-task-input" class="form-input search-input" placeholder="Cari judul atau materi tugas...">
@@ -346,14 +376,17 @@ $initial_tasks = [
 
                         <div class="filter-actions">
                             <a href="#task-management" class="btn btn-primary btn-add-shortcut">
-                                <span aria-hidden="true">➕</span>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
                                 <span>Tugas Baru</span>
                             </a>
                         </div>
                     </form>
                 </div>
 
-                <!-- 3 Kolom Papan Kanban (CSS Grid & Reusable TaskCard Components) -->
+                <!-- 3 Kolom Papan Kanban (CSS Grid dan Reusable TaskCard Components) -->
                 <div class="kanban-grid" role="region" aria-label="Kolom-kolom Kanban">
                     
                     <!-- Kolom 1: To Do -->
@@ -405,14 +438,13 @@ $initial_tasks = [
             </div>
         </section>
 
-        <!-- SECTION 4: FORM MANAJEMEN TUGAS (CRUD) & QUICK INPUT LMS -->
+        <!-- SECTION 4: FORM MANAJEMEN TUGAS (CRUD) DAN QUICK INPUT LMS -->
         <section id="task-management" class="section-management" aria-labelledby="heading-management">
             <div class="section-container">
                 <div class="form-wrapper-card">
                     <header class="form-header">
-                        <span class="section-tag">Manajemen & Entri</span>
-                        <h2 id="heading-management" class="section-heading">Tambah & Kelola Tugas Kuliah</h2>
-                        <p class="section-subtext">Isi formulir terstruktur di bawah ini untuk menambahkan tugas baru ke papan Kanban atau memperbarui data tugas kuliah Anda.</p>
+                        <h2 id="heading-management" class="section-heading">Tambah dan Perbarui Tugas Kuliah</h2>
+                        <p class="section-subtext">Isi formulir berikut untuk memasukkan kartu tugas baru ke papan Kanban atau memperbarui data tugas kuliah Anda.</p>
                     </header>
 
                     <!-- Formulir Manajemen Tugas Lengkap (<form>) -->
@@ -428,7 +460,7 @@ $initial_tasks = [
                                         <span>Judul Tugas</span>
                                         <span class="required-indicator" aria-hidden="true">*</span>
                                     </label>
-                                    <input type="text" id="task-title" name="task_title" class="form-input" placeholder="Contoh: Makalah Etika Profesi IT & AI" required aria-required="true" aria-describedby="task-title-help">
+                                    <input type="text" id="task-title" name="task_title" class="form-input" placeholder="Contoh: Makalah Etika Profesi IT dan AI" required aria-required="true" aria-describedby="task-title-help">
                                     <small id="task-title-help" class="field-help">Tuliskan nama tugas atau proyek secara jelas dan ringkas.</small>
                                 </div>
 
@@ -452,11 +484,11 @@ $initial_tasks = [
                             <div class="form-row">
                                 <div class="form-field flex-1">
                                     <label for="task-deadline" class="field-label">
-                                        <span>Tanggal & Jam Deadline</span>
+                                        <span>Tanggal dan Jam Deadline</span>
                                         <span class="required-indicator" aria-hidden="true">*</span>
                                     </label>
                                     <input type="datetime-local" id="task-deadline" name="task_deadline" class="form-input" required aria-required="true" aria-describedby="task-deadline-help">
-                                    <small id="task-deadline-help" class="field-help">Sistem otomatis menghitung sisa waktu & mewarnai kartu.</small>
+                                    <small id="task-deadline-help" class="field-help">Sistem otomatis menghitung sisa waktu dan mewarnai kartu.</small>
                                 </div>
 
                                 <div class="form-field flex-1">
@@ -481,10 +513,16 @@ $initial_tasks = [
                                     <span>Link Pengumpulan Tugas (LMS URL)</span>
                                 </label>
                                 <div class="input-with-icon">
-                                    <span class="input-addon-icon" aria-hidden="true">🌐</span>
+                                    <span class="input-addon-icon" aria-hidden="true">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <line x1="2" y1="12" x2="22" y2="12"></line>
+                                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                                        </svg>
+                                    </span>
                                     <input type="url" id="task-lms-url" name="task_lms_url" class="form-input" placeholder="https://kuliah.kampus.ac.id/mod/assign/view.php?id=..." aria-describedby="task-lms-help">
                                 </div>
-                                <small id="task-lms-help" class="field-help">Tautan langsung ke halaman unggah tugas di Moodle/Google Classroom/Canvas.</small>
+                                <small id="task-lms-help" class="field-help">Tautan langsung ke halaman unggah tugas di Moodle, Google Classroom, atau Canvas.</small>
                             </div>
 
                             <!-- Quick Input Teks Instruksi Panjang -->
@@ -494,17 +532,25 @@ $initial_tasks = [
                                         <span>Quick Input Teks Instruksi Dosen / Portal E-Learning</span>
                                     </label>
                                     <button type="button" id="btn-paste-clipboard" class="btn-text-action" title="Tempel otomatis dari Clipboard">
-                                        <span aria-hidden="true">📋</span> Salin dari Clipboard
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                                            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                                        </svg>
+                                        <span>Salin dari Clipboard</span>
                                     </button>
                                 </div>
-                                <textarea id="task-instructions" name="task_instructions" class="form-textarea" rows="4" placeholder="Salin & tempel instruksi panjang dari portal e-learning (format laporan, batas halaman, ketentuan penamaan file, dll)..." aria-describedby="task-instructions-help"></textarea>
+                                <textarea id="task-instructions" name="task_instructions" class="form-textarea" rows="4" placeholder="Salin dan tempel instruksi panjang dari portal e-learning (format laporan, batas halaman, ketentuan penamaan file)..." aria-describedby="task-instructions-help"></textarea>
                                 <small id="task-instructions-help" class="field-help">Memudahkan membaca rincian tugas tanpa harus berulang kali membuka portal kampus.</small>
                             </div>
                         </fieldset>
 
                         <div class="form-actions">
                             <button type="submit" id="btn-save-task" class="btn btn-primary btn-lg">
-                                <span class="btn-icon-symbol" aria-hidden="true">💾</span>
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                    <polyline points="7 3 7 8 15 8"></polyline>
+                                </svg>
                                 <span id="save-button-text">Simpan ke Papan Kanban</span>
                             </button>
                             <button type="button" id="btn-reset-form" class="btn btn-secondary btn-lg">
@@ -516,11 +562,9 @@ $initial_tasks = [
             </div>
         </section>
 
-
-
     </main>
 
-    <!-- Modal Dialog Autentikasi Pengguna (Google SSO & Email/Password) -->
+    <!-- Modal Dialog Autentikasi Pengguna (Google SSO dan Email/Password) -->
     <dialog id="auth-modal" class="app-dialog" aria-labelledby="auth-modal-heading" aria-modal="true">
         <div class="dialog-content">
             <header class="dialog-header">
@@ -533,7 +577,7 @@ $initial_tasks = [
 
                 <!-- Tombol Google SSO -->
                 <button type="button" id="btn-google-sso" class="btn-sso-google">
-                    <svg class="google-icon" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                    <svg class="google-icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
                         <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"/>
                         <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/>
                         <path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15.2s.7 5.5 1.9 7.9l3.7-2.9z"/>
@@ -569,7 +613,7 @@ $initial_tasks = [
         </div>
     </dialog>
 
-    <!-- Footer Aplikasi Semantik (WCAG & Panduan Aksesibilitas) -->
+    <!-- Footer Aplikasi Semantik -->
     <footer class="app-footer" role="contentinfo">
         <div class="footer-container">
             <div class="footer-col footer-info">
@@ -583,18 +627,17 @@ $initial_tasks = [
             <div class="footer-col footer-links">
                 <h3 class="footer-heading">Navigasi Halaman</h3>
                 <ul class="footer-nav-list">
-                    <li><a href="#hero">Beranda & Ringkasan</a></li>
+                    <li><a href="#hero">Beranda dan Ringkasan</a></li>
                     <li><a href="#features">Fitur Unggulan</a></li>
                     <li><a href="#kanban-section">Papan Kanban 3 Kolom</a></li>
                     <li><a href="#task-management">Formulir Tambah Tugas</a></li>
-
                 </ul>
             </div>
 
             <div class="footer-col footer-a11y">
                 <h3 class="footer-heading">Panduan Pintasan Keyboard</h3>
                 <ul class="keyboard-guide-list">
-                    <li><kbd>Tab</kbd> : Berpindah antar tombol & formulir</li>
+                    <li><kbd>Tab</kbd> : Berpindah antar tombol dan formulir</li>
                     <li><kbd>Enter</kbd> / <kbd>Spasi</kbd> : Menjalankan tombol aktif</li>
                     <li><kbd>Esc</kbd> : Menutup jendela dialog / modal</li>
                     <li><kbd>Alt</kbd> + <kbd>N</kbd> : Loncat ke Tambah Tugas</li>
