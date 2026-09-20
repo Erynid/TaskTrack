@@ -133,12 +133,7 @@ $initial_tasks = [
                             <span>Tambah Tugas</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="#accessibility-checklist" class="nav-link">
-                            <span class="nav-icon" aria-hidden="true">♿</span>
-                            <span>Aksesibilitas</span>
-                        </a>
-                    </li>
+
                 </ul>
             </nav>
 
@@ -521,67 +516,7 @@ $initial_tasks = [
             </div>
         </section>
 
-        <!-- SECTION 5: CHECKLIST AKSESIBILITAS DASAR (Accessibility Audit) -->
-        <section id="accessibility-checklist" class="section-accessibility" aria-labelledby="heading-accessibility">
-            <div class="section-container">
-                <div class="section-header-block">
-                    <span class="section-tag">Audit Kualitas Web</span>
-                    <h2 id="heading-accessibility" class="section-heading">Checklist Aksesibilitas Dasar (WCAG 2.1 AA)</h2>
-                    <p class="section-subtext">Evaluasi kepatuhan aksesibilitas web sesuai standar proyek semester untuk memastikan aplikasi dapat diakses semua pengguna, termasuk pengguna keyboard dan pembaca layar.</p>
-                </div>
 
-                <div class="a11y-table-responsive">
-                    <table class="a11y-table" aria-label="Tabel Evaluasi Aksesibilitas TaskTrack">
-                        <thead>
-                            <tr>
-                                <th scope="col" style="width: 24%;">Kriteria Aksesibilitas</th>
-                                <th scope="col" style="width: 20%;">Implementasi pada TaskTrack</th>
-                                <th scope="col" style="width: 44%;">Rincian & Bukti Kode Semantik</th>
-                                <th scope="col" style="width: 12%;">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <th scope="row">1. Semantic HTML5 Structure</th>
-                                <td>Navigasi, Main, 5 Section, Article, Form, Footer</td>
-                                <td>Penggunaan elemen semantik native (<code>&lt;header&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;main&gt;</code>, 5x <code>&lt;section&gt;</code>, <code>&lt;article&gt;</code> kartu tugas, <code>&lt;form&gt;</code>, dan <code>&lt;footer&gt;</code>).</td>
-                                <td><span class="badge-status badge-success">✓ Terpenuhi</span></td>
-                            </tr>
-                            <tr>
-                                <th scope="row">2. Logical Heading Hierarchy</th>
-                                <td>Tingkatan H1 hingga H4 runtut</td>
-                                <td>Halaman diawali satu <code>&lt;h1&gt;</code> utama, diikuti <code>&lt;h2&gt;</code> untuk setiap section, <code>&lt;h3&gt;</code> untuk kolom dan rincian formulir/fitur, serta <code>&lt;h4&gt;</code> untuk judul kartu tugas.</td>
-                                <td><span class="badge-status badge-success">✓ Terpenuhi</span></td>
-                            </tr>
-                            <tr>
-                                <th scope="row">3. Keyboard Navigability & Focus-Visible</th>
-                                <td>Fokus Tab runtut, Skip Link & :focus-visible</td>
-                                <td>Tersedia <code>.skip-link</code> untuk melompati navigasi. Seluruh tombol, link, dan kartu memiliki styling <code>:focus-visible</code> tegas (3px solid dengan offset) dan dapat dinavigasi via keyboard.</td>
-                                <td><span class="badge-status badge-success">✓ Terpenuhi</span></td>
-                            </tr>
-                            <tr>
-                                <th scope="row">4. Form Labels & Associations</th>
-                                <td>Pasangan <code>&lt;label for&gt;</code> & <code>id</code></td>
-                                <td>Semua field input, select, dan textarea memiliki pasangan label yang terhubung secara eksplisit menggunakan atribut <code>for</code> dan <code>id</code>, dilengkapi petunjuk <code>aria-describedby</code>.</td>
-                                <td><span class="badge-status badge-success">✓ Terpenuhi</span></td>
-                            </tr>
-                            <tr>
-                                <th scope="row">5. High Contrast & Urgency Indicators</th>
-                                <td>Kontras warna WCAG AA (&gt; 4.5:1)</td>
-                                <td>Indikator urgensi deadline tidak hanya mengandalkan warna, melainkan disertai teks status eksplisit (Kritis, Perhatian, Aman, Selesai) dan rasio kontras teks teruji.</td>
-                                <td><span class="badge-status badge-success">✓ Terpenuhi</span></td>
-                            </tr>
-                            <tr>
-                                <th scope="row">6. ARIA Roles & Screen Reader Alerts</th>
-                                <td>Landmark ARIA & <code>aria-live</code></td>
-                                <td>Perubahan status tugas dan aksi interaktif diumumkan via elemen <code>aria-live="polite"</code> sehingga pengguna pembaca layar mendapatkan konteks pembaruan.</td>
-                                <td><span class="badge-status badge-success">✓ Terpenuhi</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
 
     </main>
 
@@ -652,7 +587,7 @@ $initial_tasks = [
                     <li><a href="#features">Fitur Unggulan</a></li>
                     <li><a href="#kanban-section">Papan Kanban 3 Kolom</a></li>
                     <li><a href="#task-management">Formulir Tambah Tugas</a></li>
-                    <li><a href="#accessibility-checklist">Checklist Aksesibilitas</a></li>
+
                 </ul>
             </div>
 

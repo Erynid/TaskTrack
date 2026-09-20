@@ -8,14 +8,13 @@ TaskTrack adalah aplikasi visual tracker berbasis Kanban yang dirancang untuk me
 
 Halaman dibangun menggunakan PHP standar dengan fokus semantik HTML, hierarki heading logis, serta modularitas komponen:
 
-* **Navigasi (`<nav>`):** Navigasi responsif dengan tautan cepat menuju Beranda (`#hero`), Fitur (`#features`), Kanban Board (`#kanban-section`), Form Tambah Tugas (`#task-management`), dan Checklist Aksesibilitas (`#accessibility-checklist`), dilengkapi tombol toggle menu untuk layar *mobile*.
+* **Navigasi (`<nav>`):** Navigasi responsif dengan tautan cepat menuju Beranda (`#hero`), Fitur (`#features`), Kanban Board (`#kanban-section`), dan Form Tambah Tugas (`#task-management`), dilengkapi tombol toggle menu untuk layar *mobile*.
 * **Konten Utama (`<main id="main-content">`):** Menampung seluruh konten dan alur kerja aplikasi dengan skip link di posisi teratas.
-* **5 Section Semantik:**
+* **4 Section Semantik:**
   1. **Section Hero (`<section id="hero">`):** Headline persuasif, CTA ganda, banner opt-in notifikasi web push, dan ringkasan metrik statistik.
   2. **Section Fitur Unggulan (`<section id="features">`):** Value proposition aplikasi menampilkan 6 keunggulan utama mahasiswa.
   3. **Section Papan Kanban (`<section id="kanban-section">`):** Workspace visual 3 kolom (To Do, In Progress, Done) dengan filter mata kuliah dan live search.
   4. **Section Form Tambah Tugas (`<section id="task-management">`):** Formulir CRUD tugas lengkap dengan link LMS dan quick paste instruksi e-learning.
-  5. **Section Checklist Aksesibilitas (`<section id="accessibility-checklist">`):** Tabel audit kepatuhan WCAG 2.1 AA.
 * **Minimal 3 Komponen Reusable:**
   1. **`TaskCard` (`templates/components/task-card.php` / `<article class="task-card">`):** Komponen kartu tugas independen dengan header mata kuliah, lencana urgensi waktu, judul tugas `<h4>`, countdown timer, cuplikan instruksi, link pengumpulan LMS, serta tombol aksi alur kerja (*move, edit, delete*).
   2. **`StatMetricCard` (`templates/components/stat-card.php` / `<div class="metric-card">`):** Komponen kartu metrik ringkasan dengan label metrik, nilai numerik real-time, dan deskripsi konteks.
