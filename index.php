@@ -1,28 +1,29 @@
 <?php
 /**
- * TaskTrack: Web Tracker Tugas dan Deadline Kuliah
+ * TaskTrack: Web Tracker Tugas, Jadwal, dan Proyek
  * Landing Page Responsif dan Aksesibel berbasis PHP Standar, Flexbox/Grid, dan Komponen Reusable.
- * Dibangun dengan panduan taste-skill anti-slop: tipografi terkalibrasi, layout bento, bebas em-dash, dan ikon SVG presisi.
+ * Dibangun dengan panduan taste-skill anti-slop: tipografi terkalibrasi, layout bento, bebas em-dash, dan kustomisasi fleksibel.
  */
 require_once __DIR__ . '/components/stat-card.php';
 require_once __DIR__ . '/components/feature-card.php';
 require_once __DIR__ . '/components/task-card.php';
 
 $current_year = date('Y');
-$page_title = "TaskTrack: Tracker Tugas dan Deadline Kuliah Mahasiswa";
-$meta_description = "Landing page dan aplikasi visual tracker berbasis Kanban 3 kolom untuk mahasiswa. Drag and drop interaktif, auto-sorting deadline, indikator warna kritis, dan integrasi link LMS.";
+$page_title = "TaskTrack: Visual Task & Schedule Kanban Board";
+$meta_description = "Aplikasi visual tracker dan jadwal berbasis Kanban 3 kolom fleksibel. Drag and drop interaktif, auto-sorting deadline, kategori kustom, tautan serbaguna, dan indikator warna kritis.";
 
-// Data Awal Tugas Mahasiswa
+// Data Awal Tugas & Jadwal (Menunjukkan Fleksibilitas Berbagai Tipe Aktivitas)
 $initial_tasks = [
     [
         'id' => 'task-1',
-        'title' => 'Implementasi Arsitektur MVC dan Routing Native',
-        'course' => 'Pemrograman Web Lanjut',
+        'title' => 'Slicing UI Dashboard dan Integrasi REST API',
+        'course' => 'Proyek Web',
         'deadline' => date('Y-m-d\TH:i', strtotime('+18 hours')),
         'status' => 'todo',
         'urgency' => 'critical',
-        'lms_url' => 'https://lms.universitas.ac.id/mod/assign/view.php?id=101',
-        'instructions' => 'Buat struktur folder MVC murni menggunakan PHP native tanpa framework. Sertakan file index.php, Router.php, dan Controller dasar sesuai modul praktikum 4.'
+        'lms_url' => 'https://github.com/example/tasktrack-project',
+        'lms_label' => 'GitHub Repo',
+        'instructions' => 'Selesaikan komponen reusable, perbaiki kontras warna sesuai panduan WCAG AA, dan hubungkan data mock ke layout kartu.'
     ],
     [
         'id' => 'task-2',
@@ -32,27 +33,30 @@ $initial_tasks = [
         'status' => 'inprogress',
         'urgency' => 'warning',
         'lms_url' => 'https://lms.universitas.ac.id/mod/assign/view.php?id=204',
+        'lms_label' => 'Portal LMS',
         'instructions' => 'Lakukan perancangan ERD dan normalisasi tabel transaksi klinik hingga bentuk 3NF beserta DDL script MySQL.'
     ],
     [
         'id' => 'task-3',
-        'title' => 'Analisis Kebutuhan Sistem dan Pembuatan SRS',
-        'course' => 'Rekayasa Perangkat Lunak',
+        'title' => 'Penyusunan Bab 2 Tinjauan Pustaka Skripsi',
+        'course' => 'Riset Skripsi',
         'deadline' => date('Y-m-d\TH:i', strtotime('+5 days 10 hours')),
         'status' => 'inprogress',
         'urgency' => 'safe',
-        'lms_url' => 'https://lms.universitas.ac.id/mod/assign/view.php?id=305',
-        'instructions' => 'Susun dokumen SRS standar IEEE 830 mencakup use case diagram, activity diagram, dan non-functional requirements.'
+        'lms_url' => 'https://drive.google.com/drive/folders/sample-folder',
+        'lms_label' => 'Google Drive',
+        'instructions' => 'Kumpulkan 10 jurnal rujukan IEEE dan ACM tentang evaluasi UX sistem task management dan accessibility guidelines.'
     ],
     [
         'id' => 'task-4',
-        'title' => 'Konfigurasi Subnetting dan Routing Statis Cisco',
-        'course' => 'Jaringan Komputer',
+        'title' => 'Weekly Sync dan Sprint Review Tim',
+        'course' => 'Jadwal Harian',
         'deadline' => date('Y-m-d\TH:i', strtotime('-1 day')),
         'status' => 'done',
         'urgency' => 'done',
-        'lms_url' => 'https://lms.universitas.ac.id/mod/assign/view.php?id=402',
-        'instructions' => 'Praktikum Packet Tracer menghubungkan 3 router dengan routing statis dan konfigurasi DHCP server.'
+        'lms_url' => 'https://zoom.us/j/sample123',
+        'lms_label' => 'Zoom Meeting',
+        'instructions' => 'Presentasi progress mingguan, review sprint backlog, dan sinkronisasi target peluncuran modul baru.'
     ]
 ];
 ?>
@@ -65,6 +69,18 @@ $initial_tasks = [
     <meta name="theme-color" content="#4f46e5">
     <title><?php echo htmlspecialchars($page_title); ?></title>
     
+    <!-- Pencegahan Flicker Tema (Theme Flash Prevention) -->
+    <script>
+        (function() {
+            try {
+                var savedTheme = localStorage.getItem('tasktrack_theme');
+                var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var theme = savedTheme ? savedTheme : (prefersDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch(e) {}
+        })();
+    </script>
+
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -148,8 +164,25 @@ $initial_tasks = [
                 </ul>
             </nav>
 
-            <!-- Aksi Header: Izin Notifikasi dan Modal Login Pengguna -->
+            <!-- Aksi Header: Pengalih Tema, Izin Notifikasi, dan Modal Login -->
             <div class="header-actions">
+                <button type="button" id="btn-theme-toggle" class="btn-icon" aria-label="Ganti Tema Tampilan (Terang / Gelap)" title="Ganti Tema">
+                    <svg class="icon-theme-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="icon-theme-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+
                 <button type="button" id="btn-notification-prompt" class="btn-icon" aria-label="Pengaturan Izin Web Push Notification" title="Aktifkan Web Push Notification">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -179,12 +212,12 @@ $initial_tasks = [
             <div class="section-container">
                 <div class="hero-content-wrap">
                     <div class="hero-text-block">
-                        <div class="hero-eyebrow">Alur Kerja Tugas Mahasiswa</div>
+                        <div class="hero-eyebrow">Papan Tugas & Jadwal Fleksibel</div>
                         <h1 id="heading-hero" class="hero-title">
-                            Kelola antrean tugas kuliah, selesaikan sebelum tenggat.
+                            Kelola jadwal, proyek, dan tugas harian tanpa hambatan.
                         </h1>
                         <p class="hero-description">
-                            Papan visual Kanban dengan kalkulasi urgensi otomatis, integrasi tautan LMS kampus, dan notifikasi pengingat tepat waktu.
+                            Papan visual Kanban fleksibel dengan kalkulasi urgensi real-time, tautan kustom serbaguna, dan notifikasi pengingat tepat waktu untuk produktivitas optimal.
                         </p>
                         
                         <div class="hero-cta-group">
@@ -267,7 +300,7 @@ $initial_tasks = [
             <div class="section-container">
                 <div class="section-header-wrap">
                     <h2 id="heading-features" class="section-heading">Fitur yang Membantu Anda Selesai Tepat Waktu</h2>
-                    <p class="section-subtext">Alur kerja terstruktur untuk mengurangi friksi dalam melacak tugas kuliah dan mengantisipasi batas waktu.</p>
+                    <p class="section-subtext">Alur kerja terstruktur untuk mengurangi friksi dalam melacak tugas, proyek, dan mengantisipasi batas waktu.</p>
                 </div>
 
                 <!-- Bento Grid: Reusable FeatureCard Components -->
@@ -276,7 +309,7 @@ $initial_tasks = [
                     // Cell 1: Wide hero bento
                     renderFeatureCard([
                         'icon' => '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>',
-                        'title' => 'Papan Kanban 3 Kolom Interaktif',
+                        'title' => 'Papan Kanban 3 Kolom Fleksibel',
                         'desc' => 'Kelola alur kerja dari Belum Dimulai, Sedang Dikerjakan, hingga Selesai dengan interaksi drag and drop yang halus atau tombol pindah cepat.',
                         'tag' => 'Alur Visual',
                         'tag_class' => 'tag-primary',
@@ -286,7 +319,7 @@ $initial_tasks = [
                     // Cell 2
                     renderFeatureCard([
                         'icon' => '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>',
-                        'title' => 'Indikator Kritis Waktu',
+                        'title' => 'Indikator Kritis Waktu Real-Time',
                         'desc' => 'Warna kartu berubah otomatis sesuai sisa waktu (merah di bawah 24 jam, kuning di bawah 3 hari, hijau di atas 3 hari, abu-abu selesai).',
                         'tag' => 'Otomasi Status',
                         'tag_class' => 'tag-danger'
@@ -296,7 +329,7 @@ $initial_tasks = [
                     renderFeatureCard([
                         'icon' => '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>',
                         'title' => 'Web Push Notification H-1 dan H-3 Jam',
-                        'desc' => 'Peringatan pop-up browser sebelum waktu pengumpulan berakhir agar tidak ada tugas yang terlewat.',
+                        'desc' => 'Peringatan pop-up browser sebelum waktu pengumpulan berakhir agar tidak ada tugas atau jadwal penting yang terlewat.',
                         'tag' => 'Pengingat Aktif',
                         'tag_class' => 'tag-warning'
                     ]);
@@ -304,18 +337,18 @@ $initial_tasks = [
                     // Cell 4
                     renderFeatureCard([
                         'icon' => '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>',
-                        'title' => 'Pintasan Langsung Portal LMS',
-                        'desc' => 'Buka tautan unggah tugas di Moodle, Google Classroom, atau Canvas secara aman dalam satu klik.',
-                        'tag' => 'Integrasi Kampus',
+                        'title' => 'Pintasan Tautan Kustom & Multi-Platform',
+                        'desc' => 'Lampirkan tautan Google Drive, Zoom, GitHub, LMS, Notion, atau Figma langsung dengan label tombol yang bisa Anda atur sendiri.',
+                        'tag' => 'Tautan Bebas',
                         'tag_class' => 'tag-success'
                     ]);
 
                     // Cell 5: Wide bento
                     renderFeatureCard([
                         'icon' => '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>',
-                        'title' => 'Quick Input Teks Instruksi Dosen',
-                        'desc' => 'Salin instruksi tugas panjang langsung dari clipboard ke kartu tugas tanpa harus berulang kali membuka portal kampus.',
-                        'tag' => 'Efisiensi Input',
+                        'title' => 'Quick Input Catatan, Agenda, & Instruksi',
+                        'desc' => 'Salin instruksi tugas panjang, checklist to-do, atau catatan meeting dari clipboard ke kartu tugas dalam sekali klik.',
+                        'tag' => 'Input Cepat',
                         'tag_class' => 'tag-primary',
                         'col_span' => 'bento-col-2'
                     ]);
@@ -345,21 +378,17 @@ $initial_tasks = [
 
                 <!-- Kontrol Filter dan Pencarian -->
                 <div class="filter-toolbar">
-                    <form id="filter-form" class="filter-controls" role="search" aria-label="Filter Mata Kuliah dan Cari Tugas" onsubmit="event.preventDefault();">
+                    <form id="filter-form" class="filter-controls" role="search" aria-label="Filter Kategori dan Cari Tugas" onsubmit="event.preventDefault();">
                         <div class="filter-group">
                             <label for="filter-course-select" class="filter-label">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                     <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
                                     <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
                                 </svg>
-                                <span>Mata Kuliah:</span>
+                                <span>Kategori:</span>
                             </label>
                             <select id="filter-course-select" class="form-select filter-select">
-                                <option value="all">Semua Mata Kuliah</option>
-                                <option value="Pemrograman Web Lanjut">Pemrograman Web Lanjut</option>
-                                <option value="Sistem Basis Data">Sistem Basis Data</option>
-                                <option value="Rekayasa Perangkat Lunak">Rekayasa Perangkat Lunak</option>
-                                <option value="Jaringan Komputer">Jaringan Komputer</option>
+                                <option value="all">Semua Kategori</option>
                             </select>
                         </div>
 
@@ -369,9 +398,9 @@ $initial_tasks = [
                                     <circle cx="11" cy="11" r="8"></circle>
                                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                                 </svg>
-                                <span>Cari Tugas:</span>
+                                <span>Cari:</span>
                             </label>
-                            <input type="search" id="search-task-input" class="form-input search-input" placeholder="Cari judul atau materi tugas...">
+                            <input type="search" id="search-task-input" class="form-input search-input" placeholder="Cari judul, materi, atau catatan...">
                         </div>
 
                         <div class="filter-actions">
@@ -443,8 +472,8 @@ $initial_tasks = [
             <div class="section-container">
                 <div class="form-wrapper-card">
                     <header class="form-header">
-                        <h2 id="heading-management" class="section-heading">Tambah dan Perbarui Tugas Kuliah</h2>
-                        <p class="section-subtext">Isi formulir berikut untuk memasukkan kartu tugas baru ke papan Kanban atau memperbarui data tugas kuliah Anda.</p>
+                        <h2 id="heading-management" class="section-heading">Tambah dan Kustomisasi Tugas / Jadwal</h2>
+                        <p class="section-subtext">Sesuaikan judul kegiatan, kategori kustom, tenggat waktu, tautan pendukung, dan catatan alur kerja Anda.</p>
                     </header>
 
                     <!-- Formulir Manajemen Tugas Lengkap (<form>) -->
@@ -452,32 +481,33 @@ $initial_tasks = [
                         <input type="hidden" id="task-id" name="task_id" value="">
 
                         <fieldset class="form-fieldset">
-                            <legend class="form-legend">Informasi Pokok Tugas</legend>
+                            <legend class="form-legend">Informasi Pokok Kegiatan</legend>
 
                             <div class="form-row">
                                 <div class="form-field flex-2">
                                     <label for="task-title" class="field-label">
-                                        <span>Judul Tugas</span>
+                                        <span>Judul Tugas / Jadwal</span>
                                         <span class="required-indicator" aria-hidden="true">*</span>
                                     </label>
-                                    <input type="text" id="task-title" name="task_title" class="form-input" placeholder="Contoh: Makalah Etika Profesi IT dan AI" required aria-required="true" aria-describedby="task-title-help">
-                                    <small id="task-title-help" class="field-help">Tuliskan nama tugas atau proyek secara jelas dan ringkas.</small>
+                                    <input type="text" id="task-title" name="task_title" class="form-input" placeholder="Contoh: Slicing UI Dashboard atau Standup Mingguan" required aria-required="true" aria-describedby="task-title-help">
+                                    <small id="task-title-help" class="field-help">Tuliskan nama aktivitas, tugas, atau agenda secara jelas.</small>
                                 </div>
 
                                 <div class="form-field flex-1">
                                     <label for="task-course" class="field-label">
-                                        <span>Mata Kuliah</span>
+                                        <span>Kategori / Topik</span>
                                         <span class="required-indicator" aria-hidden="true">*</span>
                                     </label>
-                                    <select id="task-course" name="task_course" class="form-select" required aria-required="true">
-                                        <option value="" disabled selected>Pilih Mata Kuliah...</option>
-                                        <option value="Pemrograman Web Lanjut">Pemrograman Web Lanjut</option>
-                                        <option value="Sistem Basis Data">Sistem Basis Data</option>
-                                        <option value="Rekayasa Perangkat Lunak">Rekayasa Perangkat Lunak</option>
-                                        <option value="Jaringan Komputer">Jaringan Komputer</option>
-                                        <option value="Kecerdasan Buatan">Kecerdasan Buatan</option>
-                                        <option value="Lainnya">Lainnya / Umum</option>
-                                    </select>
+                                    <input type="text" id="task-course" name="task_course" class="form-input" list="course-suggestions" placeholder="Ketik atau pilih kategori..." required aria-required="true" autocomplete="off" aria-describedby="task-course-help">
+                                    <datalist id="course-suggestions">
+                                        <option value="Proyek Web">
+                                        <option value="Sistem Basis Data">
+                                        <option value="Riset Skripsi">
+                                        <option value="Jadwal Harian">
+                                        <option value="Pekerjaan / Freelance">
+                                        <option value="Personal">
+                                    </datalist>
+                                    <small id="task-course-help" class="field-help">Bebas ketik kategori sendiri atau pilih opsi yang ada.</small>
                                 </div>
                             </div>
 
@@ -506,30 +536,49 @@ $initial_tasks = [
                         </fieldset>
 
                         <fieldset class="form-fieldset">
-                            <legend class="form-legend">Integrasi Portal E-Learning / LMS</legend>
+                            <legend class="form-legend">Tautan Kustom dan Catatan Pendukung</legend>
 
-                            <div class="form-field">
-                                <label for="task-lms-url" class="field-label">
-                                    <span>Link Pengumpulan Tugas (LMS URL)</span>
-                                </label>
-                                <div class="input-with-icon">
-                                    <span class="input-addon-icon" aria-hidden="true">
-                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <circle cx="12" cy="12" r="10"></circle>
-                                            <line x1="2" y1="12" x2="22" y2="12"></line>
-                                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-                                        </svg>
-                                    </span>
-                                    <input type="url" id="task-lms-url" name="task_lms_url" class="form-input" placeholder="https://kuliah.kampus.ac.id/mod/assign/view.php?id=..." aria-describedby="task-lms-help">
+                            <div class="form-row">
+                                <div class="form-field flex-2">
+                                    <label for="task-lms-url" class="field-label">
+                                        <span>Tautan / URL Pendukung (Opsional)</span>
+                                    </label>
+                                    <div class="input-with-icon">
+                                        <span class="input-addon-icon" aria-hidden="true">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <line x1="2" y1="12" x2="22" y2="12"></line>
+                                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                                            </svg>
+                                        </span>
+                                        <input type="url" id="task-lms-url" name="task_lms_url" class="form-input" placeholder="https://github.com/... atau https://drive.google.com/..." aria-describedby="task-lms-help">
+                                    </div>
+                                    <small id="task-lms-help" class="field-help">Tautan ke GitHub, Google Drive, Zoom, Figma, atau portal pengumpulan.</small>
                                 </div>
-                                <small id="task-lms-help" class="field-help">Tautan langsung ke halaman unggah tugas di Moodle, Google Classroom, atau Canvas.</small>
+
+                                <div class="form-field flex-1">
+                                    <label for="task-lms-label" class="field-label">
+                                        <span>Label Tombol Tautan</span>
+                                    </label>
+                                    <input type="text" id="task-lms-label" name="task_lms_label" class="form-input" list="lms-label-suggestions" placeholder="Contoh: GitHub Repo / Zoom" autocomplete="off" aria-describedby="task-lms-label-help">
+                                    <datalist id="lms-label-suggestions">
+                                        <option value="Buka Tautan">
+                                        <option value="GitHub Repo">
+                                        <option value="Google Drive">
+                                        <option value="Zoom Meeting">
+                                        <option value="Portal LMS">
+                                        <option value="Dokumen Notion">
+                                        <option value="Figma Board">
+                                    </datalist>
+                                    <small id="task-lms-label-help" class="field-help">Teks tombol pada kartu (default: "Buka Tautan").</small>
+                                </div>
                             </div>
 
                             <!-- Quick Input Teks Instruksi Panjang -->
                             <div class="form-field">
                                 <div class="field-label-group">
                                     <label for="task-instructions" class="field-label">
-                                        <span>Quick Input Teks Instruksi Dosen / Portal E-Learning</span>
+                                        <span>Quick Input Catatan, Agenda, atau Instruksi</span>
                                     </label>
                                     <button type="button" id="btn-paste-clipboard" class="btn-text-action" title="Tempel otomatis dari Clipboard">
                                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -539,8 +588,8 @@ $initial_tasks = [
                                         <span>Salin dari Clipboard</span>
                                     </button>
                                 </div>
-                                <textarea id="task-instructions" name="task_instructions" class="form-textarea" rows="4" placeholder="Salin dan tempel instruksi panjang dari portal e-learning (format laporan, batas halaman, ketentuan penamaan file)..." aria-describedby="task-instructions-help"></textarea>
-                                <small id="task-instructions-help" class="field-help">Memudahkan membaca rincian tugas tanpa harus berulang kali membuka portal kampus.</small>
+                                <textarea id="task-instructions" name="task_instructions" class="form-textarea" rows="4" placeholder="Salin instruksi tugas, catatan to-do checklist, format dokumen, atau ringkasan meeting di sini..." aria-describedby="task-instructions-help"></textarea>
+                                <small id="task-instructions-help" class="field-help">Memudahkan membaca rincian penting langsung dari kartu tanpa membuka tab lain.</small>
                             </div>
                         </fieldset>
 

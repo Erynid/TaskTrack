@@ -9,11 +9,12 @@
 function renderTaskCard(array $task): void {
     $id = htmlspecialchars($task['id'] ?? '');
     $title = htmlspecialchars($task['title'] ?? '');
-    $course = htmlspecialchars($task['course'] ?? '');
+    $course = htmlspecialchars($task['course'] ?? 'Umum');
     $deadline = htmlspecialchars($task['deadline'] ?? '');
     $status = htmlspecialchars($task['status'] ?? 'todo');
     $urgency = htmlspecialchars($task['urgency'] ?? 'safe');
     $lmsUrl = htmlspecialchars($task['lms_url'] ?? '');
+    $linkLabel = !empty($task['lms_label']) ? htmlspecialchars($task['lms_label']) : 'Buka Tautan';
     $instructions = htmlspecialchars($task['instructions'] ?? '');
 
     $urgencyMap = [
@@ -27,7 +28,7 @@ function renderTaskCard(array $task): void {
 ?>
 <article class="task-card <?php echo $u['class']; ?>" id="<?php echo $id; ?>" draggable="true" role="listitem" aria-labelledby="title-<?php echo $id; ?>" tabindex="0">
     <header class="task-card-header">
-        <span class="course-badge" title="<?php echo $course; ?>"><?php echo $course; ?></span>
+        <span class="course-badge" title="Kategori: <?php echo $course; ?>"><?php echo $course; ?></span>
         <span class="urgency-pill <?php echo $u['pill']; ?>"><?php echo $u['label']; ?></span>
     </header>
     <h4 id="title-<?php echo $id; ?>" class="task-card-title"><?php echo $title; ?></h4>
@@ -45,21 +46,21 @@ function renderTaskCard(array $task): void {
     </div>
     <footer class="task-card-footer">
         <?php if (!empty($lmsUrl)): ?>
-            <a href="<?php echo $lmsUrl; ?>" target="_blank" rel="noopener noreferrer" class="btn-lms-shortcut" title="Buka tautan pengumpulan di LMS Kampus" aria-label="Buka halaman LMS untuk tugas <?php echo $title; ?>">
+            <a href="<?php echo $lmsUrl; ?>" target="_blank" rel="noopener noreferrer" class="btn-lms-shortcut" title="Buka tautan: <?php echo $lmsUrl; ?>" aria-label="Buka tautan untuk tugas <?php echo $title; ?>">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                     <polyline points="15 3 21 3 21 9"></polyline>
                     <line x1="10" y1="14" x2="21" y2="3"></line>
                 </svg>
-                <span>Portal LMS</span>
+                <span><?php echo $linkLabel; ?></span>
             </a>
         <?php else: ?>
-            <span class="btn-lms-shortcut btn-lms-disabled" title="Tidak ada URL LMS">
+            <span class="btn-lms-shortcut btn-lms-disabled" title="Tidak ada tautan terlampir">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <line x1="1" y1="1" x2="23" y2="23"></line>
                     <path d="M10.5 10.5A2 2 0 0 0 8 13v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-3"></path>
                 </svg>
-                <span>Tanpa LMS</span>
+                <span>Tanpa Tautan</span>
             </span>
         <?php endif; ?>
         <div class="task-actions">

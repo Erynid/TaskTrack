@@ -23,16 +23,17 @@
     const STORAGE_KEY_AUTH = 'tasktrack_auth_session';
     const STORAGE_KEY_NOTIF_OPTIN = 'tasktrack_notif_optin';
 
-    // Sampel Tugas Awal
+    // Sampel Tugas Awal (Menunjukkan Fleksibilitas Beragam Kegiatan)
     const defaultTasks = [
         {
             id: 'task-1',
-            title: 'Implementasi Arsitektur MVC & Routing Native',
-            course: 'Pemrograman Web Lanjut',
+            title: 'Slicing UI Dashboard dan Integrasi REST API',
+            course: 'Proyek Web',
             deadline: new Date(Date.now() + 18 * 3600 * 1000).toISOString().slice(0, 16),
             status: 'todo',
-            lms_url: 'https://lms.universitas.ac.id/mod/assign/view.php?id=101',
-            instructions: 'Buat struktur folder MVC murni menggunakan PHP native tanpa framework. Sertakan file index.php, Router.php, dan Controller dasar sesuai modul praktikum 4.'
+            lms_url: 'https://github.com/example/tasktrack-project',
+            lms_label: 'GitHub Repo',
+            instructions: 'Selesaikan komponen reusable, perbaiki kontras warna sesuai panduan WCAG AA, dan hubungkan data mock ke layout kartu.'
         },
         {
             id: 'task-2',
@@ -41,25 +42,28 @@
             deadline: new Date(Date.now() + 52 * 3600 * 1000).toISOString().slice(0, 16),
             status: 'inprogress',
             lms_url: 'https://lms.universitas.ac.id/mod/assign/view.php?id=204',
+            lms_label: 'Portal LMS',
             instructions: 'Lakukan perancangan ERD dan normalisasi tabel transaksi klinik hingga bentuk 3NF beserta DDL script MySQL.'
         },
         {
             id: 'task-3',
-            title: 'Analisis Kebutuhan Sistem & Pembuatan SRS',
-            course: 'Rekayasa Perangkat Lunak',
+            title: 'Penyusunan Bab 2 Tinjauan Pustaka Skripsi',
+            course: 'Riset Skripsi',
             deadline: new Date(Date.now() + 130 * 3600 * 1000).toISOString().slice(0, 16),
             status: 'inprogress',
-            lms_url: 'https://lms.universitas.ac.id/mod/assign/view.php?id=305',
-            instructions: 'Susun dokumen SRS standar IEEE 830 mencakup use case diagram, activity diagram, dan non-functional requirements.'
+            lms_url: 'https://drive.google.com/drive/folders/sample-folder',
+            lms_label: 'Google Drive',
+            instructions: 'Kumpulkan 10 jurnal rujukan IEEE dan ACM tentang evaluasi UX sistem task management dan accessibility guidelines.'
         },
         {
             id: 'task-4',
-            title: 'Konfigurasi Subnetting & Routing Statis Cisco',
-            course: 'Jaringan Komputer',
+            title: 'Weekly Sync dan Sprint Review Tim',
+            course: 'Jadwal Harian',
             deadline: new Date(Date.now() - 24 * 3600 * 1000).toISOString().slice(0, 16),
             status: 'done',
-            lms_url: 'https://lms.universitas.ac.id/mod/assign/view.php?id=402',
-            instructions: 'Praktikum Packet Tracer menghubungkan 3 router dengan routing statis dan konfigurasi DHCP server.'
+            lms_url: 'https://zoom.us/j/sample123',
+            lms_label: 'Zoom Meeting',
+            instructions: 'Presentasi progress mingguan, review sprint backlog, dan sinkronisasi target peluncuran modul baru.'
         }
     ];
 
@@ -69,7 +73,13 @@
         const stored = localStorage.getItem(STORAGE_KEY_TASKS);
         if (stored) {
             try {
-                return JSON.parse(stored);
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    return parsed.map(t => ({
+                        ...t,
+                        lms_label: t.lms_label || (t.lms_url ? 'Buka Tautan' : '')
+                    }));
+                }
             } catch (e) {
                 console.error('Gagal membaca data dari localStorage', e);
             }
@@ -80,8 +90,61 @@
 
     function saveTasks() {
         localStorage.setItem(STORAGE_KEY_TASKS, JSON.stringify(tasks));
+        updateFilterOptions();
         renderBoard();
         updateMetrics();
+    }
+
+    // -------------------------------------------------------------------------
+    // Pengalih Tema (Light / Dark Mode Persistence)
+    // -------------------------------------------------------------------------
+    function initTheme() {
+        const themeToggleBtn = document.getElementById('btn-theme-toggle');
+        const savedTheme = localStorage.getItem('tasktrack_theme');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const currentTheme = savedTheme ? savedTheme : (prefersDark ? 'dark' : 'light');
+
+        document.documentElement.setAttribute('data-theme', currentTheme);
+
+        if (themeToggleBtn) {
+            themeToggleBtn.addEventListener('click', () => {
+                const activeTheme = document.documentElement.getAttribute('data-theme') || 'light';
+                const nextTheme = activeTheme === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', nextTheme);
+                localStorage.setItem('tasktrack_theme', nextTheme);
+                announce(`Tema tampilan diubah ke mode ${nextTheme === 'dark' ? 'gelap' : 'terang'}`);
+            });
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Opsi Kategori Dinamis untuk Filter & Datalist Input
+    // -------------------------------------------------------------------------
+    function updateFilterOptions() {
+        const select = document.getElementById('filter-course-select');
+        const datalist = document.getElementById('course-suggestions');
+        if (!select) return;
+
+        const currentFilter = select.value || 'all';
+        const categories = Array.from(new Set(tasks.map(t => (t.course || '').trim()).filter(Boolean))).sort();
+
+        select.innerHTML = '<option value="all">Semua Kategori</option>';
+        categories.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat;
+            opt.textContent = cat;
+            if (cat === currentFilter) opt.selected = true;
+            select.appendChild(opt);
+        });
+
+        if (datalist) {
+            datalist.innerHTML = '';
+            categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                datalist.appendChild(opt);
+            });
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -208,22 +271,23 @@
             card.setAttribute('aria-labelledby', `title-${task.id}`);
             card.setAttribute('tabindex', '0');
 
+            const linkLabel = task.lms_label || 'Buka Tautan';
             const lmsButtonHtml = task.lms_url ? `
-                <a href="${escapeHtml(task.lms_url)}" target="_blank" rel="noopener noreferrer" class="btn-lms-shortcut" title="Buka tautan pengumpulan di LMS Kampus" aria-label="Buka halaman LMS untuk tugas ${escapeHtml(task.title)}">
+                <a href="${escapeHtml(task.lms_url)}" target="_blank" rel="noopener noreferrer" class="btn-lms-shortcut" title="Buka tautan: ${escapeHtml(task.lms_url)}" aria-label="Buka tautan untuk ${escapeHtml(task.title)}">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                         <polyline points="15 3 21 3 21 9"></polyline>
                         <line x1="10" y1="14" x2="21" y2="3"></line>
                     </svg>
-                    <span>Portal LMS</span>
+                    <span>${escapeHtml(linkLabel)}</span>
                 </a>
             ` : `
-                <span class="btn-lms-shortcut btn-lms-disabled" title="Tidak ada URL LMS">
+                <span class="btn-lms-shortcut btn-lms-disabled" title="Tidak ada tautan terlampir">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <line x1="1" y1="1" x2="23" y2="23"></line>
                         <path d="M10.5 10.5A2 2 0 0 0 8 13v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-3"></path>
                     </svg>
-                    <span>Tanpa LMS</span>
+                    <span>Tanpa Tautan</span>
                 </span>
             `;
 
@@ -265,7 +329,7 @@
 
             card.innerHTML = `
                 <header class="task-card-header">
-                    <span class="course-badge" title="${escapeHtml(task.course)}">${escapeHtml(task.course)}</span>
+                    <span class="course-badge" title="Kategori: ${escapeHtml(task.course)}">${escapeHtml(task.course)}</span>
                     <span class="urgency-pill ${urgency.pillClass}">${urgency.label}</span>
                 </header>
                 <h4 id="title-${task.id}" class="task-card-title">${escapeHtml(task.title)}</h4>
@@ -429,6 +493,8 @@
         document.getElementById('task-deadline').value = task.deadline;
         document.getElementById('task-status').value = task.status;
         document.getElementById('task-lms-url').value = task.lms_url || '';
+        const lmsLabelInput = document.getElementById('task-lms-label');
+        if (lmsLabelInput) lmsLabelInput.value = task.lms_label || '';
         document.getElementById('task-instructions').value = task.instructions || '';
 
         document.getElementById('save-button-text').textContent = 'Perbarui Tugas';
@@ -462,15 +528,16 @@
             e.preventDefault();
 
             const title = document.getElementById('task-title').value.trim();
-            const course = document.getElementById('task-course').value;
+            const course = document.getElementById('task-course').value.trim();
             const deadline = document.getElementById('task-deadline').value;
             const status = document.getElementById('task-status').value;
             const lmsUrl = document.getElementById('task-lms-url').value.trim();
+            const lmsLabel = (document.getElementById('task-lms-label')?.value || '').trim();
             const instructions = document.getElementById('task-instructions').value.trim();
             const editId = document.getElementById('task-id').value;
 
             if (!title || !course || !deadline) {
-                alert('Mohon lengkapi Judul Tugas, Mata Kuliah, dan Tanggal Deadline.');
+                alert('Mohon lengkapi Judul Tugas / Jadwal, Kategori, dan Tanggal Deadline.');
                 return;
             }
 
@@ -485,6 +552,7 @@
                         deadline,
                         status,
                         lms_url: lmsUrl,
+                        lms_label: lmsLabel || (lmsUrl ? 'Buka Tautan' : ''),
                         instructions
                     };
                     announce(`Tugas "${title}" berhasil diperbarui`);
@@ -498,6 +566,7 @@
                     deadline,
                     status,
                     lms_url: lmsUrl,
+                    lms_label: lmsLabel || (lmsUrl ? 'Buka Tautan' : ''),
                     instructions
                 };
                 tasks.push(newTask);
@@ -526,6 +595,8 @@
         if (!taskForm) return;
         taskForm.reset();
         document.getElementById('task-id').value = '';
+        const lmsLabelInput = document.getElementById('task-lms-label');
+        if (lmsLabelInput) lmsLabelInput.value = '';
         document.getElementById('save-button-text').textContent = 'Simpan ke Papan Kanban';
     }
 
@@ -599,7 +670,7 @@
     if (filterSelect) {
         filterSelect.addEventListener('change', () => {
             renderBoard();
-            announce(`Papan disaring berdasarkan mata kuliah: ${filterSelect.options[filterSelect.selectedIndex].text}`);
+            announce(`Papan disaring berdasarkan kategori: ${filterSelect.options[filterSelect.selectedIndex]?.text || 'Semua'}`);
         });
     }
 
@@ -829,6 +900,8 @@
     // 14. Inisialisasi Aplikasi Saat DOM Selesai Dimuat
     // -------------------------------------------------------------------------
     document.addEventListener('DOMContentLoaded', () => {
+        initTheme();
+        updateFilterOptions();
         initDropzones();
         renderBoard();
         updateMetrics();
