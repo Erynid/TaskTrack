@@ -1,0 +1,11 @@
+{
+  "name": "tasktrack",
+  "version": "1.0.0",
+  "description": "TaskTrack - Web Tracker Tugas & Deadline Kuliah",
+  "type": "module",
+  "scripts": {
+    "test": "node js/test-taskProcessor.js"
+  },
+  "author": "",
+  "license": "MIT"
+}
