@@ -90,12 +90,6 @@ TaskTrack mengimplementasikan modul JavaScript ES6 mandiri ([js/taskProcessor.js
    - Menggunakan sintaks `export` (named exports dan default export) pada `js/taskProcessor.js`.
    - Dimuat menggunakan `import` pada `js/app.js` dan dideklarasikan dengan `<script type="module" src="js/app.js"></script>` pada `index.php`.
 
-### Menjalankan Unit Test Mandiri Modul
-Modul dilengkapi test suite otomatis ([js/test-taskProcessor.js](file:///c:/laragon/www/TaskTrack/js/test-taskProcessor.js)) yang menguji 47 skenario fungsi, method array, dan error handling:
-```bash
-& "C:\laragon\bin\nodejs\node-v14\node.exe" js/test-taskProcessor.js
-```
-
 ---
 
 ## Cara Menjalankan Proyek
