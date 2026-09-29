@@ -118,6 +118,19 @@ $initial_tasks = [
 
             <!-- User Menu Settings & Profile -->
             <div class="user-controls">
+                <button type="button" id="btn-theme-toggle" class="icon-btn" title="Ganti Tema Tampilan (Obsidian, Midnight, Slate, Light)" aria-label="Ganti Tema Tampilan">
+                    <svg class="icon-svg" id="theme-toggle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
                 <button type="button" id="btn-open-settings" class="icon-btn" title="Pengaturan dan Notifikasi" aria-label="Pengaturan">
                     <svg class="icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <circle cx="12" cy="12" r="3"></circle>
@@ -153,7 +166,7 @@ $initial_tasks = [
                     </button>
                 </div>
 
-                <!-- Search, Filter & Switcher View -->
+                <!-- Search, Filter, Sort & Switcher View -->
                 <div class="toolbar-secondary">
                     <div class="search-filter-box">
                         <div class="search-input-wrapper">
@@ -180,6 +193,37 @@ $initial_tasks = [
                                 </select>
                             </div>
                         </div>
+
+                        <!-- Interaksi 1: Kontrol Sorting Data Proyek -->
+                        <div class="sort-dropdown-wrapper">
+                            <label for="sort-task-select" class="sr-only">Urutkan Berdasarkan</label>
+                            <div class="select-wrapper">
+                                <svg class="icon-svg sort-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <line x1="21" y1="10" x2="3" y2="10"></line>
+                                    <line x1="21" y1="6" x2="7" y2="6"></line>
+                                    <line x1="21" y1="14" x2="3" y2="14"></line>
+                                    <line x1="21" y1="18" x2="7" y2="18"></line>
+                                </svg>
+                                <select id="sort-task-select" class="select-sort" aria-label="Urutkan tugas perkuliahan">
+                                    <option value="deadline-asc">Tenggat Terdekat</option>
+                                    <option value="deadline-desc">Tenggat Terjauh</option>
+                                    <option value="priority-desc">Prioritas Tertinggi</option>
+                                    <option value="priority-asc">Prioritas Terendah</option>
+                                    <option value="title-asc">Judul (A-Z)</option>
+                                    <option value="title-desc">Judul (Z-A)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Interaksi 2: Tombol Ringkasan Cepat -->
+                        <button type="button" id="btn-quick-summary" class="btn-filter" aria-label="Buka ringkasan tugas" title="Ringkasan dan Analitik Tugas">
+                            <svg class="icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="18" y1="20" x2="18" y2="10"></line>
+                                <line x1="12" y1="20" x2="12" y2="4"></line>
+                                <line x1="6" y1="20" x2="6" y2="14"></line>
+                            </svg>
+                            <span>Ringkasan</span>
+                        </button>
                     </div>
 
                     <!-- View Switcher (Kanban view / List view) -->
@@ -512,7 +556,130 @@ $initial_tasks = [
         </div>
     </dialog>
 
-    <!-- DIALOG / MODAL PENGATURAN & PROFIL -->
+    <!-- DIALOG / MODAL DETAIL RINCIAN TUGAS (INTERAKSI 2) -->
+    <dialog id="task-detail-modal" class="app-dialog task-dialog" aria-labelledby="detail-task-title" aria-modal="true">
+        <div class="dialog-content task-dialog-content">
+            <div class="dialog-header">
+                <div>
+                    <span class="detail-course-tag" id="detail-course-name">Mata Kuliah</span>
+                    <h2 id="detail-task-title" class="dialog-title" style="margin-top: 0.35rem;">Judul Tugas Kuliah</h2>
+                </div>
+                <button type="button" id="btn-close-detail-modal" class="btn-close-dialog" aria-label="Tutup rincian tugas">
+                    <svg class="icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="detail-meta-grid">
+                <div class="detail-meta-card">
+                    <span class="meta-label">Batas Waktu (Deadline)</span>
+                    <strong id="detail-deadline-date" class="meta-value">-</strong>
+                    <span id="detail-countdown" class="meta-sub">-</span>
+                </div>
+                <div class="detail-meta-card">
+                    <span class="meta-label">Prioritas</span>
+                    <div id="detail-priority-badge" class="meta-badge-slot"></div>
+                </div>
+                <div class="detail-meta-card">
+                    <span class="meta-label">Status Alur Kerja</span>
+                    <div id="detail-status-badge" class="meta-badge-slot"></div>
+                </div>
+                <div class="detail-meta-card">
+                    <span class="meta-label">Tautan E-Learning</span>
+                    <div id="detail-lms-slot" class="meta-badge-slot"></div>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <div class="detail-section-header">
+                    <h3 class="detail-section-title">Instruksi & Catatan Penugasan</h3>
+                    <button type="button" id="btn-copy-detail-notes" class="btn-copy-clipboard" title="Salin instruksi tugas">
+                        <svg class="icon-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        <span id="copy-notes-label">Salin Catatan</span>
+                    </button>
+                </div>
+                <div id="detail-instructions-box" class="detail-notes-box">
+                    Tidak ada catatan instruksi khusus.
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h3 class="detail-section-title">Ubah Status Cepat</h3>
+                <div class="detail-status-actions" id="detail-status-actions-container">
+                    <button type="button" class="btn-status-pill" data-status="todo">Planned</button>
+                    <button type="button" class="btn-status-pill" data-status="inprogress">In progress</button>
+                    <button type="button" class="btn-status-pill" data-status="done">Completed</button>
+                    <button type="button" class="btn-status-pill" data-status="overdue">Overdue / &lt; 24h</button>
+                </div>
+            </div>
+
+            <div class="dialog-footer-actions">
+                <button type="button" id="btn-edit-from-detail" class="btn-new-task">
+                    <svg class="icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    <span>Edit Tugas</span>
+                </button>
+                <button type="button" id="btn-close-detail-secondary" class="btn-reset">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- DIALOG / MODAL RINGKASAN & ANALITIK (INTERAKSI 2) -->
+    <dialog id="summary-modal" class="app-dialog" aria-labelledby="summary-dialog-title" aria-modal="true">
+        <div class="dialog-content">
+            <div class="dialog-header">
+                <div>
+                    <h2 id="summary-dialog-title" class="dialog-title">Ringkasan Tugas Mahasiswa</h2>
+                    <p class="form-subtitle">Ikhtisar beban akademik, statistik penyelesaian, dan deadline aktif.</p>
+                </div>
+                <button type="button" id="btn-close-summary-modal" class="btn-close-dialog" aria-label="Tutup ringkasan">
+                    <svg class="icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="summary-stat-grid" id="summary-metrics-container">
+                <div class="summary-stat-box">
+                    <div class="summary-stat-num" id="sum-total-tasks">0</div>
+                    <div class="summary-stat-lbl">Total Tugas</div>
+                </div>
+                <div class="summary-stat-box">
+                    <div class="summary-stat-num" id="sum-completed-tasks" style="color: #86efac;">0</div>
+                    <div class="summary-stat-lbl">Selesai</div>
+                </div>
+                <div class="summary-stat-box">
+                    <div class="summary-stat-num" id="sum-rate-tasks" style="color: #facc15;">0%</div>
+                    <div class="summary-stat-lbl">Tingkat Tuntas</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 1.25rem;">
+                <h3 class="detail-section-title">Distribusi per Mata Kuliah</h3>
+                <div id="summary-course-breakdown" style="display: flex; flex-direction: column; gap: 0.65rem; margin-top: 0.6rem; max-height: 200px; overflow-y: auto;">
+                    <!-- Diisi dinamis oleh JS -->
+                </div>
+            </div>
+
+            <div style="margin-top: 1.5rem; text-align: right;">
+                <button type="button" id="btn-close-summary-bottom" class="btn-reset">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- DIALOG / MODAL PENGATURAN & PROFIL (INTERAKSI 3) -->
     <dialog id="settings-modal" class="app-dialog" aria-labelledby="settings-dialog-title" aria-modal="true">
         <div class="dialog-content">
             <div class="dialog-header">
@@ -530,6 +697,31 @@ $initial_tasks = [
                 <div>
                     <strong style="display: block; color: #ffffff;" id="profile-user-name">Muhammad Dzakir Dzakwan</strong>
                     <span style="font-size: 0.8rem; color: var(--text-muted);" id="profile-user-email">dzakir.dzakwan@mahasiswa.ac.id</span>
+                </div>
+            </div>
+
+            <!-- Interaksi 3: Preferensi Tampilan Menggunakan Web Storage (localStorage) -->
+            <div class="auth-divider">
+                <span>preferensi tampilan (localstorage)</span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.85rem; margin-bottom: 1.25rem;">
+                <div>
+                    <label for="select-theme" style="display: block; font-size: 0.825rem; color: var(--text-muted); margin-bottom: 0.35rem;">Tema Tampilan:</label>
+                    <select id="select-theme" class="select-sort" style="width: 100%;">
+                        <option value="obsidian">Dark Obsidian (Default)</option>
+                        <option value="midnight">Midnight Navy Blue</option>
+                        <option value="slate">Slate Minimalist Dark</option>
+                        <option value="light">Clean Pearl Light</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="select-density" style="display: block; font-size: 0.825rem; color: var(--text-muted); margin-bottom: 0.35rem;">Kerapatan Kartu (Density):</label>
+                    <select id="select-density" class="select-sort" style="width: 100%;">
+                        <option value="comfortable">Comfortable (Spacious)</option>
+                        <option value="compact">Compact (Padat)</option>
+                    </select>
                 </div>
             </div>
 

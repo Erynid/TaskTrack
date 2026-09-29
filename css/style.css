@@ -1357,3 +1357,405 @@ footer[role="contentinfo"] {
     }
 }
 
+/* --------------------------------------------------------------------------
+   INTERAKSI 3: CSS TOKENS TEMA & PREFERENSI (LOCALSTORAGE)
+   -------------------------------------------------------------------------- */
+[data-theme="midnight"] {
+    --bg-body: #0b1120;
+    --bg-overlay: rgba(11, 17, 32, 0.9);
+    --card-surface: #111a2e;
+    --card-surface-hover: #19253f;
+    --card-border: #1e2c47;
+    --border-subtle: #243556;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --text-inverse: #020617;
+    --input-bg: #090e1a;
+    --accent-yellow: #38bdf8;
+    --accent-yellow-hover: #0284c7;
+}
+
+[data-theme="slate"] {
+    --bg-body: #0f131a;
+    --bg-overlay: rgba(15, 19, 26, 0.9);
+    --card-surface: #181f2b;
+    --card-surface-hover: #222b3b;
+    --card-border: #293447;
+    --border-subtle: #313f56;
+    --text-main: #f1f5f9;
+    --text-muted: #8e9bb0;
+    --text-inverse: #0b0e14;
+    --input-bg: #0b0f15;
+    --accent-yellow: #34d399;
+    --accent-yellow-hover: #10b981;
+}
+
+[data-theme="light"] {
+    --bg-body: #f1f4f9;
+    --bg-overlay: rgba(241, 244, 249, 0.92);
+    --card-surface: #ffffff;
+    --card-surface-hover: #f8fafc;
+    --card-border: #e2e8f0;
+    --border-subtle: #cbd5e1;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --text-inverse: #ffffff;
+    --input-bg: #f8fafc;
+    --accent-yellow: #0284c7;
+    --accent-yellow-hover: #0369a1;
+}
+
+[data-theme="midnight"] body {
+    background: linear-gradient(135deg, #070c17 0%, #0e1627 50%, #070c17 100%);
+}
+
+[data-theme="slate"] body {
+    background: linear-gradient(135deg, #090d13 0%, #131922 50%, #090d13 100%);
+}
+
+[data-theme="light"] body {
+    background: linear-gradient(135deg, #e9eef6 0%, #f4f7fb 50%, #e9eef6 100%);
+    color: #0f172a;
+}
+
+[data-theme="light"] .app-window {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+}
+
+[data-theme="light"] .col-label {
+    color: #0f172a;
+}
+
+[data-theme="light"] .kanban-column {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+}
+
+[data-theme="light"] .task-card-title {
+    color: #0f172a;
+}
+
+[data-theme="light"] .dialog-content,
+[data-theme="light"] .task-dialog-content {
+    background: #ffffff;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+
+[data-theme="light"] .dialog-title {
+    color: #0f172a;
+}
+
+[data-theme="light"] .btn-close-dialog {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+[data-theme="light"] footer[role="contentinfo"] {
+    background: #f8fafc;
+    border-top-color: #e2e8f0;
+}
+
+/* Kerapatan Kartu (Compact Density) */
+[data-density="compact"] .task-card {
+    padding: 0.75rem 0.85rem;
+    gap: 0.35rem;
+}
+[data-density="compact"] .task-card-title {
+    font-size: 0.825rem;
+    margin-bottom: 0.2rem;
+}
+[data-density="compact"] .task-instructions-preview {
+    font-size: 0.75rem;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+}
+
+/* --------------------------------------------------------------------------
+   INTERAKSI 1: KONTROL SORTING & FILTER TOOLBAR
+   -------------------------------------------------------------------------- */
+.sort-dropdown-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.select-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.select-wrapper .sort-icon {
+    position: absolute;
+    left: 0.85rem;
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.select-sort {
+    background: var(--card-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-pill);
+    color: var(--text-main);
+    padding: 0.5rem 1rem 0.5rem 2.2rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s ease;
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="%23828da0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    padding-right: 1.85rem;
+}
+
+.select-sort:hover {
+    border-color: var(--card-border);
+    color: #ffffff;
+}
+
+.select-sort:focus-visible {
+    outline: 2px solid var(--accent-yellow);
+    border-color: transparent;
+}
+
+/* --------------------------------------------------------------------------
+   INTERAKSI 2: MODAL DETAIL TUGAS & MODAL RINGKASAN
+   -------------------------------------------------------------------------- */
+.detail-course-tag {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--accent-yellow);
+    display: inline-block;
+    background: rgba(250, 204, 21, 0.12);
+    padding: 0.2rem 0.65rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(250, 204, 21, 0.25);
+}
+
+.detail-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.85rem;
+    margin: 1.25rem 0;
+}
+
+.detail-meta-card {
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.detail-meta-card .meta-label {
+    font-size: 0.725rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.detail-meta-card .meta-value {
+    font-size: 0.95rem;
+    color: var(--text-main);
+    font-weight: 700;
+}
+
+.detail-meta-card .meta-sub {
+    font-size: 0.775rem;
+    color: var(--accent-yellow);
+}
+
+.detail-meta-card .meta-badge-slot {
+    margin-top: 0.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.detail-section {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.detail-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.6rem;
+}
+
+.detail-section-title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.detail-notes-box {
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 1rem;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--text-main);
+    white-space: pre-wrap;
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+.btn-copy-clipboard {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-pill);
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.7rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: all 0.15s ease;
+}
+
+.btn-copy-clipboard:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.detail-status-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.btn-status-pill {
+    padding: 0.4rem 0.85rem;
+    border-radius: var(--radius-pill);
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-muted);
+}
+
+.btn-status-pill:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.btn-status-pill.active {
+    box-shadow: 0 0 0 2px var(--card-border);
+}
+
+.btn-status-pill[data-status="todo"].active {
+    background: rgba(217, 70, 239, 0.2);
+    border-color: #d946ef;
+    color: #f0abfc;
+}
+
+.btn-status-pill[data-status="inprogress"].active {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: #3b82f6;
+    color: #93c5fd;
+}
+
+.btn-status-pill[data-status="done"].active {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: #10b981;
+    color: #86efac;
+}
+
+.btn-status-pill[data-status="overdue"].active {
+    background: rgba(249, 115, 22, 0.2);
+    border-color: #f97316;
+    color: #fdba74;
+}
+
+.dialog-footer-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Modal Ringkasan Cepat */
+.summary-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.85rem;
+    margin-top: 1rem;
+}
+
+.summary-stat-box {
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+}
+
+.summary-stat-num {
+    font-size: 1.65rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: #ffffff;
+}
+
+.summary-stat-lbl {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-top: 0.25rem;
+}
+
+.course-progress-row {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 0.65rem 0.85rem;
+}
+
+.course-progress-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+}
+
+.course-progress-bar-bg {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+}
+
+.course-progress-bar-fill {
+    height: 100%;
+    background: var(--accent-yellow);
+    border-radius: var(--radius-pill);
+    transition: width 0.3s ease;
+}
+
+
