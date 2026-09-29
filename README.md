@@ -92,6 +92,92 @@ TaskTrack mengimplementasikan modul JavaScript ES6 mandiri ([js/taskProcessor.js
 
 ---
 
+## Tiga Interaksi Bermakna DOM & Event
+
+TaskTrack menerapkan tiga interaksi bermakna berbasis DOM, Event Listener terstruktur, dan Web Storage (`localStorage`) untuk data non-sensitif sesuai instruksi:
+
+### 1. Interaksi 1: Filter, Pencarian Live, & Sorting Data Proyek
+* **Pencarian Real-Time (Live Search):**
+  - **Event:** `input` pada `#search-task-input`.
+  - **DOM:** Memfilter judul tugas, nama mata kuliah, dan catatan petunjuk tugas secara instan pada tampilan Kanban Board dan List View.
+* **Filter Berdasarkan Kategori Mata Kuliah:**
+  - **Event:** `change` pada `#filter-course-select`.
+  - **DOM:** Membatasi kartu yang ditampilkan hanya untuk mata kuliah yang dipilih atau menampilkan seluruh mata kuliah (`all`). Opsi dropdown di-generate dinamis menggunakan modul `getUniqueCourses(tasks)`.
+* **Pengurutan Fleksibel (Multi-Criteria Sorting):**
+  - **Event:** `change` pada `#sort-task-select`.
+  - **DOM:** Mengurutkan kartu tugas secara non-mutating berdasarkan:
+    1. Tenggat Terdekat (`deadline-asc`)
+    2. Tenggat Terjauh (`deadline-desc`)
+    3. Prioritas Tertinggi (`priority-desc`)
+    4. Prioritas Terendah (`priority-asc`)
+    5. Judul A-Z (`title-asc`)
+    6. Judul Z-A (`title-desc`)
+  - **Aksesibilitas:** Setiap pembaruan hasil filter dan pengurutan diumumkan ke pembaca layar melalui elemen `#a11y-announcer`.
+
+### 2. Interaksi 2: Tombol Detail, Pengubah Status, & Ringkasan Analitik
+* **Tombol Detail Tugas (`#task-detail-modal`):**
+  - **Event:** `click` pada tombol `.btn-detail` kartu tugas atau klik langsung pada judul kartu `.task-card-title`.
+  - **DOM:** Membuka dialog modal semantik `<dialog>` yang menyajikan data rincian tugas secara menyeluruh: lencana prioritas, status alur kerja, tautan pengumpulan LMS aktif, hitung mundur sisa waktu, dan catatan instruksi penugasan.
+  - **Salin Catatan ke Clipboard:** Tombol `#btn-copy-detail-notes` dengan Clipboard API dan feedback visual otomatis berganti menjadi label *"Tersalin!"*.
+* **Aksi Perubahan Status Cepat:**
+  - **Event:** `click` pada pill tombol status (`.btn-status-pill` di dalam dialog detail atau `.btn-move` di kartu).
+  - **DOM & State:** Langsung memperbarui status tugas (`todo`, `inprogress`, `done`, `overdue`), memindahkan kartu ke dropzone Kanban yang relevan, memperbarui counter angka kolom, dan menyinkronkan data ke `localStorage`.
+* **Tombol Ringkasan Cepat (`#summary-modal`):**
+  - **Event:** `click` pada `#btn-quick-summary` di toolbar utama.
+  - **DOM:** Menghitung dan merender ringkasan analitik akademik: total tugas, tugas selesai, rasio ketuntasan (%), serta grafik progress bar persentase penyelesaian per mata kuliah semester berjalan.
+
+### 3. Interaksi 3: Preferensi Tema & Tampilan Menggunakan Web Storage (`localStorage`)
+* **Penyimpanan Data Non-Sensitif:**
+  - Seluruh data preferensi disimpan di browser klien tanpa melibatkan data kredensial atau informasi sensitif:
+    1. `tasktrack_theme`: Pilihan tema antarmuka (`obsidian`, `midnight`, `slate`, `light`).
+    2. `tasktrack_density`: Kerapatan kartu Kanban (`comfortable` atau `compact`).
+    3. `tasktrack_view_mode`: Mode tampilan terakhir (`kanban` atau `list`).
+    4. `tasktrack_sound_pref`: Preferensi bunyi notifikasi (`true` atau `false`).
+    5. `tasktrack_agro_tasks`: Kumpulan data kartu tugas perkuliahan lokal.
+* **Theme Switcher 4 Tema:**
+  - **Event:** `click` pada `#btn-theme-toggle` (header) atau `change` pada `#select-theme` (modal pengaturan).
+  - **DOM:** Mengubah atribut `data-theme` pada elemen `<html>`, yang secara instan mengganti variabel CSS Custom Properties (Dark Obsidian, Midnight Navy, Slate Dark, dan Clean Pearl Light) tanpa kedipan (*zero layout shift*).
+* **Restorasi State Otomatis:**
+  - Saat pengguna membuka atau menyegarkan (*refresh*) halaman, fungsi `initPreferences()` langsung membaca `localStorage` dan menerapkan tema, kerapatan kartu, serta mode tampilan yang dipilih sebelumnya.
+
+---
+
+## Dokumentasi Alur Event & State
+
+```
++---------------------------------------------------------------------------------+
+|                                USER INTERACTION                                 |
++---------------------------------------------------------------------------------+
+       |                              |                              |
+       v                              v                              v
+[Input / Change Event]         [Click Event]                  [Click / Change]
+Search, Filter, Sort           Detail & Move Status           Theme & Density Toggle
+       |                              |                              |
+       v                              v                              v
+[Update filterState]           [Update tasks state]           [Apply data-theme/density]
+- course / search / sort       - findTaskIndex()              - documentElement.setAttribute
+- getProcessedTasks()          - update task.status           - localStorage.setItem()
+       |                              |                              |
+       v                              v                              v
+[DOM Re-render]                [DOM Re-render & Storage]      [CSS Token Switch]
+- renderBoard()                - saveTasks() -> localStorage  - Instan tanpa reload
+- renderListView()             - renderBoard()                - Persisten saat refresh
+- update Counters & A11y       - updateDashboard() & Modal    
+```
+
+---
+
+## Refleksi Pengerjaan
+
+1. **Pemisahan Logika Data dan Manipulasi DOM:**
+   Memisahkan fungsi pemrosesan data murni ke modul `taskProcessor.js` dan logika interaksi DOM ke `app.js` membuat kode jauh lebih terstruktur, mudah diuji, dan modular.
+2. **Pengalaman Pengguna (UX) Melalui Web Storage:**
+   Penerapan `localStorage` untuk preferensi tema dan kerapatan kartu memberikan pengalaman aplikasi web yang mulus dan personal bagi mahasiswa tanpa membebani penyimpanan server.
+3. **Keterbacaan dan Disiplin Kode:**
+   Penggunaan komentar singkat terstruktur (seperti `// 1. KONSTANTA & ENUM`, `// 2. ERROR HANDLING`) membuat navigasi kode cepat, rapi, dan to the point tanpa komentar berlebihan.
+
+---
+
 ## Cara Menjalankan Proyek
 
 ### Opsi 1: Menggunakan Laragon (Direkomendasikan)
@@ -110,4 +196,4 @@ Jalankan perintah berikut pada terminal:
 ```bash
 & "C:\laragon\bin\php\php-8.5.10-Win32-vs17-x64\php.exe" -S 127.0.0.1:8000
 ```
-Buka peramban pada alamat: `http://127.0.0.1:8000`
+Buka peramban pada alamat: `http://127.0.0.1:8000`
