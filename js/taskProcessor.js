@@ -63,7 +63,179 @@ export const getUrgencyLevel = (deadlineStr, status = 'todo', referenceDate = ne
     }
 };
 
-// 4. VALIDASI DATA TUGAS
+// 4. SANITASI INPUT & VALIDASI FIELD CLIENT-SIDE
+export function sanitizeInput(str) {
+    if (typeof str !== 'string') return '';
+    return str
+        .replace(/<[^>]*>/g, '')
+        .trim();
+}
+
+export function validateTaskTitle(title) {
+    if (!title || typeof title !== 'string' || !title.trim()) {
+        return 'Judul tugas wajib diisi.';
+    }
+    const clean = title.trim();
+    if (clean.length < 5) {
+        return `Judul tugas minimal 5 karakter (saat ini: ${clean.length} karakter).`;
+    }
+    if (clean.length > 100) {
+        return `Judul tugas maksimal 100 karakter (saat ini: ${clean.length} karakter).`;
+    }
+    return null;
+}
+
+export function validateTaskCourse(course) {
+    if (!course || typeof course !== 'string' || !course.trim()) {
+        return 'Nama mata kuliah wajib diisi.';
+    }
+    const clean = course.trim();
+    if (clean.length < 3) {
+        return `Nama mata kuliah minimal 3 karakter (saat ini: ${clean.length} karakter).`;
+    }
+    if (clean.length > 60) {
+        return `Nama mata kuliah maksimal 60 karakter (saat ini: ${clean.length} karakter).`;
+    }
+    const validPattern = /^[a-zA-Z0-9\s()\-.,&/]+$/;
+    if (!validPattern.test(clean)) {
+        return 'Nama mata kuliah hanya boleh memuat huruf, angka, spasi, dan tanda baca umum.';
+    }
+    return null;
+}
+
+export function validateTaskDeadline(deadline, status = 'todo', isNew = false) {
+    if (!deadline || typeof deadline !== 'string' || !deadline.trim()) {
+        return 'Tenggat waktu (deadline) wajib diisi.';
+    }
+    const clean = deadline.trim();
+    const parsedDate = Date.parse(clean);
+    if (isNaN(parsedDate)) {
+        return 'Format tanggal tenggat waktu tidak valid.';
+    }
+    const deadlineTime = new Date(clean).getTime();
+    const nowTime = Date.now();
+    if (isNew && deadlineTime < (nowTime - 60000)) {
+        return 'Tenggat waktu untuk tugas baru tidak boleh berada di masa lampau.';
+    }
+    return null;
+}
+
+export function validateTaskPriority(priority) {
+    const val = (priority || '').toLowerCase().trim();
+    if (!Object.keys(PRIORITY_WEIGHTS).includes(val)) {
+        return 'Prioritas harus salah satu dari: High, Medium, atau Low.';
+    }
+    return null;
+}
+
+export function validateTaskStatus(status) {
+    const val = (status || '').toLowerCase().trim();
+    if (!TASK_STATUSES.includes(val)) {
+        return 'Status alur kerja harus salah satu dari: Planned, In progress, Completed, atau Overdue.';
+    }
+    return null;
+}
+
+export function validateTaskUrl(url) {
+    if (!url || typeof url !== 'string' || !url.trim()) {
+        return null;
+    }
+    const clean = url.trim();
+    if (!/^https?:\/\//i.test(clean)) {
+        return 'Tautan LMS harus diawali protokol http:// atau https:// (contoh: https://elearning.kampus.ac.id).';
+    }
+    try {
+        const parsed = new URL(clean);
+        if (!parsed.hostname || parsed.hostname.length < 3) {
+            return 'Nama domain pada tautan LMS tidak valid.';
+        }
+    } catch {
+        return 'Format tautan LMS tidak valid.';
+    }
+    return null;
+}
+
+export function validateTaskUrlLabel(label, url) {
+    const cleanLabel = (label || '').trim();
+    const cleanUrl = (url || '').trim();
+
+    if (cleanLabel.length > 20) {
+        return `Label pintasan maksimal 20 karakter (saat ini: ${cleanLabel.length} karakter).`;
+    }
+    if (cleanLabel && !cleanUrl) {
+        return 'Tautan LMS wajib diisi jika label pintasan ditentukan.';
+    }
+    return null;
+}
+
+export function validateTaskNotes(notes) {
+    if (!notes || typeof notes !== 'string') {
+        return null;
+    }
+    const clean = notes.trim();
+    if (clean.length > 500) {
+        return `Catatan petunjuk tugas melebihi batas 500 karakter (saat ini: ${clean.length} karakter).`;
+    }
+    return null;
+}
+
+export function validateTaskFormData(formData, options = { isNew: true }) {
+    if (!formData || typeof formData !== 'object') {
+        return {
+            isValid: false,
+            errors: { form: 'Data formulir tidak valid.' },
+            sanitizedData: null
+        };
+    }
+
+    const isNew = options && options.isNew === true;
+    const errors = {};
+
+    const titleError = validateTaskTitle(formData.title);
+    if (titleError) errors.title = titleError;
+
+    const courseError = validateTaskCourse(formData.course);
+    if (courseError) errors.course = courseError;
+
+    const deadlineError = validateTaskDeadline(formData.deadline, formData.status, isNew);
+    if (deadlineError) errors.deadline = deadlineError;
+
+    const priorityError = validateTaskPriority(formData.priority);
+    if (priorityError) errors.priority = priorityError;
+
+    const statusError = validateTaskStatus(formData.status);
+    if (statusError) errors.status = statusError;
+
+    const urlError = validateTaskUrl(formData.lms_url);
+    if (urlError) errors.lms_url = urlError;
+
+    const urlLabelError = validateTaskUrlLabel(formData.lms_label, formData.lms_url);
+    if (urlLabelError) errors.lms_label = urlLabelError;
+
+    const notesError = validateTaskNotes(formData.instructions);
+    if (notesError) errors.instructions = notesError;
+
+    const isValid = Object.keys(errors).length === 0;
+
+    const sanitizedData = {
+        id: (formData.id || '').trim(),
+        title: sanitizeInput(formData.title || ''),
+        course: sanitizeInput(formData.course || ''),
+        deadline: (formData.deadline || '').trim(),
+        priority: ((formData.priority || 'medium').toLowerCase()).trim(),
+        status: ((formData.status || 'todo').toLowerCase()).trim(),
+        lms_url: (formData.lms_url || '').trim(),
+        lms_label: sanitizeInput(formData.lms_label || '') || ((formData.lms_url || '').trim() ? 'LMS' : ''),
+        instructions: sanitizeInput(formData.instructions || '')
+    };
+
+    return {
+        isValid,
+        errors,
+        sanitizedData
+    };
+}
+
 export function validateTask(task) {
     if (!task || typeof task !== 'object' || Array.isArray(task)) {
         throw new TaskDataError('Tugas harus berupa objek valid.', 'task', task);
@@ -73,51 +245,16 @@ export function validateTask(task) {
         throw new TaskDataError('ID tugas wajib berupa string tidak kosong.', 'id', task.id);
     }
 
-    if (!task.title || typeof task.title !== 'string' || !task.title.trim()) {
-        throw new TaskDataError('Judul tugas (title) wajib diisi.', 'title', task.title);
-    }
-
-    if (!task.course || typeof task.course !== 'string' || !task.course.trim()) {
-        throw new TaskDataError('Mata kuliah (course) wajib diisi.', 'course', task.course);
-    }
-
-    if (!task.deadline || typeof task.deadline !== 'string') {
-        throw new TaskDataError('Deadline tugas wajib diisi string tanggal.', 'deadline', task.deadline);
-    }
-    const parsedDate = Date.parse(task.deadline);
-    if (isNaN(parsedDate)) {
-        throw new TaskDataError(`Format deadline "${task.deadline}" tidak valid.`, 'deadline', task.deadline);
-    }
-
-    const normalizedStatus = (task.status || 'todo').toLowerCase();
-    if (!TASK_STATUSES.includes(normalizedStatus)) {
-        throw new TaskDataError(
-            `Status "${task.status}" tidak dikenal. Status yang valid: ${TASK_STATUSES.join(', ')}`,
-            'status',
-            task.status
-        );
-    }
-
-    const normalizedPriority = (task.priority || 'medium').toLowerCase();
-    if (!Object.keys(PRIORITY_WEIGHTS).includes(normalizedPriority)) {
-        throw new TaskDataError(
-            `Prioritas "${task.priority}" tidak dikenal. Prioritas yang valid: high, medium, low`,
-            'priority',
-            task.priority
-        );
+    const validationResult = validateTaskFormData(task, { isNew: false });
+    if (!validationResult.isValid) {
+        const firstField = Object.keys(validationResult.errors)[0];
+        const firstMsg = validationResult.errors[firstField];
+        throw new TaskDataError(firstMsg, firstField, task[firstField]);
     }
 
     return {
         ...task,
-        id: task.id.trim(),
-        title: task.title.trim(),
-        course: task.course.trim(),
-        deadline: task.deadline.trim(),
-        status: normalizedStatus,
-        priority: normalizedPriority,
-        lms_url: typeof task.lms_url === 'string' ? task.lms_url.trim() : '',
-        lms_label: typeof task.lms_label === 'string' ? task.lms_label.trim() : 'LMS',
-        instructions: typeof task.instructions === 'string' ? task.instructions.trim() : ''
+        ...validationResult.sanitizedData
     };
 }
 
@@ -504,6 +641,16 @@ const taskProcessor = {
     calculateRemainingHours,
     isDeadlineOverdue,
     getUrgencyLevel,
+    sanitizeInput,
+    validateTaskTitle,
+    validateTaskCourse,
+    validateTaskDeadline,
+    validateTaskPriority,
+    validateTaskStatus,
+    validateTaskUrl,
+    validateTaskUrlLabel,
+    validateTaskNotes,
+    validateTaskFormData,
     validateTask,
     validateTaskBatch,
     filterTasks,

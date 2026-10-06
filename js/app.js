@@ -2,6 +2,16 @@
 import taskProcessor, {
     TaskDataError,
     validateTask,
+    validateTaskFormData,
+    validateTaskTitle,
+    validateTaskCourse,
+    validateTaskDeadline,
+    validateTaskPriority,
+    validateTaskStatus,
+    validateTaskUrl,
+    validateTaskUrlLabel,
+    validateTaskNotes,
+    sanitizeInput,
     filterTasks,
     sortTasks,
     enrichTasks,
@@ -35,7 +45,8 @@ const ICONS = {
     rotate: '<svg class="icon-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>',
     detail: '<svg class="icon-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>',
     edit: '<svg class="icon-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>',
-    delete: '<svg class="icon-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>'
+    delete: '<svg class="icon-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>',
+    alertTriangle: '<svg class="icon-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>'
 };
 
 // 3. DATA DEFAULT
@@ -732,7 +743,109 @@ function attachCardActionListeners() {
     });
 }
 
-// 12. FORM CRUD TUGAS
+// 12. FORM CRUD TUGAS & VALIDASI CLIENT-SIDE
+
+// --- 12a. HELPERS VALIDASI UI ---
+
+const FIELD_MAP = {
+    title:        { inputId: 'input-judul',     errorId: 'error-judul' },
+    course:       { inputId: 'input-matkul',    errorId: 'error-matkul' },
+    deadline:     { inputId: 'input-deadline',  errorId: 'error-deadline' },
+    priority:     { inputId: 'input-priority',  errorId: 'error-priority' },
+    status:       { inputId: 'input-status',    errorId: 'error-status' },
+    lms_url:      { inputId: 'input-url',       errorId: 'error-url' },
+    lms_label:    { inputId: 'input-url-label', errorId: 'error-url-label' },
+    instructions: { inputId: 'input-notes',     errorId: 'error-notes' }
+};
+
+function showFieldError(fieldKey, message) {
+    const map = FIELD_MAP[fieldKey];
+    if (!map) return;
+    const input = document.getElementById(map.inputId);
+    const errorEl = document.getElementById(map.errorId);
+    if (input) input.setAttribute('aria-invalid', 'true');
+    if (errorEl) {
+        errorEl.innerHTML = `${ICONS.alertTriangle} <span>${escapeHtml(message)}</span>`;
+        errorEl.classList.add('show');
+    }
+}
+
+function clearFieldError(fieldKey) {
+    const map = FIELD_MAP[fieldKey];
+    if (!map) return;
+    const input = document.getElementById(map.inputId);
+    const errorEl = document.getElementById(map.errorId);
+    if (input) input.setAttribute('aria-invalid', 'false');
+    if (errorEl) {
+        errorEl.innerHTML = '';
+        errorEl.classList.remove('show');
+    }
+}
+
+function clearAllFieldErrors() {
+    Object.keys(FIELD_MAP).forEach(key => clearFieldError(key));
+}
+
+function showErrorSummary(errors) {
+    const summaryEl = document.getElementById('form-error-summary');
+    const listEl = document.getElementById('error-summary-list');
+    if (!summaryEl || !listEl) return;
+
+    listEl.innerHTML = '';
+    Object.entries(errors).forEach(([key, message]) => {
+        const map = FIELD_MAP[key];
+        const li = document.createElement('li');
+        if (map) {
+            const a = document.createElement('a');
+            a.href = `#${map.inputId}`;
+            a.textContent = message;
+            a.addEventListener('click', (e) => {
+                e.preventDefault();
+                const input = document.getElementById(map.inputId);
+                if (input) input.focus();
+            });
+            li.appendChild(a);
+        } else {
+            li.textContent = message;
+        }
+        listEl.appendChild(li);
+    });
+
+    summaryEl.removeAttribute('hidden');
+    summaryEl.focus();
+}
+
+function hideErrorSummary() {
+    const summaryEl = document.getElementById('form-error-summary');
+    if (summaryEl) summaryEl.setAttribute('hidden', '');
+}
+
+function collectFormData(isNew) {
+    const editId = document.getElementById('task-id').value;
+    return {
+        id: editId || ('task-' + Date.now()),
+        title: document.getElementById('input-judul').value,
+        course: document.getElementById('input-matkul').value,
+        deadline: document.getElementById('input-deadline').value,
+        priority: document.getElementById('input-priority').value,
+        status: document.getElementById('input-status').value,
+        lms_url: document.getElementById('input-url').value,
+        lms_label: document.getElementById('input-url-label').value,
+        instructions: document.getElementById('input-notes').value
+    };
+}
+
+function updateNotesCounter(value) {
+    const counter = document.getElementById('notes-char-counter');
+    if (!counter) return;
+    const len = (value || '').length;
+    counter.textContent = `${len} / 500`;
+    counter.className = 'char-counter';
+    if (len >= 450) counter.classList.add('counter-warning');
+    if (len >= 500) counter.classList.add('counter-limit');
+}
+
+// --- 12b. FORM STATE ---
 const taskForm = document.getElementById('task-form');
 const resetBtn = document.getElementById('btn-reset-form');
 const taskModal = document.getElementById('task-modal');
@@ -741,6 +854,9 @@ let lastActiveTrigger = null;
 
 function openTaskModal(task = null) {
     if (!taskModal) return;
+
+    clearAllFieldErrors();
+    hideErrorSummary();
 
     if (task) {
         document.getElementById('task-id').value = task.id;
@@ -752,6 +868,7 @@ function openTaskModal(task = null) {
         document.getElementById('input-url').value = task.lms_url || '';
         document.getElementById('input-url-label').value = task.lms_label || '';
         document.getElementById('input-notes').value = task.instructions || '';
+        updateNotesCounter(task.instructions || '');
 
         document.getElementById('form-title').textContent = 'Perbarui Kartu Tugas';
         document.getElementById('save-btn-label').textContent = 'Perbarui Kartu Tugas';
@@ -771,6 +888,8 @@ function openTaskModal(task = null) {
 
     const triggerBtn = document.getElementById('btn-new-task-trigger');
     if (triggerBtn) triggerBtn.setAttribute('aria-expanded', 'true');
+    const navFormBtn = document.getElementById('nav-btn-open-form');
+    if (navFormBtn) navFormBtn.setAttribute('aria-expanded', 'true');
 
     setTimeout(() => {
         const inputJudul = document.getElementById('input-judul');
@@ -787,15 +906,15 @@ function closeTaskModal() {
         taskModal.removeAttribute('open');
     }
 
-    const triggerBtn = document.getElementById('btn-new-task-trigger');
-    if (triggerBtn) {
-        triggerBtn.setAttribute('aria-expanded', 'false');
-        if (lastActiveTrigger) {
-            lastActiveTrigger.focus();
-            lastActiveTrigger = null;
-        } else {
-            triggerBtn.focus();
-        }
+    const allTriggers = [
+        document.getElementById('btn-new-task-trigger'),
+        document.getElementById('nav-btn-open-form')
+    ];
+    allTriggers.forEach(btn => { if (btn) btn.setAttribute('aria-expanded', 'false'); });
+
+    if (lastActiveTrigger) {
+        lastActiveTrigger.focus();
+        lastActiveTrigger = null;
     }
 }
 
@@ -823,7 +942,86 @@ function resetTaskForm() {
     taskForm.reset();
     document.getElementById('task-id').value = '';
     document.getElementById('save-btn-label').textContent = 'Simpan Kartu Tugas';
+    clearAllFieldErrors();
+    hideErrorSummary();
+    updateNotesCounter('');
 }
+
+// --- 12c. LIVE VALIDATION PER-FIELD (BLUR) ---
+function initLiveFieldValidation() {
+    const blurValidators = {
+        'input-judul':     (val) => validateTaskTitle(val),
+        'input-matkul':    (val) => validateTaskCourse(val),
+        'input-deadline':  (val) => validateTaskDeadline(val, 'todo', !document.getElementById('task-id').value),
+        'input-priority':  (val) => validateTaskPriority(val),
+        'input-status':    (val) => validateTaskStatus(val),
+        'input-url':       (val) => validateTaskUrl(val),
+        'input-url-label': (val) => {
+            const url = document.getElementById('input-url').value;
+            return validateTaskUrlLabel(val, url);
+        },
+        'input-notes':     (val) => validateTaskNotes(val)
+    };
+
+    const fieldKeys = {
+        'input-judul':     'title',
+        'input-matkul':    'course',
+        'input-deadline':  'deadline',
+        'input-priority':  'priority',
+        'input-status':    'status',
+        'input-url':       'lms_url',
+        'input-url-label': 'lms_label',
+        'input-notes':     'instructions'
+    };
+
+    Object.entries(blurValidators).forEach(([inputId, validator]) => {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        input.addEventListener('blur', () => {
+            const error = validator(input.value);
+            const fieldKey = fieldKeys[inputId];
+            if (error) {
+                showFieldError(fieldKey, error);
+            } else {
+                clearFieldError(fieldKey);
+            }
+        });
+        input.addEventListener('input', () => {
+            const error = validator(input.value);
+            const fieldKey = fieldKeys[inputId];
+            if (!error) clearFieldError(fieldKey);
+        });
+    });
+
+    // Character counter
+    const notesInput = document.getElementById('input-notes');
+    if (notesInput) {
+        notesInput.addEventListener('input', () => updateNotesCounter(notesInput.value));
+    }
+}
+
+// --- 12d. DEADLINE PRESET PILLS ---
+function initDeadlinePresets() {
+    document.querySelectorAll('.btn-preset-pill').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const days = parseInt(btn.getAttribute('data-days'), 10);
+            if (!days) return;
+            const now = new Date();
+            now.setDate(now.getDate() + days);
+            now.setHours(23, 59, 0, 0);
+            const pad = (n) => String(n).padStart(2, '0');
+            const localStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+            const deadlineInput = document.getElementById('input-deadline');
+            if (deadlineInput) {
+                deadlineInput.value = localStr;
+                clearFieldError('deadline');
+                announce(`Tenggat waktu disetel ke ${days} hari ke depan`);
+            }
+        });
+    });
+}
+
+
 
 // 13. DASHBOARD & KALENDER
 const navTabButtons = document.querySelectorAll('.nav-tab-btn');
@@ -997,6 +1195,8 @@ function initApp() {
     initPreferences();
     initFilterAndSortControls();
     initDropzones();
+    initLiveFieldValidation();
+    initDeadlinePresets();
 
     updateFilterOptions();
     renderBoard();
@@ -1069,6 +1269,17 @@ function initApp() {
         });
     }
 
+    // Nav CTA "Tambah Tugas" button
+    const navFormBtn = document.getElementById('nav-btn-open-form');
+    if (navFormBtn) {
+        navFormBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            lastActiveTrigger = navFormBtn;
+            switchView('view-tasks');
+            openTaskModal(null);
+        });
+    }
+
     // Modal Close Triggers
     if (closeTaskModalBtn) closeTaskModalBtn.addEventListener('click', closeTaskModal);
     if (resetBtn) {
@@ -1083,48 +1294,57 @@ function initApp() {
             if (e.target === taskModal) closeTaskModal();
         });
         taskModal.addEventListener('cancel', () => {
-            const triggerBtn = document.getElementById('btn-new-task-trigger');
-            if (triggerBtn) triggerBtn.setAttribute('aria-expanded', 'false');
+            [document.getElementById('btn-new-task-trigger'),
+             document.getElementById('nav-btn-open-form')]
+                .forEach(btn => { if (btn) btn.setAttribute('aria-expanded', 'false'); });
         });
     }
 
-    // Form Submit
+    // Ctrl+Enter shortcut to submit form
+    if (taskForm) {
+        taskForm.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                taskForm.requestSubmit();
+            }
+        });
+    }
+
+    // Form Submit (uses validateTaskFormData for inline errors)
     if (taskForm) {
         taskForm.addEventListener('submit', (e) => {
             e.preventDefault();
 
+            const rawData = collectFormData();
             const editId = document.getElementById('task-id').value;
-            const title = document.getElementById('input-judul').value.trim();
-            const course = document.getElementById('input-matkul').value.trim();
-            const deadline = document.getElementById('input-deadline').value;
-            const priority = document.getElementById('input-priority').value;
-            const status = document.getElementById('input-status').value;
-            const lmsUrl = document.getElementById('input-url').value.trim();
-            const lmsLabel = document.getElementById('input-url-label').value.trim();
-            const notes = document.getElementById('input-notes').value.trim();
+            const isNew = !editId;
+
+            clearAllFieldErrors();
+            hideErrorSummary();
+
+            const result = validateTaskFormData(rawData, { isNew });
+
+            if (!result.isValid) {
+                // Show per-field errors
+                Object.entries(result.errors).forEach(([key, msg]) => showFieldError(key, msg));
+                // Show summary box and focus it
+                showErrorSummary(result.errors);
+                announce('Formulir mengandung kesalahan. Mohon periksa kembali isian Anda.');
+                return;
+            }
 
             try {
-                const validatedTask = validateTask({
-                    id: editId || ('task-' + Date.now()),
-                    title,
-                    course,
-                    deadline,
-                    priority: priority || 'medium',
-                    status: status || 'todo',
-                    lms_url: lmsUrl,
-                    lms_label: lmsLabel || (lmsUrl ? 'LMS' : ''),
-                    instructions: notes
-                });
+                const validatedTask = validateTask(result.sanitizedData);
 
-                if (editId) {
+                if (!isNew) {
                     const idx = findTaskIndex(tasks, editId);
                     if (idx > -1) {
                         tasks[idx] = validatedTask;
-                        announce(`Tugas "${title}" berhasil diperbarui`);
+                        announce(`Tugas "${validatedTask.title}" berhasil diperbarui`);
                     }
                 } else {
                     tasks.push(validatedTask);
-                    announce(`Tugas baru "${title}" berhasil ditambahkan`);
+                    announce(`Tugas baru "${validatedTask.title}" berhasil ditambahkan`);
                 }
 
                 saveTasks();
@@ -1132,11 +1352,11 @@ function initApp() {
                 closeTaskModal();
             } catch (err) {
                 if (err instanceof TaskDataError) {
-                    alert(`Validasi Gagal: ${err.message}`);
+                    showErrorSummary({ _general: err.message });
                     announce(`Validasi gagal: ${err.message}`);
                 } else {
                     console.error('Terjadi kesalahan:', err);
-                    alert('Terjadi kesalahan yang tidak diharapkan.');
+                    showErrorSummary({ _general: 'Terjadi kesalahan yang tidak diharapkan.' });
                 }
             }
         });

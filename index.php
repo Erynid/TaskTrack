@@ -107,12 +107,13 @@ $initial_tasks = [
                 <span><?= $app_name ?></span>
             </a>
 
-            <!-- Navigasi Pill: Dashboard, Tasks (Active Tab), Calendar -->
+            <!-- Navigasi Pill: Dashboard, Tasks (Active Tab), Calendar, Tambah Tugas -->
             <nav aria-label="Navigasi Utama">
                 <ul class="nav-pill-list">
                     <li><button type="button" class="nav-tab-btn" data-target="view-dashboard">Dashboard</button></li>
                     <li><button type="button" class="nav-tab-btn active" data-target="view-tasks">Tasks</button></li>
                     <li><button type="button" class="nav-tab-btn" data-target="view-calendar">Calendar</button></li>
+                    <li><button type="button" class="nav-tab-btn nav-form-cta" id="nav-btn-open-form" aria-haspopup="dialog" aria-expanded="false">+ Tambah Tugas</button></li>
                 </ul>
             </nav>
 
@@ -475,82 +476,170 @@ $initial_tasks = [
             <form id="task-form" action="javascript:void(0);" novalidate>
                 <input type="hidden" id="task-id" name="task_id" value="">
 
-                <div class="form-row">
-                    <div class="form-field">
-                        <label for="input-judul">Judul Tugas <span style="color: #f87171;">*</span></label>
-                        <input type="text" id="input-judul" name="judul" required placeholder="Contoh: Implementasi Normalisasi Database">
+                <!-- KOTAK RINGKASAN ERROR AKSESIBEL (ERROR SUMMARY BOX) -->
+                <div id="form-error-summary" class="form-error-summary" role="alert" aria-live="assertive" tabindex="-1" hidden>
+                    <div class="error-summary-header">
+                        <svg class="icon-svg error-summary-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <strong id="error-summary-title">Terdapat beberapa kesalahan pengisian formulir:</strong>
                     </div>
-                    <div class="form-field">
-                        <label for="input-matkul">Mata Kuliah <span style="color: #f87171;">*</span></label>
-                        <input type="text" id="input-matkul" name="matkul" list="course-suggestions" required placeholder="Contoh: Pemrograman Web">
-                        <datalist id="course-suggestions">
-                            <option value="Pemrograman Web Dasar">
-                            <option value="Sistem Basis Data">
-                            <option value="Jaringan Komputer Lanjut">
-                            <option value="Struktur Data & Algoritma">
-                            <option value="Pemrograman Berorientasi Objek">
-                        </datalist>
-                    </div>
+                    <ul id="error-summary-list" class="error-summary-list"></ul>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-field">
-                        <label for="input-deadline">Tenggat Waktu (Deadline) <span style="color: #f87171;">*</span></label>
-                        <input type="datetime-local" id="input-deadline" name="deadline" required>
-                    </div>
-                    <div class="form-field">
-                        <label for="input-priority">Prioritas Urgensi</label>
-                        <select id="input-priority" name="priority">
-                            <option value="high">High Priority</option>
-                            <option value="medium" selected>Medium Priority</option>
-                            <option value="low">Low Priority</option>
-                        </select>
-                    </div>
-                    <div class="form-field">
-                        <label for="input-status">Status Kolom</label>
-                        <select id="input-status" name="status">
-                            <option value="todo" selected>Planned</option>
-                            <option value="inprogress">In progress</option>
-                            <option value="done">Completed</option>
-                            <option value="overdue">Overdue / &lt; 24h</option>
-                        </select>
-                    </div>
-                </div>
+                <!-- FIELDSET 1: INFORMASI POKOK TUGAS -->
+                <fieldset class="form-fieldset">
+                    <legend class="form-legend">Informasi Pokok Tugas</legend>
 
-                <div class="form-row">
-                    <div class="form-field" style="flex: 2;">
-                        <label for="input-url">Link Pengumpulan LMS / Classroom</label>
-                        <input type="url" id="input-url" name="url_pengumpulan" placeholder="https://elearning.kampus.ac.id/mod/assign/...">
-                    </div>
-                    <div class="form-field" style="flex: 1;">
-                        <label for="input-url-label">Label Pintasan Tombol</label>
-                        <input type="text" id="input-url-label" name="url_label" placeholder="Contoh: LMS atau Classroom">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-field" style="grid-column: 1 / -1;">
-                        <div class="form-field-header">
-                            <label for="input-notes">Catatan & Petunjuk Tugas</label>
-                            <button type="button" id="btn-paste-clipboard" class="btn-paste-clipboard" title="Tempel otomatis dari Clipboard">
-                                <svg class="icon-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-                                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
-                                </svg>
-                                <span>Salin dari Clipboard</span>
-                            </button>
+                    <div class="form-row">
+                        <div class="form-field">
+                            <div class="form-label-row">
+                                <label for="input-judul" id="label-judul">
+                                    Judul Tugas <span class="required-mark" aria-hidden="true">*</span>
+                                    <span class="sr-only">(Wajib diisi)</span>
+                                </label>
+                                <span id="hint-judul" class="field-hint">Min. 5 karakter</span>
+                            </div>
+                            <input type="text" id="input-judul" name="judul" required aria-required="true" aria-invalid="false" aria-describedby="hint-judul error-judul" placeholder="Contoh: Implementasi Normalisasi Database" maxlength="100">
+                            <div id="error-judul" class="field-error-msg" role="alert" aria-live="polite"></div>
                         </div>
-                        <textarea id="input-notes" name="notes" rows="3" placeholder="Salin instruksi atau ketentuan format pengumpulan di sini..."></textarea>
+
+                        <div class="form-field">
+                            <div class="form-label-row">
+                                <label for="input-matkul" id="label-matkul">
+                                    Mata Kuliah <span class="required-mark" aria-hidden="true">*</span>
+                                    <span class="sr-only">(Wajib diisi)</span>
+                                </label>
+                                <span id="hint-matkul" class="field-hint">Min. 3 karakter</span>
+                            </div>
+                            <input type="text" id="input-matkul" name="matkul" list="course-suggestions" required aria-required="true" aria-invalid="false" aria-describedby="hint-matkul error-matkul" placeholder="Contoh: Pemrograman Web Dasar" maxlength="60">
+                            <datalist id="course-suggestions">
+                                <option value="Pemrograman Web Dasar">
+                                <option value="Sistem Basis Data">
+                                <option value="Jaringan Komputer Lanjut">
+                                <option value="Struktur Data & Algoritma">
+                                <option value="Pemrograman Berorientasi Objek">
+                            </datalist>
+                            <div id="error-matkul" class="field-error-msg" role="alert" aria-live="polite"></div>
+                        </div>
                     </div>
-                </div>
+                </fieldset>
+
+                <!-- FIELDSET 2: JADWAL & PRIORITAS -->
+                <fieldset class="form-fieldset">
+                    <legend class="form-legend">Jadwal & Prioritas</legend>
+
+                    <div class="form-row">
+                        <div class="form-field" style="flex: 1.4;">
+                            <div class="form-label-row">
+                                <label for="input-deadline" id="label-deadline">
+                                    Tenggat Waktu (Deadline) <span class="required-mark" aria-hidden="true">*</span>
+                                    <span class="sr-only">(Wajib diisi)</span>
+                                </label>
+                                <span id="hint-deadline" class="field-hint">Waktu pengumpulan</span>
+                            </div>
+                            <input type="datetime-local" id="input-deadline" name="deadline" required aria-required="true" aria-invalid="false" aria-describedby="hint-deadline error-deadline">
+                            <div class="deadline-preset-pills" role="group" aria-label="Pintasan cepat tenggat waktu">
+                                <span class="preset-label">Pintasan:</span>
+                                <button type="button" class="btn-preset-pill" data-days="1" title="Set tenggat 1 hari ke depan">+1 Hari</button>
+                                <button type="button" class="btn-preset-pill" data-days="3" title="Set tenggat 3 hari ke depan">+3 Hari</button>
+                                <button type="button" class="btn-preset-pill" data-days="7" title="Set tenggat 1 minggu ke depan">+1 Minggu</button>
+                            </div>
+                            <div id="error-deadline" class="field-error-msg" role="alert" aria-live="polite"></div>
+                        </div>
+
+                        <div class="form-field" style="flex: 1;">
+                            <div class="form-label-row">
+                                <label for="input-priority" id="label-priority">Prioritas Urgensi</label>
+                                <span id="hint-priority" class="field-hint">Tingkat penting</span>
+                            </div>
+                            <select id="input-priority" name="priority" aria-describedby="hint-priority error-priority" aria-invalid="false">
+                                <option value="high">High Priority</option>
+                                <option value="medium" selected>Medium Priority</option>
+                                <option value="low">Low Priority</option>
+                            </select>
+                            <div id="error-priority" class="field-error-msg" role="alert" aria-live="polite"></div>
+                        </div>
+
+                        <div class="form-field" style="flex: 1;">
+                            <div class="form-label-row">
+                                <label for="input-status" id="label-status">Status Kolom</label>
+                                <span id="hint-status" class="field-hint">Posisi Kanban</span>
+                            </div>
+                            <select id="input-status" name="status" aria-describedby="hint-status error-status" aria-invalid="false">
+                                <option value="todo" selected>Planned</option>
+                                <option value="inprogress">In progress</option>
+                                <option value="done">Completed</option>
+                                <option value="overdue">Overdue / &lt; 24h</option>
+                            </select>
+                            <div id="error-status" class="field-error-msg" role="alert" aria-live="polite"></div>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- FIELDSET 3: INTEGRASI E-LEARNING & CATATAN -->
+                <fieldset class="form-fieldset">
+                    <legend class="form-legend">Integrasi E-Learning & Catatan</legend>
+
+                    <div class="form-row">
+                        <div class="form-field" style="flex: 2;">
+                            <div class="form-label-row">
+                                <label for="input-url" id="label-url">Link Pengumpulan LMS / Classroom</label>
+                                <span id="hint-url" class="field-hint">Opsional (http/https)</span>
+                            </div>
+                            <input type="url" id="input-url" name="url_pengumpulan" placeholder="https://elearning.kampus.ac.id/mod/assign/..." aria-describedby="hint-url error-url" aria-invalid="false">
+                            <div id="error-url" class="field-error-msg" role="alert" aria-live="polite"></div>
+                        </div>
+
+                        <div class="form-field" style="flex: 1;">
+                            <div class="form-label-row">
+                                <label for="input-url-label" id="label-url-label">Label Pintasan Tombol</label>
+                                <span id="hint-url-label" class="field-hint">Maks. 20 karakter</span>
+                            </div>
+                            <input type="text" id="input-url-label" name="url_label" placeholder="Contoh: LMS atau Classroom" maxlength="20" aria-describedby="hint-url-label error-url-label" aria-invalid="false">
+                            <div id="error-url-label" class="field-error-msg" role="alert" aria-live="polite"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-field" style="grid-column: 1 / -1;">
+                            <div class="form-field-header">
+                                <div class="form-label-row">
+                                    <label for="input-notes" id="label-notes">Catatan & Petunjuk Tugas</label>
+                                    <span id="hint-notes" class="field-hint">Maks. 500 karakter</span>
+                                </div>
+                                <div class="notes-tools">
+                                    <span id="notes-char-counter" class="char-counter" aria-live="polite">0 / 500</span>
+                                    <button type="button" id="btn-paste-clipboard" class="btn-paste-clipboard" title="Tempel otomatis dari Clipboard">
+                                        <svg class="icon-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                                            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                                        </svg>
+                                        <span id="paste-clipboard-label">Salin dari Clipboard</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <textarea id="input-notes" name="notes" rows="3" placeholder="Salin instruksi atau ketentuan format pengumpulan di sini..." maxlength="500" aria-describedby="hint-notes error-notes notes-char-counter" aria-invalid="false"></textarea>
+                            <div id="error-notes" class="field-error-msg" role="alert" aria-live="polite"></div>
+                        </div>
+                    </div>
+                </fieldset>
 
                 <div class="form-actions-row">
                     <button type="submit" id="btn-submit-task" class="btn-new-task">
+                        <svg class="icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
                         <span id="save-btn-label">Simpan Kartu Tugas</span>
                     </button>
                     <button type="button" id="btn-reset-form" class="btn-reset">
                         Batal
                     </button>
+                    <span class="form-keyboard-hint">
+                        Pintasan: <kbd>Ctrl</kbd> + <kbd>Enter</kbd>
+                    </span>
                 </div>
             </form>
         </div>
