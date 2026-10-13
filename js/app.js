@@ -180,11 +180,14 @@ function formatDeadline(deadlineStr, status) {
     }
 }
 
-// 6. INTERAKSI 3: PREFERENSI TEMA & LOCALSTORAGE
-const AVAILABLE_THEMES = ['obsidian', 'midnight', 'slate', 'light'];
+// 6. INTERAKSI 3: PREFERENSI TEMA & LOCALSTORAGE (2 TEMA: GITHUB DARK & DISCORD LIGHT)
+const AVAILABLE_THEMES = ['dark', 'light'];
 
 function initPreferences() {
-    const savedTheme = localStorage.getItem(STORAGE_KEY_THEME) || 'obsidian';
+    let savedTheme = localStorage.getItem(STORAGE_KEY_THEME) || 'dark';
+    if (!AVAILABLE_THEMES.includes(savedTheme)) {
+        savedTheme = savedTheme === 'light' ? 'light' : 'dark';
+    }
     const savedDensity = localStorage.getItem(STORAGE_KEY_DENSITY) || 'comfortable';
     const savedViewMode = localStorage.getItem(STORAGE_KEY_VIEW_MODE) || 'kanban';
     const savedSound = localStorage.getItem(STORAGE_KEY_SOUND) !== 'false';
@@ -207,21 +210,35 @@ function initPreferences() {
 }
 
 function applyTheme(themeName) {
-    if (!AVAILABLE_THEMES.includes(themeName)) themeName = 'obsidian';
+    if (!AVAILABLE_THEMES.includes(themeName)) {
+        themeName = themeName === 'light' ? 'light' : 'dark';
+    }
     document.documentElement.setAttribute('data-theme', themeName);
     localStorage.setItem(STORAGE_KEY_THEME, themeName);
+
+    const themeSelect = document.getElementById('select-theme');
+    if (themeSelect && themeSelect.value !== themeName) {
+        themeSelect.value = themeName;
+    }
+
+    const themeToggleBtn = document.getElementById('btn-theme-toggle');
+    if (themeToggleBtn) {
+        const nextName = themeName === 'dark' ? 'Discord Light' : 'GitHub Dark';
+        themeToggleBtn.setAttribute('title', `Ganti ke tema ${nextName}`);
+        themeToggleBtn.setAttribute('aria-label', `Ganti ke tema ${nextName}`);
+    }
 }
 
 function cycleTheme() {
-    const current = localStorage.getItem(STORAGE_KEY_THEME) || 'obsidian';
-    const currentIndex = AVAILABLE_THEMES.indexOf(current);
-    const nextTheme = AVAILABLE_THEMES[(currentIndex + 1) % AVAILABLE_THEMES.length];
+    const current = localStorage.getItem(STORAGE_KEY_THEME) || 'dark';
+    const nextTheme = current === 'dark' ? 'light' : 'dark';
     applyTheme(nextTheme);
 
     const themeSelect = document.getElementById('select-theme');
     if (themeSelect) themeSelect.value = nextTheme;
 
-    announce(`Tema diubah menjadi ${nextTheme}`);
+    const themeLabel = nextTheme === 'dark' ? 'GitHub Dark' : 'Discord Light';
+    announce(`Tema diubah menjadi ${themeLabel}`);
 }
 
 function applyDensity(densityName) {
@@ -1078,9 +1095,9 @@ function updateDashboard() {
             urgentContainer.innerHTML = topUrgentList.map(t => {
                 const time = formatDeadline(t.deadline, t.status);
                 return `
-                    <div style="background: rgba(0,0,0,0.25); padding: 0.85rem 1rem; border-radius: 8px; border-left: 3px solid #f87171; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="background: var(--input-bg); border: 1px solid var(--border-subtle); padding: 0.85rem 1rem; border-radius: 8px; border-left: 3px solid #f87171; display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <strong style="color: #ffffff; font-size: 0.875rem;">${escapeHtml(t.title)}</strong>
+                            <strong style="color: var(--text-main); font-size: 0.875rem;">${escapeHtml(t.title)}</strong>
                             <span style="display: block; font-size: 0.775rem; color: #fca5a5;">${time.timeStr} | ${escapeHtml(t.course)}</span>
                         </div>
                         <button type="button" class="btn-new-task" style="padding: 0.35rem 0.8rem; font-size: 0.75rem;" onclick="window.openDetailDirect('${t.id}')">
@@ -1361,7 +1378,7 @@ function renderMiniDashboard() {
                     return `
                         <tr>
                             <td>
-                                <strong style="color: #ffffff; display: block;">${safeStr(c.name)}</strong>
+                                <strong style="color: var(--text-main); display: block;">${safeStr(c.name)}</strong>
                                 <span style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">${safeStr(c.code)}</span>
                             </td>
                             <td><span class="mini-course-category-badge ${catClass}">${safeStr(c.category)}</span></td>
@@ -1377,7 +1394,7 @@ function renderMiniDashboard() {
                             </td>
                             <td>
                                 <div style="display: flex; flex-direction: column;">
-                                    <span style="font-weight: 600; color: #ffffff; font-size: 0.78rem;">${safeStr(c.next_task_title)}</span>
+                                    <span style="font-weight: 600; color: var(--text-main); font-size: 0.78rem;">${safeStr(c.next_task_title)}</span>
                                     <span style="font-size: 0.72rem; color: #fca5a5;">${formatDateTimeSimple(c.next_deadline)}</span>
                                 </div>
                             </td>

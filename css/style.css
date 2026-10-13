@@ -5,40 +5,59 @@
    ========================================================================== */
 
 :root {
-    /* Sleek Dark Obsidian Palette */
-    --bg-body: #090a0e;
-    --bg-overlay: rgba(13, 15, 21, 0.85);
-    --card-surface: #141720;
-    --card-surface-hover: #1c202c;
-    --card-border: #232838;
-    --border-subtle: #1e2230;
+    /* 1. GITHUB DARK PALETTE (Default) */
+    --bg-body: #0d1117;
+    --bg-overlay: rgba(13, 17, 23, 0.88);
+    --card-surface: #161b22;
+    --card-surface-hover: #1f242c;
+    --card-border: #30363d;
+    --border-subtle: #21262d;
+    --border-hover: #8b949e;
 
-    /* Typography Colors */
-    --text-main: #f3f5f8;
-    --text-muted: #828da0;
-    --text-inverse: #0f172a;
+    /* Typography Colors (GitHub Primer) */
+    --text-main: #e6edf3;
+    --text-muted: #848d97;
+    --text-inverse: #0d1117;
 
-    /* Status Pillars (Kanban Headers) */
-    --pill-todo: #d946ef;        /* Planned (Magenta / Purple) */
-    --pill-progress: #3b82f6;    /* In Progress (Blue) */
-    --pill-done: #10b981;        /* Completed (Emerald) */
-    --pill-overdue: #f97316;     /* Overdue / < 24h (Orange) */
+    /* Status Pillars (GitHub Primer Colors) */
+    --pill-todo: #a371f7;        /* Planned (GitHub Purple) */
+    --pill-progress: #2f81f7;    /* In Progress (GitHub Blue) */
+    --pill-done: #3fb950;        /* Completed (GitHub Green) */
+    --pill-overdue: #f85149;     /* Overdue / Alert (GitHub Red) */
 
     /* Accent & Brand Colors */
-    --accent-yellow: #facc15;
-    --accent-yellow-hover: #eab308;
-    --input-bg: #0d0f15;
+    --accent-yellow: #238636;        /* GitHub Primary Green Action */
+    --accent-yellow-hover: #2ea043;  /* GitHub Green Hover */
+    --accent-text: #ffffff;
+    --accent-border: rgba(240, 246, 252, 0.1);
+    --accent-shadow: 0 4px 12px rgba(35, 134, 54, 0.25);
+    --accent-shadow-hover: 0 6px 16px rgba(35, 134, 54, 0.35);
+    --accent-cta-bg: rgba(35, 134, 54, 0.15);
+    --accent-cta-border: rgba(35, 134, 54, 0.4);
+
+    --brand-blue: #2f81f7;
+    --brand-blue-hover: #1f6feb;
+
+    --input-bg: #0d1117;
 
     /* Priority Flags */
-    --priority-high: #f87171;
-    --priority-med: #fbbf24;
-    --priority-low: #60a5fa;
+    --priority-high: #f85149;
+    --priority-med: #d29922;
+    --priority-low: #58a6ff;
+
+    /* Nav Pill & Controls */
+    --nav-bg: #161b22;
+    --nav-hover-bg: rgba(255, 255, 255, 0.06);
+    --nav-active-bg: #21262d;
+    --nav-active-text: #e6edf3;
+    --nav-active-border: #30363d;
+    --nav-active-shadow: 0 1px 3px rgba(1, 4, 9, 0.4);
 
     /* Radii */
     --radius-pill: 10px;
-    --radius-card: 14px;
+    --radius-card: 12px;
     --radius-sm: 8px;
-    --radius-window: 24px;
+    --radius-window: 16px;
 
     /* Transitions */
     --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -61,14 +80,14 @@ html {
 
 body {
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: linear-gradient(135deg, #07080b 0%, #101219 50%, #08090d 100%);
-    background-attachment: fixed;
+    background: var(--bg-body);
     color: var(--text-main);
     min-height: 100vh;
     line-height: 1.5;
     padding: 0;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* --------------------------------------------------------------------------
@@ -186,12 +205,13 @@ nav[aria-label="Navigasi Utama"] ul,
     display: inline-flex;
     align-items: center;
     list-style: none;
-    background: #181c25;
+    background: var(--nav-bg);
     padding: 4px;
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--border-subtle);
     gap: 3px;
     margin: 0;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 nav[aria-label="Navigasi Utama"] ul li {
@@ -203,7 +223,7 @@ nav[aria-label="Navigasi Utama"] ul li {
 .nav-tab-btn {
     appearance: none;
     -webkit-appearance: none;
-    border: none !important;
+    border: 1px solid transparent !important;
     background: transparent !important;
     cursor: pointer;
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -213,9 +233,9 @@ nav[aria-label="Navigasi Utama"] ul li {
     padding: 0.45rem 1.35rem;
     font-size: 0.875rem;
     font-weight: 500;
-    color: #94a3b8;
-    border-radius: 10px;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--text-muted);
+    border-radius: var(--radius-pill);
+    transition: all 0.15s ease;
     outline: none;
     line-height: 1.25;
     white-space: nowrap;
@@ -224,15 +244,16 @@ nav[aria-label="Navigasi Utama"] ul li {
 }
 
 .nav-tab-btn:hover:not(.active) {
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.06) !important;
+    color: var(--text-main);
+    background: var(--nav-hover-bg) !important;
 }
 
 .nav-tab-btn.active {
-    background: #ffffff !important;
-    color: #0f172a !important;
+    background: var(--nav-active-bg) !important;
+    color: var(--nav-active-text) !important;
+    border-color: var(--nav-active-border) !important;
     font-weight: 700 !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    box-shadow: var(--nav-active-shadow) !important;
 }
 
 /* User Controls (Settings & Avatar) */
@@ -335,13 +356,13 @@ main {
 .page-heading h1 {
     font-size: 1.75rem;
     font-weight: 700;
-    color: #ffffff;
+    color: var(--text-main);
     letter-spacing: -0.02em;
 }
 
 .btn-new-task {
     background: var(--accent-yellow);
-    color: #11141a;
+    color: var(--accent-text, #ffffff);
     padding: 0.65rem 1.4rem;
     border-radius: var(--radius-pill);
     font-weight: 700;
@@ -350,16 +371,16 @@ main {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    border: none;
+    border: 1px solid var(--accent-border, transparent);
     cursor: pointer;
-    transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
-    box-shadow: 0 4px 12px rgba(250, 204, 21, 0.22);
+    transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+    box-shadow: var(--accent-shadow);
 }
 
 .btn-new-task:hover {
     background: var(--accent-yellow-hover);
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(250, 204, 21, 0.32);
+    box-shadow: var(--accent-shadow-hover);
 }
 
 .btn-new-task:active {
@@ -838,7 +859,7 @@ main {
 
 .task-list-row .list-title {
     font-weight: 600;
-    color: #ffffff;
+    color: var(--text-main);
     font-size: 0.9rem;
 }
 
@@ -846,15 +867,15 @@ main {
    SECTION: Form Tambah Tugas (Form Drawer & Modal)
    -------------------------------------------------------------------------- */
 .nav-form-cta {
-    background: rgba(250, 204, 21, 0.12) !important;
+    background: var(--accent-cta-bg) !important;
     color: var(--accent-yellow) !important;
-    border: 1px solid rgba(250, 204, 21, 0.35) !important;
+    border: 1px solid var(--accent-cta-border) !important;
     font-weight: 700;
 }
 .nav-form-cta:hover {
-    background: rgba(250, 204, 21, 0.22) !important;
-    border-color: rgba(250, 204, 21, 0.55) !important;
-    color: #ffffff !important;
+    background: var(--accent-yellow) !important;
+    border-color: var(--accent-yellow) !important;
+    color: var(--accent-text, #ffffff) !important;
 }
 
 .form-drawer {
@@ -2167,113 +2188,348 @@ footer[role="contentinfo"] {
 }
 
 /* --------------------------------------------------------------------------
-   INTERAKSI 3: CSS TOKENS TEMA & PREFERENSI (LOCALSTORAGE)
+   INTERAKSI 3: CSS TOKENS TEMA (GITHUB DARK & DISCORD LIGHT)
+   Hanya 2 tema tampilan: GitHub Dark (default) dan Discord Light.
    -------------------------------------------------------------------------- */
-[data-theme="midnight"] {
-    --bg-body: #0b1120;
-    --bg-overlay: rgba(11, 17, 32, 0.9);
-    --card-surface: #111a2e;
-    --card-surface-hover: #19253f;
-    --card-border: #1e2c47;
-    --border-subtle: #243556;
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
-    --text-inverse: #020617;
-    --input-bg: #090e1a;
-    --accent-yellow: #38bdf8;
-    --accent-yellow-hover: #0284c7;
-}
 
+[data-theme="dark"],
+[data-theme="obsidian"],
+[data-theme="midnight"],
 [data-theme="slate"] {
-    --bg-body: #0f131a;
-    --bg-overlay: rgba(15, 19, 26, 0.9);
-    --card-surface: #181f2b;
-    --card-surface-hover: #222b3b;
-    --card-border: #293447;
-    --border-subtle: #313f56;
-    --text-main: #f1f5f9;
-    --text-muted: #8e9bb0;
-    --text-inverse: #0b0e14;
-    --input-bg: #0b0f15;
-    --accent-yellow: #34d399;
-    --accent-yellow-hover: #10b981;
+    /* 1. GITHUB DARK PALETTE */
+    --bg-body: #0d1117;
+    --bg-overlay: rgba(13, 17, 23, 0.88);
+    --card-surface: #161b22;
+    --card-surface-hover: #1f242c;
+    --card-border: #30363d;
+    --border-subtle: #21262d;
+    --border-hover: #8b949e;
+
+    /* Typography Colors (GitHub Primer) */
+    --text-main: #e6edf3;
+    --text-muted: #848d97;
+    --text-inverse: #0d1117;
+
+    /* Status Pillars (GitHub Primer Colors) */
+    --pill-todo: #a371f7;        /* Planned (GitHub Purple) */
+    --pill-progress: #2f81f7;    /* In Progress (GitHub Blue) */
+    --pill-done: #3fb950;        /* Completed (GitHub Green) */
+    --pill-overdue: #f85149;     /* Overdue / Alert (GitHub Red) */
+
+    /* Accent & Brand Colors */
+    --accent-yellow: #238636;        /* GitHub Primary Green Action */
+    --accent-yellow-hover: #2ea043;  /* GitHub Green Hover */
+    --accent-text: #ffffff;
+    --accent-border: rgba(240, 246, 252, 0.1);
+    --accent-shadow: 0 4px 12px rgba(35, 134, 54, 0.25);
+    --accent-shadow-hover: 0 6px 16px rgba(35, 134, 54, 0.35);
+    --accent-cta-bg: rgba(35, 134, 54, 0.15);
+    --accent-cta-border: rgba(35, 134, 54, 0.4);
+
+    --brand-blue: #2f81f7;
+    --brand-blue-hover: #1f6feb;
+
+    --input-bg: #0d1117;
+
+    /* Priority Flags */
+    --priority-high: #f85149;
+    --priority-med: #d29922;
+    --priority-low: #58a6ff;
+
+    /* Nav Pill & Controls */
+    --nav-bg: #161b22;
+    --nav-hover-bg: rgba(255, 255, 255, 0.06);
+    --nav-active-bg: #21262d;
+    --nav-active-text: #e6edf3;
+    --nav-active-border: #30363d;
+    --nav-active-shadow: 0 1px 3px rgba(1, 4, 9, 0.4);
 }
 
-[data-theme="light"] {
-    --bg-body: #f1f4f9;
-    --bg-overlay: rgba(241, 244, 249, 0.92);
+[data-theme="light"],
+[data-theme="discord"] {
+    /* 2. DISCORD LIGHT PALETTE */
+    --bg-body: #f2f3f5;
+    --bg-overlay: rgba(242, 243, 245, 0.94);
     --card-surface: #ffffff;
-    --card-surface-hover: #f8fafc;
-    --card-border: #e2e8f0;
-    --border-subtle: #cbd5e1;
-    --text-main: #0f172a;
-    --text-muted: #64748b;
+    --card-surface-hover: #f8f9fa;
+    --card-border: #e3e5e8;
+    --border-subtle: #d1d5db;
+    --border-hover: #5865f2;
+
+    /* Typography Colors (Discord Slate) */
+    --text-main: #2e3338;
+    --text-muted: #5c6370;
     --text-inverse: #ffffff;
-    --input-bg: #f8fafc;
-    --accent-yellow: #0284c7;
-    --accent-yellow-hover: #0369a1;
+
+    /* Status Pillars (Discord Colors) */
+    --pill-todo: #eb459e;        /* Planned (Discord Fuchsia) */
+    --pill-progress: #5865f2;    /* In Progress (Discord Blurple) */
+    --pill-done: #23a55a;        /* Completed (Discord Green) */
+    --pill-overdue: #ed4245;     /* Overdue / Alert (Discord Red) */
+
+    /* Accent & Brand Colors (Discord Blurple) */
+    --accent-yellow: #5865f2;        /* Discord Blurple */
+    --accent-yellow-hover: #4752c4;  /* Discord Blurple Hover */
+    --accent-text: #ffffff;
+    --accent-border: transparent;
+    --accent-shadow: 0 4px 12px rgba(88, 101, 242, 0.25);
+    --accent-shadow-hover: 0 6px 16px rgba(88, 101, 242, 0.35);
+    --accent-cta-bg: rgba(88, 101, 242, 0.12);
+    --accent-cta-border: rgba(88, 101, 242, 0.35);
+
+    --brand-blue: #5865f2;
+    --brand-blue-hover: #4752c4;
+
+    --input-bg: #ebedef;
+
+    /* Priority Flags */
+    --priority-high: #ed4245;
+    --priority-med: #e5a823;
+    --priority-low: #5865f2;
+
+    /* Nav Pill & Controls */
+    --nav-bg: #e3e5e8;
+    --nav-hover-bg: rgba(0, 0, 0, 0.05);
+    --nav-active-bg: #ffffff;
+    --nav-active-text: #060607;
+    --nav-active-border: #d1d5db;
+    --nav-active-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
-[data-theme="midnight"] body {
-    background: linear-gradient(135deg, #070c17 0%, #0e1627 50%, #070c17 100%);
+/* GitHub Dark Overrides */
+[data-theme="dark"] body {
+    background: #0d1117;
+    color: #e6edf3;
 }
 
-[data-theme="slate"] body {
-    background: linear-gradient(135deg, #090d13 0%, #131922 50%, #090d13 100%);
+[data-theme="dark"] header[role="banner"] {
+    background: rgba(22, 27, 34, 0.92);
+    border-bottom-color: #30363d;
 }
 
+[data-theme="dark"] .kanban-column {
+    background: rgba(22, 27, 34, 0.5);
+    border-color: #30363d;
+}
+
+[data-theme="dark"] .col-label {
+    color: #e6edf3;
+}
+
+[data-theme="dark"] .col-count {
+    background: #21262d;
+    color: #e6edf3;
+}
+
+[data-theme="dark"] .task-card {
+    background: #161b22;
+    border-color: #30363d;
+}
+
+[data-theme="dark"] .task-card:hover {
+    background: #1c2128;
+    border-color: #8b949e;
+    box-shadow: 0 6px 20px rgba(1, 4, 9, 0.5);
+}
+
+[data-theme="dark"] .task-card-title {
+    color: #e6edf3;
+}
+
+[data-theme="dark"] .btn-filter,
+[data-theme="dark"] .select-sort,
+[data-theme="dark"] .search-input-wrapper input {
+    background: #0d1117;
+    border-color: #30363d;
+    color: #e6edf3;
+}
+
+[data-theme="dark"] .btn-filter:hover,
+[data-theme="dark"] .select-sort:hover {
+    border-color: #8b949e;
+    color: #ffffff;
+}
+
+[data-theme="dark"] .search-input-wrapper input:focus {
+    border-color: #2f81f7;
+    outline: 2px solid rgba(47, 129, 247, 0.3);
+}
+
+[data-theme="dark"] .mini-dashboard-container {
+    background: #161b22;
+    border-color: #30363d;
+}
+
+[data-theme="dark"] .mini-course-card {
+    background: #161b22;
+    border-color: #30363d;
+}
+
+[data-theme="dark"] .mini-course-card:hover {
+    background: #1c2128;
+    border-color: #58a6ff;
+}
+
+[data-theme="dark"] .mini-table-wrapper {
+    background: #161b22;
+    border-color: #30363d;
+}
+
+[data-theme="dark"] .mini-dashboard-table thead {
+    background: #0d1117;
+    border-bottom-color: #30363d;
+}
+
+[data-theme="dark"] .mini-dashboard-table tbody tr:hover {
+    background: #1c2128;
+}
+
+[data-theme="dark"] .metric-card {
+    background: #161b22;
+    border-color: #30363d;
+}
+
+[data-theme="dark"] .calendar-view-wrap {
+    background: #161b22;
+    border-color: #30363d;
+}
+
+[data-theme="dark"] .cal-cell {
+    background: #0d1117;
+    border-color: #30363d;
+}
+
+[data-theme="dark"] .cal-cell:hover {
+    background: #1c2128;
+    border-color: #58a6ff;
+}
+
+[data-theme="dark"] .cal-cell.today {
+    background: rgba(47, 129, 247, 0.1);
+    border-color: #2f81f7;
+}
+
+/* Discord Light Overrides */
 [data-theme="light"] body {
-    background: linear-gradient(135deg, #e9eef6 0%, #f4f7fb 50%, #e9eef6 100%);
-    color: #0f172a;
+    background: #f2f3f5;
+    color: #2e3338;
 }
 
-[data-theme="light"] .app-window {
+[data-theme="light"] header[role="banner"] {
+    background: rgba(255, 255, 255, 0.94);
+    border-bottom-color: #e3e5e8;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .brand-logo {
+    color: #060607;
+}
+
+[data-theme="light"] .brand-icon {
     background: #ffffff;
-    border-color: #e2e8f0;
-    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+    border-color: #e3e5e8;
+    color: #5865f2;
 }
 
-[data-theme="light"] .col-label {
-    color: #0f172a;
+[data-theme="light"] .icon-btn {
+    background: #ffffff;
+    border-color: #e3e5e8;
+    color: #4e5058;
+}
+
+[data-theme="light"] .icon-btn:hover {
+    background: #f2f3f5;
+    border-color: #5865f2;
+    color: #060607;
 }
 
 [data-theme="light"] .kanban-column {
-    background: #f8fafc;
-    border-color: #e2e8f0;
+    background: #ebedef;
+    border-color: #e3e5e8;
+}
+
+[data-theme="light"] .col-label {
+    color: #060607;
+}
+
+[data-theme="light"] .col-count {
+    background: #d1d5db;
+    color: #060607;
+}
+
+[data-theme="light"] .task-card {
+    background: #ffffff;
+    border-color: #e3e5e8;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .task-card:hover {
+    background: #ffffff;
+    border-color: #5865f2;
+    box-shadow: 0 6px 18px rgba(88, 101, 242, 0.14);
 }
 
 [data-theme="light"] .task-card-title {
-    color: #0f172a;
+    color: #060607;
+}
+
+[data-theme="light"] .task-course-subtitle {
+    color: #5c6370;
+}
+
+[data-theme="light"] .btn-filter,
+[data-theme="light"] .select-sort,
+[data-theme="light"] .search-input-wrapper input {
+    background: #ffffff;
+    border-color: #d1d5db;
+    color: #2e3338;
+}
+
+[data-theme="light"] .btn-filter:hover,
+[data-theme="light"] .select-sort:hover {
+    border-color: #5865f2;
+    color: #060607;
+}
+
+[data-theme="light"] .search-input-wrapper input:focus {
+    border-color: #5865f2;
+    outline: 2px solid rgba(88, 101, 242, 0.25);
 }
 
 [data-theme="light"] .dialog-content,
 [data-theme="light"] .task-dialog-content {
     background: #ffffff;
-    color: #0f172a;
-    border-color: #cbd5e1;
+    color: #2e3338;
+    border-color: #e3e5e8;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.12);
 }
 
 [data-theme="light"] .dialog-title {
-    color: #0f172a;
+    color: #060607;
 }
 
 [data-theme="light"] .btn-close-dialog {
-    background: #f1f5f9;
-    color: #475569;
+    background: #ebedef;
+    color: #4e5058;
+}
+
+[data-theme="light"] .btn-close-dialog:hover {
+    background: #e3e5e8;
+    color: #060607;
 }
 
 [data-theme="light"] footer[role="contentinfo"] {
-    background: #f8fafc;
-    border-top-color: #e2e8f0;
+    background: #ffffff;
+    border-top-color: #e3e5e8;
 }
 
 [data-theme="light"] .form-fieldset {
-    background: #f8fafc;
-    border-color: #e2e8f0;
+    background: #f8f9fa;
+    border-color: #e3e5e8;
 }
 
 [data-theme="light"] .form-legend {
-    color: #0284c7;
+    color: #5865f2;
 }
 
 [data-theme="light"] .form-error-summary {
@@ -2292,31 +2548,110 @@ footer[role="contentinfo"] {
 }
 
 [data-theme="light"] .btn-preset-pill {
-    background: #f1f5f9;
-    border-color: #e2e8f0;
-    color: #475569;
+    background: #ebedef;
+    border-color: #d1d5db;
+    color: #4e5058;
 }
 
 [data-theme="light"] .btn-preset-pill:hover {
-    background: #e0f2fe;
-    border-color: #38bdf8;
-    color: #0284c7;
+    background: rgba(88, 101, 242, 0.1);
+    border-color: #5865f2;
+    color: #5865f2;
 }
 
 [data-theme="light"] .btn-paste-clipboard {
-    color: #0284c7;
+    color: #5865f2;
 }
 
 [data-theme="light"] .btn-reset {
-    background: #f1f5f9;
-    border-color: #e2e8f0;
-    color: #475569;
+    background: #ebedef;
+    border-color: #d1d5db;
+    color: #4e5058;
 }
 
 [data-theme="light"] .form-keyboard-hint kbd {
-    background: #f1f5f9;
-    border-color: #cbd5e1;
-    color: #0f172a;
+    background: #ebedef;
+    border-color: #d1d5db;
+    color: #2e3338;
+}
+
+[data-theme="light"] .mini-dashboard-container {
+    background: #ffffff;
+    border-color: #e3e5e8;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .mini-course-card {
+    background: #ffffff;
+    border-color: #e3e5e8;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .mini-course-card:hover {
+    background: #ffffff;
+    border-color: #5865f2;
+    box-shadow: 0 6px 18px rgba(88, 101, 242, 0.12);
+}
+
+[data-theme="light"] .mini-table-wrapper {
+    background: #ffffff;
+    border-color: #e3e5e8;
+}
+
+[data-theme="light"] .mini-dashboard-table thead {
+    background: #ebedef;
+    border-bottom-color: #e3e5e8;
+}
+
+[data-theme="light"] .mini-dashboard-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+[data-theme="light"] .mini-dashboard-student-bar {
+    background: #ebedef;
+    border-color: #e3e5e8;
+}
+
+[data-theme="light"] .metric-card {
+    background: #ffffff;
+    border-color: #e3e5e8;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .metric-card:hover {
+    border-color: #5865f2;
+}
+
+[data-theme="light"] .metric-label {
+    color: #5c6370;
+}
+
+[data-theme="light"] .metric-value {
+    color: #060607;
+}
+
+[data-theme="light"] .calendar-view-wrap {
+    background: #ffffff;
+    border-color: #e3e5e8;
+}
+
+[data-theme="light"] .cal-cell {
+    background: #f8f9fa;
+    border-color: #e3e5e8;
+}
+
+[data-theme="light"] .cal-cell:hover {
+    background: #ffffff;
+    border-color: #5865f2;
+}
+
+[data-theme="light"] .cal-day-number {
+    color: #2e3338;
+}
+
+[data-theme="light"] .cal-cell.today {
+    background: rgba(88, 101, 242, 0.08);
+    border-color: #5865f2;
 }
 
 /* Kerapatan Kartu (Compact Density) */
