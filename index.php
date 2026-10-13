@@ -119,7 +119,7 @@ $initial_tasks = [
 
             <!-- User Menu Settings & Profile -->
             <div class="user-controls">
-                <button type="button" id="btn-theme-toggle" class="icon-btn" title="Ganti Tema (GitHub Dark / Discord Light)" aria-label="Ganti Tema Tampilan">
+                <button type="button" id="btn-theme-toggle" class="icon-btn" title="Ganti Tema (Dark Mode / Light Mode)" aria-label="Ganti Tema Tampilan">
                     <svg class="icon-svg" id="theme-toggle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <circle cx="12" cy="12" r="5"></circle>
                         <line x1="12" y1="1" x2="12" y2="3"></line>
@@ -970,8 +970,8 @@ $initial_tasks = [
                 <div>
                     <label for="select-theme" style="display: block; font-size: 0.825rem; color: var(--text-muted); margin-bottom: 0.35rem;">Tema Tampilan:</label>
                     <select id="select-theme" class="select-sort" style="width: 100%;">
-                        <option value="dark">GitHub Dark (Default)</option>
-                        <option value="light">Discord Light</option>
+                        <option value="dark">Dark Mode (Default)</option>
+                        <option value="light">Light Mode</option>
                     </select>
                 </div>
 

@@ -180,7 +180,7 @@ function formatDeadline(deadlineStr, status) {
     }
 }
 
-// 6. INTERAKSI 3: PREFERENSI TEMA & LOCALSTORAGE (2 TEMA: GITHUB DARK & DISCORD LIGHT)
+// 6. INTERAKSI 3: PREFERENSI TEMA & LOCALSTORAGE (2 TEMA: DARK MODE & LIGHT MODE)
 const AVAILABLE_THEMES = ['dark', 'light'];
 
 function initPreferences() {
@@ -223,7 +223,7 @@ function applyTheme(themeName) {
 
     const themeToggleBtn = document.getElementById('btn-theme-toggle');
     if (themeToggleBtn) {
-        const nextName = themeName === 'dark' ? 'Discord Light' : 'GitHub Dark';
+        const nextName = themeName === 'dark' ? 'Light Mode' : 'Dark Mode';
         themeToggleBtn.setAttribute('title', `Ganti ke tema ${nextName}`);
         themeToggleBtn.setAttribute('aria-label', `Ganti ke tema ${nextName}`);
     }
@@ -237,7 +237,7 @@ function cycleTheme() {
     const themeSelect = document.getElementById('select-theme');
     if (themeSelect) themeSelect.value = nextTheme;
 
-    const themeLabel = nextTheme === 'dark' ? 'GitHub Dark' : 'Discord Light';
+    const themeLabel = nextTheme === 'dark' ? 'Dark Mode' : 'Light Mode';
     announce(`Tema diubah menjadi ${themeLabel}`);
 }
 

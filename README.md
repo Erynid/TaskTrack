@@ -50,15 +50,15 @@ Sesuai standar WCAG 2.1 AA dan rubrik penilaian proyek:
 
 ---
 
-## Sistem Desain CSS Custom Properties (GitHub Dark & Discord Light)
+## Sistem Desain CSS Custom Properties (Dark Mode & Light Mode)
 
 Stylesheet utama ([css/style.css](file:///c:/laragon/www/TaskTrack/css/style.css)) dibangun menggunakan design token variabel CSS dengan 2 pilihan tema tampilan:
-- **Tema 1: GitHub Dark (Default):**
+- **Tema 1: Dark Mode (Default):**
   - Permukaan & Kanvas: `--bg-body: #0d1117;`, `--card-surface: #161b22;`, `--card-border: #30363d;`
-  - Tipografi & Aksen: `--text-main: #e6edf3;`, `--accent-yellow: #238636;` (GitHub Green), `--brand-blue: #2f81f7;`
-- **Tema 2: Discord Light:**
+  - Tipografi & Aksen: `--text-main: #e6edf3;`, `--accent-yellow: #238636;` (Green Action), `--brand-blue: #2f81f7;`
+- **Tema 2: Light Mode:**
   - Permukaan & Kanvas: `--bg-body: #f2f3f5;`, `--card-surface: #ffffff;`, `--card-border: #e3e5e8;`
-  - Tipografi & Aksen: `--text-main: #2e3338;`, `--accent-yellow: #5865f2;` (Discord Blurple)
+  - Tipografi & Aksen: `--text-main: #2e3338;`, `--accent-yellow: #5865f2;` (Blurple Action)
 - **Indikator Skala Urgensi & Status:**
   - Kritis (< 24 Jam): `--urgency-critical: #f85149;`
   - Perhatian (< 3 Hari): `--urgency-warning: #d29922;`
@@ -132,14 +132,14 @@ TaskTrack menerapkan tiga interaksi bermakna berbasis DOM, Event Listener terstr
 ### 3. Interaksi 3: Preferensi Tema & Tampilan Menggunakan Web Storage (`localStorage`)
 * **Penyimpanan Data Non-Sensitif:**
   - Seluruh data preferensi disimpan di browser klien tanpa melibatkan data kredensial atau informasi sensitif:
-    1. `tasktrack_theme`: Pilihan tema antarmuka (`dark` untuk GitHub Dark, `light` untuk Discord Light).
+    1. `tasktrack_theme`: Pilihan tema antarmuka (`dark` untuk Dark Mode, `light` untuk Light Mode).
     2. `tasktrack_density`: Kerapatan kartu Kanban (`comfortable` atau `compact`).
     3. `tasktrack_view_mode`: Mode tampilan terakhir (`kanban` atau `list`).
     4. `tasktrack_sound_pref`: Preferensi bunyi notifikasi (`true` atau `false`).
     5. `tasktrack_agro_tasks`: Kumpulan data kartu tugas perkuliahan lokal.
-* **Theme Switcher 2 Tema (GitHub Dark & Discord Light):**
+* **Theme Switcher 2 Tema (Dark Mode & Light Mode):**
   - **Event:** `click` pada `#btn-theme-toggle` (header) atau `change` pada `#select-theme` (modal pengaturan).
-  - **DOM:** Mengubah atribut `data-theme` pada elemen `<html>` antara `dark` (GitHub Dark) dan `light` (Discord Light), yang secara instan mengganti variabel CSS Custom Properties tanpa kedipan (*zero layout shift*).
+  - **DOM:** Mengubah atribut `data-theme` pada elemen `<html>` antara `dark` (Dark Mode) dan `light` (Light Mode), yang secara instan mengganti variabel CSS Custom Properties tanpa kedipan (*zero layout shift*).
 * **Restorasi State Otomatis:**
   - Saat pengguna membuka atau menyegarkan (*refresh*) halaman, fungsi `initPreferences()` langsung membaca `localStorage` dan menerapkan tema, kerapatan kartu, serta mode tampilan yang dipilih sebelumnya.
 
