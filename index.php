@@ -372,6 +372,178 @@ $initial_tasks = [
                     ?>
                 </div>
 
+                <!-- ============================================================
+                     FITUR MINI DASHBOARD: PROGRES AKADEMIK (FETCH API & JSON)
+                     Sesuai Instruksi Tugas Kuliah Pemrograman Web
+                     ============================================================ -->
+                <div class="mini-dashboard-container" id="mini-dashboard-container" role="region" aria-labelledby="heading-mini-dashboard">
+                    <div class="mini-dashboard-header">
+                        <div class="mini-dashboard-title-group">
+                            <div class="mini-dashboard-badge">
+                                <svg class="icon-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                                </svg>
+                                <span>Live Asynchronous Feed (Fetch API)</span>
+                            </div>
+                            <h2 id="heading-mini-dashboard" class="mini-dashboard-title">Mini Dashboard Progres Akademik</h2>
+                            <p class="mini-dashboard-subtitle">
+                                Ringkasan performa mata kuliah, kuota tugas terselesaikan, dan jadwal akademik yang dimuat dinamis dari endpoint JSON lokal.
+                            </p>
+                        </div>
+                        <div class="mini-dashboard-actions">
+                            <!-- Tombol Muat Ulang / Reload Data -->
+                            <button type="button" id="btn-refresh-mini-dashboard" class="btn-filter" title="Muat ulang data dari endpoint JSON" aria-label="Muat ulang data akademik">
+                                <svg class="icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <polyline points="23 4 23 10 17 10"></polyline>
+                                    <polyline points="1 20 1 14 7 14"></polyline>
+                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                                </svg>
+                                <span>Muat Ulang</span>
+                            </button>
+
+                            <!-- Switcher Tampilan: Kartu vs Tabel -->
+                            <div class="view-switcher" role="tablist" aria-label="Pilih Mode Tampilan Mini Dashboard">
+                                <button type="button" id="tab-mini-cards" class="view-tab active" role="tab" aria-selected="true" aria-controls="mini-dashboard-cards-container">
+                                    <svg class="icon-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <rect x="3" y="3" width="7" height="7"></rect>
+                                        <rect x="14" y="3" width="7" height="7"></rect>
+                                        <rect x="14" y="14" width="7" height="7"></rect>
+                                        <rect x="3" y="14" width="7" height="7"></rect>
+                                    </svg>
+                                    <span>Kartu</span>
+                                </button>
+                                <button type="button" id="tab-mini-table" class="view-tab" role="tab" aria-selected="false" aria-controls="mini-dashboard-table-container">
+                                    <svg class="icon-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <line x1="8" y1="6" x2="21" y2="6"></line>
+                                        <line x1="8" y1="12" x2="21" y2="12"></line>
+                                        <line x1="8" y1="18" x2="21" y2="18"></line>
+                                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                                    </svg>
+                                    <span>Tabel</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profil Mahasiswa & Statistik Agregat Bar (Diisi Dinamis) -->
+                    <div id="mini-dashboard-student-bar" class="mini-dashboard-student-bar" style="display: none;">
+                        <!-- JS generated content -->
+                    </div>
+
+                    <!-- Toolbar Pencarian & Filter -->
+                    <div class="mini-dashboard-toolbar" id="mini-dashboard-toolbar" style="display: none;">
+                        <div class="mini-toolbar-search">
+                            <div class="search-input-wrapper">
+                                <span class="search-icon" aria-hidden="true">
+                                    <svg class="icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="11" cy="11" r="8"></circle>
+                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                    </svg>
+                                </span>
+                                <input type="search" id="mini-dash-search" placeholder="Cari mata kuliah, kode, atau dosen..." aria-label="Cari mata kuliah di mini dashboard">
+                            </div>
+                        </div>
+
+                        <div class="mini-toolbar-filters">
+                            <!-- Filter Kategori -->
+                            <div class="select-wrapper">
+                                <svg class="icon-svg sort-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                                </svg>
+                                <select id="mini-dash-filter-category" class="select-sort" aria-label="Filter kategori mata kuliah">
+                                    <option value="all">Semua Kategori</option>
+                                    <option value="Praktikum">Praktikum</option>
+                                    <option value="Teori">Teori</option>
+                                    <option value="Proyek">Proyek</option>
+                                </select>
+                            </div>
+
+                            <!-- Filter Status -->
+                            <div class="select-wrapper">
+                                <svg class="icon-svg sort-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                                <select id="mini-dash-filter-status" class="select-sort" aria-label="Filter status perkuliahan">
+                                    <option value="all">Semua Status</option>
+                                    <option value="Aktif">Status: Aktif</option>
+                                    <option value="Perhatian">Status: Perhatian</option>
+                                    <option value="Tuntas">Status: Tuntas</option>
+                                </select>
+                            </div>
+
+                            <span id="mini-dash-count-indicator" class="mini-dash-count-indicator"></span>
+                        </div>
+                    </div>
+
+                    <!-- 1. LOADING STATE -->
+                    <div id="mini-dashboard-loading" class="mini-dashboard-state mini-dashboard-loading" role="status" aria-live="polite">
+                        <div class="mini-loading-spinner" aria-hidden="true"></div>
+                        <p class="mini-loading-text">Memuat data ringkasan akademik via Fetch API...</p>
+                        <span class="mini-loading-subtext">Mengakses endpoint data/academic-dashboard.json</span>
+                    </div>
+
+                    <!-- 2. ERROR STATE -->
+                    <div id="mini-dashboard-error" class="mini-dashboard-state mini-dashboard-error" role="alert" style="display: none;">
+                        <div class="mini-error-icon" aria-hidden="true">
+                            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                        </div>
+                        <h3 class="mini-error-title">Gagal Memuat Data Mini Dashboard</h3>
+                        <p id="mini-dashboard-error-message" class="mini-error-message">Terjadi kendala jaringan atau berkas data JSON tidak dapat diakses.</p>
+                        <button type="button" id="btn-mini-dashboard-retry" class="btn-new-task" style="margin-top: 1rem;">
+                            <svg class="icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polyline points="23 4 23 10 17 10"></polyline>
+                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                            </svg>
+                            <span>Coba Muat Ulang</span>
+                        </button>
+                    </div>
+
+                    <!-- 3. DATA LOADED STATE (KARTU & TABEL) -->
+                    <div id="mini-dashboard-content" class="mini-dashboard-content" style="display: none;">
+                        <!-- Container Kartu -->
+                        <div id="mini-dashboard-cards-container" class="mini-courses-grid" role="region" aria-label="Daftar Kartu Mata Kuliah">
+                            <!-- Diisi dinamis oleh JS -->
+                        </div>
+
+                        <!-- Container Tabel Semantik -->
+                        <div id="mini-dashboard-table-container" class="mini-table-wrapper" style="display: none;" role="region" aria-label="Tabel Progres Mata Kuliah">
+                            <table class="mini-dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Kode &amp; Mata Kuliah</th>
+                                        <th scope="col">Kategori</th>
+                                        <th scope="col">SKS</th>
+                                        <th scope="col">Dosen Pengampu</th>
+                                        <th scope="col">Progres Tugas</th>
+                                        <th scope="col">Tenggat Terdekat</th>
+                                        <th scope="col">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="mini-dashboard-table-body">
+                                    <!-- Diisi dinamis oleh JS -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Hasil Pencarian Kosong -->
+                        <div id="mini-dashboard-empty" class="mini-dashboard-empty" style="display: none;">
+                            <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            <p>Tidak ada mata kuliah yang cocok dengan kriteria pencarian atau filter.</p>
+                            <button type="button" id="btn-mini-reset-filter" class="btn-filter" style="margin-top: 0.5rem;">Reset Filter</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="dashboard-details-row">
                     <div class="dashboard-panel">
                         <h3>

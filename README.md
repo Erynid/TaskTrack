@@ -178,6 +178,67 @@ Search, Filter, Sort           Detail & Move Status           Theme & Density To
 
 ---
 
+## Fitur Mini Dashboard (Fetch API & Asynchronous JSON Data Feed)
+
+Sesuai instruksi penugasan pengembangan mini dashboard berbasis API/JSON lokal:
+
+### 1. Endpoint & Sumber Data
+* **File JSON Lokal:** `data/academic-dashboard.json`
+* **API Proxy Endpoint:** `api/academic-dashboard.php` (header `Content-Type: application/json; charset=utf-8` dan proteksi cache `no-store`)
+* **Struktur Data:**
+  - `student`: Metadata mahasiswa (Nama, NIM, Program Studi, Semester, Target IPK, Total SKS).
+  - `summary`: Agregasi metrik (Total matkul, total tugas, tugas terselesaikan, rasio pemenuhan %, tenggat kritis).
+  - `courses`: Array data 6 mata kuliah lengkap dengan kode, nama matkul, kategori (Praktikum, Teori, Proyek), SKS, dosen pengampu, ruang, jadwal, progres penyelesaian tugas, dan rincian tenggat terdekat.
+
+### 2. Implementasi Asinkronus JavaScript
+* **Fungsi Utama:** `fetchMiniDashboardData()` pada `js/app.js`.
+* **Karakteristik Teknis:**
+  - Menggunakan fungsi `async` dan operator `await` untuk pemrosesan asinkronus non-blocking.
+  - Memanggil `fetch('data/academic-dashboard.json', { headers: { 'Accept': 'application/json' }, cache: 'no-store' })`.
+  - Pemeriksaan eksplisit `response.ok` (status HTTP 200 - 299). Jika `response.ok === false`, melempar error baru menggunakan `throw new Error(...)`.
+  - Pengamanan blok `try...catch` lengkap untuk menangkap kegagalan koneksi atau format payload invalid.
+
+### 3. Tiga State Tampilan Mini Dashboard
+1. **Loading State (`#mini-dashboard-loading`):**
+   - Menampilkan spinner animasi berputar dengan teks status: *"Memuat data ringkasan akademik via Fetch API..."* dan petunjuk endpoint.
+   - Dilengkapi atribut aksesibilitas `role="status"` dan `aria-live="polite"`.
+2. **Error State (`#mini-dashboard-error`):**
+   - Muncul otomatis jika berkas JSON tidak ditemukan, status HTTP di luar 200, atau respon gagal di-parse.
+   - Menampilkan kartu peringatan dengan ikon SVG, pesan galat kontekstual, dan tombol **"Coba Muat Ulang"** (`#btn-mini-dashboard-retry`) untuk memicu ulang fungsi `fetchMiniDashboardData()`.
+   - Dilengkapi atribut aksesibilitas `role="alert"`.
+3. **Data Loaded State (`#mini-dashboard-content`):**
+   - Menampilkan bilah informasi mahasiswa (*student metadata bar*) dengan agregasi performa akademik.
+   - Menampilkan toolbar pencarian dan filter.
+   - Merender data mata kuliah ke dalam 2 format tampilan yang dapat diganti sewaktu-waktu.
+
+### 4. Penyajian Data: Mode Kartu & Mode Tabel Semantik
+* **Mode Kartu (Grid Cards):**
+  - Grid responsif (`.mini-courses-grid`) bertema Sleek Dark Obsidian.
+  - Setiap kartu menampilkan kode matkul, badge kategori (Praktikum, Teori, Proyek), pill status, nama dosen, jadwal/ruang, progress bar persentase penyelesaian tugas, serta kotak pengingat tugas terdekat.
+* **Mode Tabel (Data Table):**
+  - Tabel semantik `<table>` dengan header terstruktur (`<thead>`) dan baris data (`<tbody>`).
+  - Kolom lengkap: Kode & Mata Kuliah, Kategori, SKS, Dosen Pengampu, Progres Tugas, Tenggat Terdekat, dan Status.
+
+### 5. Fitur Pencarian Real-Time & Pemfilteran Ganda
+Setelah data berhasil dimuat, pengguna dapat memanipulasi data tanpa memuat ulang halaman:
+* **Pencarian Real-Time (`#mini-dash-search`):** Mencari berdasarkan nama mata kuliah, kode matkul, nama dosen, atau ruang kuliah secara instan melalui event `input`.
+* **Filter Kategori (`#mini-dash-filter-category`):** Memfilter mata kuliah berdasarkan jenis perkuliahan (Semua Kategori, Praktikum, Teori, Proyek).
+* **Filter Status (`#mini-dash-filter-status`):** Memfilter berdasarkan status perkuliahan (Semua Status, Aktif, Perhatian, Tuntas).
+* **Indikator Jumlah & Empty State:** Indikator dinamis *"Menampilkan X dari Y mata kuliah"* serta tampilan pesan khusus dan tombol reset jika hasil pencarian tidak ditemukan.
+
+### 6. Dokumentasi Pengujian & Screenshot
+* **URL Pengujian Lokal:**
+  - Buka halaman web: `http://localhost/TaskTrack`
+  - Klik tab navigasi **Dashboard** di bagian atas untuk melihat Mini Dashboard Progres Akademik.
+  - Uji pencarian dengan mengetik nama matkul (contoh: "Web" atau "Siber").
+  - Uji filter kategori (contoh pilih "Praktikum").
+  - Uji pengalihan mode tampilan dengan menekan tombol switcher **Kartu** dan **Tabel**.
+  - Uji pemuatan ulang dengan menekan tombol **Muat Ulang**.
+* **Screenshot Antarmuka:**
+  - Tangkapan layar tampilan kartu, tampilan tabel, dan state pencarian dapat dilihat langsung pada aplikasi saat dibuka di peramban web lokal.
+
+---
+
 ## Cara Menjalankan Proyek
 
 ### Opsi 1: Menggunakan Laragon (Direkomendasikan)

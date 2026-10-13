@@ -143,12 +143,16 @@ function announce(message) {
     }
 }
 
-function escapeHtml(str) {
-    if (!str) return '';
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
+function escapeHtml(val) {
+    if (val === null || val === undefined) return '';
+    return String(val)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
+const safeStr = escapeHtml;
 
 function formatDeadline(deadlineStr, status) {
     if (!deadlineStr) return { dateStr: 'Belum ditentukan', timeStr: 'Segera', isOverdue: false };
@@ -1043,7 +1047,12 @@ function switchView(targetViewId) {
         }
     });
 
-    if (targetViewId === 'view-dashboard') updateDashboard();
+    if (targetViewId === 'view-dashboard') {
+        updateDashboard();
+        if (!miniDashboardState.isLoaded && !miniDashboardState.isLoading) {
+            fetchMiniDashboardData();
+        }
+    }
     if (targetViewId === 'view-calendar') renderCalendar();
 }
 
@@ -1082,6 +1091,412 @@ function updateDashboard() {
             }).join('');
         }
     }
+}
+
+
+// ==========================================================================
+// 14. FITUR MINI DASHBOARD AKADEMIK (FETCH API & JSON LOCAL FEED)
+// Mengimplementasikan fetch(), async/await, try/catch, dan response.ok
+// Memiliki 3 State: Loading, Error, dan Data Loaded (Kartu & Tabel)
+// Dilengkapi Fitur Pencarian Real-Time dan Pemfilteran Kategori & Status
+// ==========================================================================
+
+const miniDashboardState = {
+    data: null,
+    isLoaded: false,
+    isLoading: false,
+    error: null,
+    activeTab: 'cards', // 'cards' | 'table'
+    searchQuery: '',
+    categoryFilter: 'all',
+    statusFilter: 'all'
+};
+
+/**
+ * Memuat data ringkasan akademik secara asinkronus menggunakan Fetch API.
+ * Sesuai rubrik: fetch(), async/await, try/catch, dan pemeriksaan response.ok.
+ */
+async function fetchMiniDashboardData() {
+    setMiniDashboardLoading(true);
+    miniDashboardState.error = null;
+
+    try {
+        // Menggunakan file JSON lokal di data/academic-dashboard.json
+        const endpointUrl = 'data/academic-dashboard.json';
+        const response = await fetch(endpointUrl, {
+            headers: {
+                'Accept': 'application/json'
+            },
+            cache: 'no-store'
+        });
+
+        // Pemeriksaan response.ok (Status HTTP 200-299)
+        if (!response.ok) {
+            throw new Error(`Gagal memuat endpoint '${endpointUrl}'. Status HTTP: ${response.status} (${response.statusText || 'Respon Gagal'})`);
+        }
+
+        const jsonData = await response.json();
+
+        // Validasi struktur data dasar
+        if (!jsonData || !jsonData.courses || !Array.isArray(jsonData.courses)) {
+            throw new Error('Format data JSON tidak valid: properti courses tidak ditemukan atau bukan array.');
+        }
+
+        miniDashboardState.data = jsonData;
+        miniDashboardState.isLoaded = true;
+        setMiniDashboardLoading(false);
+        renderMiniDashboard();
+        announce('Data mini dashboard akademik berhasil dimuat');
+    } catch (error) {
+        console.error('Error saat memuat Mini Dashboard:', error);
+        setMiniDashboardError(error.message || 'Terjadi kesalahan tidak terduga saat memuat data akademik.');
+        announce('Gagal memuat data mini dashboard akademik');
+    }
+}
+
+/**
+ * Mengatur tampilan Loading State pada Mini Dashboard
+ * @param {boolean} isLoading
+ */
+function setMiniDashboardLoading(isLoading) {
+    miniDashboardState.isLoading = isLoading;
+    const loadingEl = document.getElementById('mini-dashboard-loading');
+    const errorEl = document.getElementById('mini-dashboard-error');
+    const contentEl = document.getElementById('mini-dashboard-content');
+    const toolbarEl = document.getElementById('mini-dashboard-toolbar');
+    const studentBarEl = document.getElementById('mini-dashboard-student-bar');
+
+    if (isLoading) {
+        if (loadingEl) loadingEl.style.display = 'flex';
+        if (errorEl) errorEl.style.display = 'none';
+        if (contentEl) contentEl.style.display = 'none';
+        if (toolbarEl) toolbarEl.style.display = 'none';
+        if (studentBarEl) studentBarEl.style.display = 'none';
+    } else {
+        if (loadingEl) loadingEl.style.display = 'none';
+    }
+}
+
+/**
+ * Mengatur tampilan Error State pada Mini Dashboard
+ * @param {string} errorMessage
+ */
+function setMiniDashboardError(errorMessage) {
+    miniDashboardState.isLoading = false;
+    miniDashboardState.error = errorMessage;
+
+    const loadingEl = document.getElementById('mini-dashboard-loading');
+    const errorEl = document.getElementById('mini-dashboard-error');
+    const errorMsgEl = document.getElementById('mini-dashboard-error-message');
+    const contentEl = document.getElementById('mini-dashboard-content');
+    const toolbarEl = document.getElementById('mini-dashboard-toolbar');
+    const studentBarEl = document.getElementById('mini-dashboard-student-bar');
+
+    if (loadingEl) loadingEl.style.display = 'none';
+    if (contentEl) contentEl.style.display = 'none';
+    if (toolbarEl) toolbarEl.style.display = 'none';
+    if (studentBarEl) studentBarEl.style.display = 'none';
+
+    if (errorEl) {
+        errorEl.style.display = 'flex';
+        if (errorMsgEl) {
+            errorMsgEl.textContent = errorMessage;
+        }
+    }
+}
+
+/**
+ * Merender seluruh data Mini Dashboard setelah berhasil dimuat
+ */
+function renderMiniDashboard() {
+    if (!miniDashboardState.data) return;
+
+    const data = miniDashboardState.data;
+    const studentBarEl = document.getElementById('mini-dashboard-student-bar');
+    const toolbarEl = document.getElementById('mini-dashboard-toolbar');
+    const contentEl = document.getElementById('mini-dashboard-content');
+    const cardsContainer = document.getElementById('mini-dashboard-cards-container');
+    const tableContainer = document.getElementById('mini-dashboard-table-container');
+    const tableBody = document.getElementById('mini-dashboard-table-body');
+    const emptyEl = document.getElementById('mini-dashboard-empty');
+    const countIndicator = document.getElementById('mini-dash-count-indicator');
+
+    // 1. Render Student & Aggregate Summary Bar
+    if (studentBarEl && data.student && data.summary) {
+        studentBarEl.style.display = 'grid';
+        studentBarEl.innerHTML = `
+            <div class="student-meta-item">
+                <span class="student-meta-label">Mahasiswa</span>
+                <span class="student-meta-value">${safeStr(data.student.name)}</span>
+            </div>
+            <div class="student-meta-item">
+                <span class="student-meta-label">Program &amp; Semester</span>
+                <span class="student-meta-value">${safeStr(data.student.semester)}</span>
+            </div>
+            <div class="student-meta-item">
+                <span class="student-meta-label">Beban Akademik</span>
+                <span class="student-meta-value student-meta-highlight">${safeStr(data.student.total_sks)} SKS (${data.summary.total_courses} Mata Kuliah)</span>
+            </div>
+            <div class="student-meta-item">
+                <span class="student-meta-label">Penyelesaian Tugas</span>
+                <span class="student-meta-value student-meta-highlight">${data.summary.completed_assignments} / ${data.summary.total_assignments} Selesai (${data.summary.overall_completion_rate}%)</span>
+            </div>
+            <div class="student-meta-item">
+                <span class="student-meta-label">Tenggat Kritis</span>
+                <span class="student-meta-value" style="color: #f87171;">${data.summary.critical_deadlines} Tugas Mendekati Batas</span>
+            </div>
+        `;
+    }
+
+    // 2. Tampilkan Toolbar dan Content
+    if (toolbarEl) toolbarEl.style.display = 'flex';
+    if (contentEl) contentEl.style.display = 'block';
+
+    // 3. Filter data berdasarkan input search dan filter dropdown
+    const rawCourses = data.courses || [];
+    const query = miniDashboardState.searchQuery.toLowerCase().trim();
+    const cat = miniDashboardState.categoryFilter;
+    const stat = miniDashboardState.statusFilter;
+
+    const filtered = rawCourses.filter(c => {
+        // Filter Pencarian Teks
+        const matchesQuery = !query ||
+            (c.name && c.name.toLowerCase().includes(query)) ||
+            (c.code && c.code.toLowerCase().includes(query)) ||
+            (c.lecturer && c.lecturer.toLowerCase().includes(query)) ||
+            (c.room && c.room.toLowerCase().includes(query));
+
+        // Filter Kategori
+        const matchesCategory = (cat === 'all') || (c.category === cat);
+
+        // Filter Status
+        const matchesStatus = (stat === 'all') || (c.status === stat);
+
+        return matchesQuery && matchesCategory && matchesStatus;
+    });
+
+    // Perbarui indikator jumlah data
+    if (countIndicator) {
+        countIndicator.textContent = `Menampilkan ${filtered.length} dari ${rawCourses.length} mata kuliah`;
+    }
+
+    // 4. Periksa jika hasil filter kosong
+    if (filtered.length === 0) {
+        if (cardsContainer) cardsContainer.style.display = 'none';
+        if (tableContainer) tableContainer.style.display = 'none';
+        if (emptyEl) emptyEl.style.display = 'flex';
+        return;
+    }
+
+    if (emptyEl) emptyEl.style.display = 'none';
+
+    // 5. Render sesuai mode tampilan aktif (Kartu vs Tabel)
+    if (miniDashboardState.activeTab === 'cards') {
+        if (cardsContainer) {
+            cardsContainer.style.display = 'grid';
+            cardsContainer.innerHTML = filtered.map(c => {
+                const catClass = c.category === 'Praktikum' ? 'cat-praktikum' : (c.category === 'Teori' ? 'cat-teori' : 'cat-proyek');
+                const statClass = c.status === 'Aktif' ? 'status-aktif' : (c.status === 'Tuntas' ? 'status-tuntas' : 'status-perhatian');
+
+                return `
+                    <article class="mini-course-card" id="card-${safeStr(c.id)}">
+                        <div class="mini-card-header">
+                            <div class="mini-card-code-wrap">
+                                <span class="mini-course-code">${safeStr(c.code)}</span>
+                                <span class="mini-course-category-badge ${catClass}">${safeStr(c.category)}</span>
+                            </div>
+                            <span class="mini-status-pill ${statClass}">${safeStr(c.status)}</span>
+                        </div>
+
+                        <h3 class="mini-course-title">${safeStr(c.name)}</h3>
+
+                        <div class="mini-course-meta">
+                            <div class="mini-meta-row">
+                                <svg class="icon-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                                <span>${safeStr(c.lecturer)}</span>
+                            </div>
+                            <div class="mini-meta-row">
+                                <svg class="icon-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                                <span>${safeStr(c.sks)} SKS | ${safeStr(c.schedule)} (${safeStr(c.room)})</span>
+                            </div>
+                        </div>
+
+                        <div class="mini-course-progress-wrap">
+                            <div class="mini-progress-header">
+                                <span>Progres Tugas Kuliah</span>
+                                <span><strong>${c.tasks_completed}/${c.tasks_total}</strong> (${c.progress_percent}%)</span>
+                            </div>
+                            <div class="mini-progress-track">
+                                <div class="mini-progress-fill" style="width: ${c.progress_percent}%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="mini-next-task-alert">
+                            <span class="mini-task-label">Tugas Terdekat</span>
+                            <span class="mini-task-name" title="${safeStr(c.next_task_title)}">${safeStr(c.next_task_title)}</span>
+                            <span class="mini-task-deadline">Tenggat: ${formatDateTimeSimple(c.next_deadline)}</span>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+        }
+        if (tableContainer) tableContainer.style.display = 'none';
+    } else {
+        // Mode Tabel Semantik
+        if (tableContainer) {
+            tableContainer.style.display = 'block';
+            if (tableBody) {
+                tableBody.innerHTML = filtered.map(c => {
+                    const catClass = c.category === 'Praktikum' ? 'cat-praktikum' : (c.category === 'Teori' ? 'cat-teori' : 'cat-proyek');
+                    const statClass = c.status === 'Aktif' ? 'status-aktif' : (c.status === 'Tuntas' ? 'status-tuntas' : 'status-perhatian');
+
+                    return `
+                        <tr>
+                            <td>
+                                <strong style="color: #ffffff; display: block;">${safeStr(c.name)}</strong>
+                                <span style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">${safeStr(c.code)}</span>
+                            </td>
+                            <td><span class="mini-course-category-badge ${catClass}">${safeStr(c.category)}</span></td>
+                            <td>${safeStr(c.sks)} SKS</td>
+                            <td style="color: var(--text-muted);">${safeStr(c.lecturer)}</td>
+                            <td>
+                                <div style="display: flex; flex-direction: column; gap: 0.25rem; min-width: 120px;">
+                                    <span style="font-size: 0.725rem; font-weight: 600;">${c.tasks_completed}/${c.tasks_total} (${c.progress_percent}%)</span>
+                                    <div class="mini-progress-track" style="height: 5px;">
+                                        <div class="mini-progress-fill" style="width: ${c.progress_percent}%;"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div style="display: flex; flex-direction: column;">
+                                    <span style="font-weight: 600; color: #ffffff; font-size: 0.78rem;">${safeStr(c.next_task_title)}</span>
+                                    <span style="font-size: 0.72rem; color: #fca5a5;">${formatDateTimeSimple(c.next_deadline)}</span>
+                                </div>
+                            </td>
+                            <td><span class="mini-status-pill ${statClass}">${safeStr(c.status)}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+        if (cardsContainer) cardsContainer.style.display = 'none';
+    }
+}
+
+/**
+ * Format string ISO tanggal ke format baca ringkas
+ * @param {string} isoString
+ * @returns {string}
+ */
+function formatDateTimeSimple(isoString) {
+    if (!isoString) return 'Tidak ada';
+    try {
+        const d = new Date(isoString);
+        if (isNaN(d.getTime())) return isoString;
+        const options = { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' };
+        return d.toLocaleDateString('id-ID', options);
+    } catch {
+        return isoString;
+    }
+}
+
+/**
+ * Inisialisasi event listener dan pemuatan data untuk Fitur Mini Dashboard
+ */
+function initMiniDashboard() {
+    // Tombol Muat Ulang Data
+    const refreshBtn = document.getElementById('btn-refresh-mini-dashboard');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+            fetchMiniDashboardData();
+        });
+    }
+
+    // Tombol Coba Lagi pada Error State
+    const retryBtn = document.getElementById('btn-mini-dashboard-retry');
+    if (retryBtn) {
+        retryBtn.addEventListener('click', () => {
+            fetchMiniDashboardData();
+        });
+    }
+
+    // Switcher Tampilan: Kartu vs Tabel
+    const tabCards = document.getElementById('tab-mini-cards');
+    const tabTable = document.getElementById('tab-mini-table');
+
+    if (tabCards && tabTable) {
+        tabCards.addEventListener('click', () => {
+            miniDashboardState.activeTab = 'cards';
+            tabCards.classList.add('active');
+            tabCards.setAttribute('aria-selected', 'true');
+            tabTable.classList.remove('active');
+            tabTable.setAttribute('aria-selected', 'false');
+            renderMiniDashboard();
+        });
+
+        tabTable.addEventListener('click', () => {
+            miniDashboardState.activeTab = 'table';
+            tabTable.classList.add('active');
+            tabTable.setAttribute('aria-selected', 'true');
+            tabCards.classList.remove('active');
+            tabCards.setAttribute('aria-selected', 'false');
+            renderMiniDashboard();
+        });
+    }
+
+    // Pencarian Real-Time
+    const searchInput = document.getElementById('mini-dash-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            miniDashboardState.searchQuery = e.target.value;
+            renderMiniDashboard();
+        });
+    }
+
+    // Filter Kategori
+    const filterCat = document.getElementById('mini-dash-filter-category');
+    if (filterCat) {
+        filterCat.addEventListener('change', (e) => {
+            miniDashboardState.categoryFilter = e.target.value;
+            renderMiniDashboard();
+        });
+    }
+
+    // Filter Status
+    const filterStat = document.getElementById('mini-dash-filter-status');
+    if (filterStat) {
+        filterStat.addEventListener('change', (e) => {
+            miniDashboardState.statusFilter = e.target.value;
+            renderMiniDashboard();
+        });
+    }
+
+    // Reset Filter Button
+    const resetFilterBtn = document.getElementById('btn-mini-reset-filter');
+    if (resetFilterBtn) {
+        resetFilterBtn.addEventListener('click', () => {
+            miniDashboardState.searchQuery = '';
+            miniDashboardState.categoryFilter = 'all';
+            miniDashboardState.statusFilter = 'all';
+
+            if (searchInput) searchInput.value = '';
+            if (filterCat) filterCat.value = 'all';
+            if (filterStat) filterStat.value = 'all';
+
+            renderMiniDashboard();
+        });
+    }
+
+    // Jalankan pemuatan data asinkronus pertama kali
+    fetchMiniDashboardData();
 }
 
 let currentCalendarDate = new Date();
@@ -1530,6 +1945,9 @@ function initApp() {
     if (window.Notification && Notification.permission === 'granted') {
         if (notifBadge) notifBadge.classList.add('active');
     }
+
+    // Inisialisasi Fitur Mini Dashboard (Fetch API & JSON Local Feed)
+    initMiniDashboard();
 }
 
 if (document.readyState === 'loading') {
