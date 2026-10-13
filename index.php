@@ -84,7 +84,7 @@ $initial_tasks = [
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Stylesheet Utama Sleek Dark UI -->
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=<?= filemtime(__DIR__ . '/css/style.css') ?>">
 </head>
 <body>
 
@@ -1014,6 +1014,6 @@ $initial_tasks = [
     </dialog>
 
     <!-- JavaScript Aplikasi Modular ES6 -->
-    <script type="module" src="js/app.js"></script>
+    <script type="module" src="js/app.js?v=<?= filemtime(__DIR__ . '/js/app.js') ?>"></script>
 </body>
 </html>
