@@ -186,8 +186,8 @@ Search, Filter, Sort           Detail & Move Status           Theme & Density To
 Sesuai instruksi penugasan pengembangan mini dashboard berbasis API/JSON lokal:
 
 ### 1. Endpoint & Sumber Data
-* **File JSON Lokal:** `data/academic-dashboard.json`
-* **API Proxy Endpoint:** `api/academic-dashboard.php` (header `Content-Type: application/json; charset=utf-8` dan proteksi cache `no-store`)
+* **File JSON Lokal (Sumber Data Aktif):** `data/academic-dashboard.json`
+* **Catatan Endpoint API (`api/`):** Berkas endpoint PHP pada folder `api/` disimpan secara lokal sebagai cadangan dan dikecualikan dari Git tracking (`.gitignore`), sehingga antarmuka secara penuh mengonsumsi data langsung dari `data/academic-dashboard.json` via Fetch API tanpa ketergantungan API backend.
 * **Struktur Data:**
   - `student`: Metadata mahasiswa (Nama, NIM, Program Studi, Semester, Target IPK, Total SKS).
   - `summary`: Agregasi metrik (Total matkul, total tugas, tugas terselesaikan, rasio pemenuhan %, tenggat kritis).
