@@ -1066,7 +1066,8 @@ function switchView(targetViewId) {
 
     if (targetViewId === 'view-dashboard') {
         updateDashboard();
-        if (!miniDashboardState.isLoaded && !miniDashboardState.isLoading) {
+        const miniContainer = document.getElementById('mini-dashboard-container');
+        if (miniContainer && !miniDashboardState.isLoaded && !miniDashboardState.isLoading) {
             fetchMiniDashboardData();
         }
     }
@@ -1429,6 +1430,9 @@ function formatDateTimeSimple(isoString) {
  * Inisialisasi event listener dan pemuatan data untuk Fitur Mini Dashboard
  */
 function initMiniDashboard() {
+    const miniContainer = document.getElementById('mini-dashboard-container');
+    if (!miniContainer) return; // Jangan jalankan jika elemen dinonaktifkan di tampilan
+
     // Tombol Muat Ulang Data
     const refreshBtn = document.getElementById('btn-refresh-mini-dashboard');
     if (refreshBtn) {
@@ -1963,8 +1967,10 @@ function initApp() {
         if (notifBadge) notifBadge.classList.add('active');
     }
 
-    // Inisialisasi Fitur Mini Dashboard (Fetch API & JSON Local Feed)
-    initMiniDashboard();
+    // Inisialisasi Fitur Mini Dashboard (hanya jika elemen aktif di halaman)
+    if (document.getElementById('mini-dashboard-container')) {
+        initMiniDashboard();
+    }
 }
 
 if (document.readyState === 'loading') {

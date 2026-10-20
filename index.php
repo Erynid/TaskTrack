@@ -372,6 +372,7 @@ $initial_tasks = [
                     ?>
                 </div>
 
+                <?php if (false): // Dinonaktifkan sementara: Fitur Mini Dashboard (Fetch API & JSON) ?>
                 <!-- ============================================================
                      FITUR MINI DASHBOARD: PROGRES AKADEMIK (FETCH API & JSON)
                      Sesuai Instruksi Tugas Kuliah Pemrograman Web
@@ -543,6 +544,7 @@ $initial_tasks = [
                         </div>
                     </div>
                 </div>
+                <?php endif; ?>
 
                 <div class="dashboard-details-row">
                     <div class="dashboard-panel">
