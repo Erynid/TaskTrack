@@ -1,57 +1,71 @@
 /* ==========================================================================
-   TaskTrack - Sleek Dark UI Design System
+   TaskTrack - Dark Modern Emerald Design System (Aturan 60-30-10)
    Format: CSS Custom Properties, Flexbox, CSS Grid, Semantic & Accessible
-   Palette: Dark Obsidian / Charcoal Noir with Refined Accents (No Green Tint)
+   Palette:
+     60% Dominan (Latar & Kartu): Slate Dark (#0f172a & #1e293b)
+     30% Sekunder (Teks & Border): Light Gray & Slate Border (#f8fafc & #334155)
+     10% Aksen (CTA & Focus): Emerald Green (#10b981)
    ========================================================================== */
 
 :root {
-    /* 1. GITHUB DARK PALETTE (Default) */
-    --bg-body: #0d1117;
-    --bg-overlay: rgba(13, 17, 23, 0.88);
-    --card-surface: #161b22;
-    --card-surface-hover: #1f242c;
-    --card-border: #30363d;
-    --border-subtle: #21262d;
-    --border-hover: #8b949e;
+    /* 1. DARK MODERN EMERALD (Default 60-30-10) */
+    /* 60% Dominan: Slate Dark (Latar Belakang, Kartu, Panel) */
+    --bg-body: #0f172a;
+    --bg-main: #0f172a;
+    --bg-overlay: rgba(15, 23, 42, 0.88);
+    --card-surface: #1e293b;
+    --bg-surface: #1e293b;
+    --card-surface-hover: #253349;
+    --bg-surface-hover: #334155;
+    --card-border: #334155;
+    --border-color: #334155;
+    --border-subtle: #334155;
+    --border-hover: #475569;
 
-    /* Typography Colors (GitHub Primer) */
-    --text-main: #e6edf3;
-    --text-muted: #848d97;
-    --text-inverse: #0d1117;
+    /* 30% Sekunder: Light Gray & Slate Border (Teks Utama, Keterangan, Border) */
+    --text-main: #f8fafc;
+    --text-primary: #f8fafc;
+    --text-muted: #94a3b8;
+    --text-secondary: #94a3b8;
+    --text-inverse: #0f172a;
 
-    /* Status Pillars (GitHub Primer Colors) */
-    --pill-todo: #a371f7;        /* Planned (GitHub Purple) */
-    --pill-progress: #2f81f7;    /* In Progress (GitHub Blue) */
-    --pill-done: #3fb950;        /* Completed (GitHub Green) */
-    --pill-overdue: #f85149;     /* Overdue / Alert (GitHub Red) */
+    /* Status Pillars (Harmonis & Elegan) */
+    --pill-todo: #a78bfa;        /* Planned (Soft Violet) */
+    --pill-progress: #38bdf8;    /* In Progress (Sky Blue) */
+    --pill-done: #10b981;        /* Completed (Emerald Green) */
+    --pill-overdue: #ef4444;     /* Overdue / Alert (Red) */
+    --status-danger: #ef4444;
+    --status-success: #10b981;
 
-    /* Accent & Brand Colors */
-    --accent-yellow: #238636;        /* GitHub Primary Green Action */
-    --accent-yellow-hover: #2ea043;  /* GitHub Green Hover */
+    /* 10% Aksen: Emerald Green (CTA, Tombol Utama & Fokus Aksesibel) */
+    --accent-yellow: #10b981;        /* Emerald Primary CTA */
+    --accent-yellow-hover: #059669;  /* Emerald Hover */
+    --accent-primary: #10b981;
+    --accent-primary-hover: #059669;
     --accent-text: #ffffff;
-    --accent-border: rgba(240, 246, 252, 0.1);
-    --accent-shadow: 0 4px 12px rgba(35, 134, 54, 0.25);
-    --accent-shadow-hover: 0 6px 16px rgba(35, 134, 54, 0.35);
-    --accent-cta-bg: rgba(35, 134, 54, 0.15);
-    --accent-cta-border: rgba(35, 134, 54, 0.4);
+    --accent-border: rgba(16, 185, 129, 0.4);
+    --accent-shadow: 0 4px 14px rgba(16, 185, 129, 0.28);
+    --accent-shadow-hover: 0 6px 20px rgba(16, 185, 129, 0.38);
+    --accent-cta-bg: rgba(16, 185, 129, 0.15);
+    --accent-cta-border: rgba(16, 185, 129, 0.45);
 
-    --brand-blue: #2f81f7;
-    --brand-blue-hover: #1f6feb;
+    --brand-blue: #10b981;
+    --brand-blue-hover: #059669;
 
-    --input-bg: #0d1117;
+    --input-bg: #0f172a;
 
     /* Priority Flags */
-    --priority-high: #f85149;
-    --priority-med: #d29922;
-    --priority-low: #58a6ff;
+    --priority-high: #ef4444;
+    --priority-med: #f59e0b;
+    --priority-low: #38bdf8;
 
     /* Nav Pill & Controls */
-    --nav-bg: #161b22;
+    --nav-bg: #1e293b;
     --nav-hover-bg: rgba(255, 255, 255, 0.06);
-    --nav-active-bg: #21262d;
-    --nav-active-text: #e6edf3;
-    --nav-active-border: #30363d;
-    --nav-active-shadow: 0 1px 3px rgba(1, 4, 9, 0.4);
+    --nav-active-bg: #334155;
+    --nav-active-text: #f8fafc;
+    --nav-active-border: #475569;
+    --nav-active-shadow: 0 1px 3px rgba(15, 23, 42, 0.5);
 
     /* Radii */
     --radius-pill: 10px;
@@ -67,7 +81,9 @@
 /* --------------------------------------------------------------------------
    Reset & Base Styles
    -------------------------------------------------------------------------- */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -426,7 +442,8 @@ main {
 }
 
 .search-input-wrapper input:focus {
-    border-color: rgba(255, 255, 255, 0.35);
+    border-color: var(--accent-primary);
+    outline: 2px solid rgba(16, 185, 129, 0.35);
     width: 270px;
 }
 
@@ -444,7 +461,7 @@ main {
 }
 
 .btn-filter {
-    background: var(--input-bg);
+    background: var(--card-surface);
     border: 1px solid var(--card-border);
     color: var(--text-muted);
     border-radius: var(--radius-pill);
@@ -459,8 +476,9 @@ main {
 }
 
 .btn-filter:hover {
-    color: #ffffff;
-    border-color: rgba(255, 255, 255, 0.2);
+    background: var(--bg-surface-hover);
+    color: var(--text-main);
+    border-color: var(--border-hover);
 }
 
 .filter-menu-popover {
@@ -468,7 +486,7 @@ main {
     position: absolute;
     top: calc(100% + 8px);
     left: 0;
-    background: #171a24;
+    background: var(--card-surface);
     border: 1px solid var(--card-border);
     border-radius: 12px;
     padding: 0.75rem;
@@ -493,7 +511,7 @@ main {
     width: 100%;
     background: var(--input-bg);
     border: 1px solid var(--card-border);
-    color: #ffffff;
+    color: var(--text-main);
     border-radius: 6px;
     padding: 0.45rem 0.65rem;
     font-size: 0.825rem;
@@ -503,10 +521,10 @@ main {
 /* View Switcher (Kanban view vs List view) */
 .view-switcher {
     display: flex;
-    background: #181c25;
+    background: var(--card-surface);
     padding: 3px;
     border-radius: var(--radius-pill);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--card-border);
 }
 
 .view-tab {
@@ -519,21 +537,23 @@ main {
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    border: none;
+    border: 1px solid transparent;
     background: transparent;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .view-tab.active {
-    background: #ffffff;
-    color: #0f172a;
+    background: var(--bg-surface-hover);
+    color: var(--text-main);
     font-weight: 700;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    border-color: var(--border-hover);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.4);
 }
 
 .view-tab:not(.active):hover {
     color: var(--text-main);
+    background: rgba(255, 255, 255, 0.04);
 }
 
 /* --------------------------------------------------------------------------
@@ -554,10 +574,10 @@ main {
     flex-direction: column;
     gap: 0.875rem;
     min-height: 420px;
-    background: rgba(20, 24, 33, 0.4);
+    background: rgba(30, 41, 59, 0.6);
     padding: 0.85rem;
     border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--card-border);
 }
 
 /* Column Header Pill */
@@ -566,61 +586,67 @@ main {
     justify-content: space-between;
     align-items: center;
     border-radius: var(--radius-pill);
-    padding: 0.45rem 0.95rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 0.5rem 0.95rem;
+    border: 1px solid var(--card-border);
     margin-bottom: 0.25rem;
     user-select: none;
+    background: var(--card-surface);
 }
 
 .col-label {
     font-size: 0.8125rem;
     font-weight: 700;
-    color: #ffffff;
+    color: var(--text-main);
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
 
 .col-count {
-    background: rgba(0, 0, 0, 0.45);
+    background: var(--bg-surface-hover);
     font-size: 0.72rem;
     font-weight: 700;
     padding: 0.15rem 0.55rem;
     border-radius: var(--radius-pill);
-    color: #ffffff;
+    color: var(--text-main);
+    border: 1px solid var(--border-subtle);
 }
 
-/* Pillar Theme Colors */
+/* Pillar Theme Colors - Halus, Elegan & Selaras dengan Dark Modern Emerald */
 .pill-planned {
-    background: rgba(217, 70, 239, 0.16);
-    border-color: rgba(217, 70, 239, 0.35);
+    background: rgba(167, 139, 250, 0.1);
+    border-color: rgba(167, 139, 250, 0.28);
 }
+
 .pill-planned .col-label {
-    color: #f0abfc;
+    color: #c4b5fd;
 }
 
 .pill-in-progress {
-    background: rgba(59, 130, 246, 0.16);
-    border-color: rgba(59, 130, 246, 0.35);
+    background: rgba(56, 189, 248, 0.1);
+    border-color: rgba(56, 189, 248, 0.28);
 }
+
 .pill-in-progress .col-label {
-    color: #93c5fd;
+    color: #7dd3fc;
 }
 
 .pill-completed {
-    background: rgba(16, 185, 129, 0.16);
-    border-color: rgba(16, 185, 129, 0.35);
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.28);
 }
+
 .pill-completed .col-label {
-    color: #86efac;
+    color: #6ee7b7;
 }
 
 .pill-overdue {
-    background: rgba(249, 115, 22, 0.16);
-    border-color: rgba(249, 115, 22, 0.4);
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.28);
 }
+
 .pill-overdue .col-label {
-    color: #fdba74;
+    color: #fca5a5;
 }
 
 /* Dropzone container */
@@ -740,10 +766,22 @@ main {
     align-items: center;
     gap: 0.35rem;
 }
-.priority-high { color: var(--priority-high); }
-.priority-med { color: var(--priority-med); }
-.priority-low { color: var(--priority-low); }
-.priority-done { color: #86efac; }
+
+.priority-high {
+    color: var(--priority-high);
+}
+
+.priority-med {
+    color: var(--priority-med);
+}
+
+.priority-low {
+    color: var(--priority-low);
+}
+
+.priority-done {
+    color: #86efac;
+}
 
 /* Shortcut Submission LMS Link Pill */
 .btn-lms-link {
@@ -772,6 +810,7 @@ main {
     color: #fca5a5;
     border-color: rgba(239, 68, 68, 0.35);
 }
+
 .btn-lms-link.btn-lms-urgent:hover {
     background: rgba(239, 68, 68, 0.28);
     color: #ffffff;
@@ -872,6 +911,7 @@ main {
     border: 1px solid var(--accent-cta-border) !important;
     font-weight: 700;
 }
+
 .nav-form-cta:hover {
     background: var(--accent-yellow) !important;
     border-color: var(--accent-yellow) !important;
@@ -1424,7 +1464,9 @@ main {
 }
 
 @keyframes miniSpinnerRotate {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .mini-loading-text {
@@ -1807,6 +1849,7 @@ main {
         opacity: 0;
         transform: scale(0.96) translateY(8px);
     }
+
     to {
         opacity: 1;
         transform: scale(1) translateY(0);
@@ -2112,9 +2155,11 @@ footer[role="contentinfo"] {
     .kanban-grid {
         grid-template-columns: repeat(2, minmax(280px, 1fr));
     }
+
     .dashboard-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+
     .dashboard-details-row {
         grid-template-columns: 1fr;
     }
@@ -2124,64 +2169,62 @@ footer[role="contentinfo"] {
     body {
         padding: 0.5rem;
     }
+
     .app-window {
         border-radius: 16px;
     }
+
     header[role="banner"] {
         padding: 1rem;
         flex-wrap: wrap;
         gap: 0.75rem;
     }
+
     nav[aria-label="Navigasi Utama"] {
         order: 3;
         width: 100%;
         display: flex;
         justify-content: center;
     }
+
     main {
         padding: 1rem;
     }
+
     .kanban-grid {
         grid-template-columns: 1fr;
     }
+
     .dashboard-grid {
         grid-template-columns: 1fr;
     }
+
     .task-list-header {
         display: none;
     }
+
     .task-list-row {
         grid-template-columns: 1fr;
         gap: 0.5rem;
     }
+
     .toolbar-secondary {
         flex-direction: column;
         align-items: stretch;
     }
-    .search-input-wrapper input {
-        width: 100%;
-    }
-    .search-input-wrapper input:focus {
-        width: 100%;
-    }
-    footer[role="contentinfo"] {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-    }
-    .task-dialog-content {
-        padding: 1.25rem 1rem;
-        max-height: 92vh;
-    }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    *, ::before, ::after {
+
+    *,
+    ::before,
+    ::after {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
     }
+
     .app-dialog[open] {
         animation: none !important;
     }
@@ -2192,84 +2235,101 @@ footer[role="contentinfo"] {
    Hanya 2 tema tampilan: GitHub Dark (default) dan Discord Light.
    -------------------------------------------------------------------------- */
 
-[data-theme="dark"],
-[data-theme="obsidian"],
-[data-theme="midnight"],
-[data-theme="slate"] {
-    /* 1. GITHUB DARK PALETTE */
-    --bg-body: #0d1117;
-    --bg-overlay: rgba(13, 17, 23, 0.88);
-    --card-surface: #161b22;
-    --card-surface-hover: #1f242c;
-    --card-border: #30363d;
-    --border-subtle: #21262d;
-    --border-hover: #8b949e;
+[data-theme="dark"] {
+    /* 1. DARK MODERN EMERALD PALETTE (Default 60-30-10) */
+    /* 60% Dominan: Slate Dark (Latar Belakang, Kartu, Panel) */
+    --bg-body: #0f172a;
+    --bg-main: #0f172a;
+    --bg-overlay: rgba(15, 23, 42, 0.88);
+    --card-surface: #1e293b;
+    --bg-surface: #1e293b;
+    --card-surface-hover: #253349;
+    --bg-surface-hover: #334155;
+    --card-border: #334155;
+    --border-color: #334155;
+    --border-subtle: #334155;
+    --border-hover: #475569;
 
-    /* Typography Colors (GitHub Primer) */
-    --text-main: #e6edf3;
-    --text-muted: #848d97;
-    --text-inverse: #0d1117;
+    /* 30% Sekunder: Light Gray & Slate Border (Teks Utama, Keterangan, Border) */
+    --text-main: #f8fafc;
+    --text-primary: #f8fafc;
+    --text-muted: #94a3b8;
+    --text-secondary: #94a3b8;
+    --text-inverse: #0f172a;
 
-    /* Status Pillars (GitHub Primer Colors) */
-    --pill-todo: #a371f7;        /* Planned (GitHub Purple) */
-    --pill-progress: #2f81f7;    /* In Progress (GitHub Blue) */
-    --pill-done: #3fb950;        /* Completed (GitHub Green) */
-    --pill-overdue: #f85149;     /* Overdue / Alert (GitHub Red) */
+    /* Status Pillars (Harmonis & Elegan) */
+    --pill-todo: #a78bfa;        /* Planned (Soft Violet) */
+    --pill-progress: #38bdf8;    /* In Progress (Sky Blue) */
+    --pill-done: #10b981;        /* Completed (Emerald Green) */
+    --pill-overdue: #ef4444;     /* Overdue / Alert (Red) */
+    --status-danger: #ef4444;
+    --status-success: #10b981;
 
-    /* Accent & Brand Colors */
-    --accent-yellow: #238636;        /* GitHub Primary Green Action */
-    --accent-yellow-hover: #2ea043;  /* GitHub Green Hover */
+    /* 10% Aksen: Emerald Green (CTA, Tombol Utama & Fokus Aksesibel) */
+    --accent-yellow: #10b981;        /* Emerald Primary CTA */
+    --accent-yellow-hover: #059669;  /* Emerald Hover */
+    --accent-primary: #10b981;
+    --accent-primary-hover: #059669;
     --accent-text: #ffffff;
-    --accent-border: rgba(240, 246, 252, 0.1);
-    --accent-shadow: 0 4px 12px rgba(35, 134, 54, 0.25);
-    --accent-shadow-hover: 0 6px 16px rgba(35, 134, 54, 0.35);
-    --accent-cta-bg: rgba(35, 134, 54, 0.15);
-    --accent-cta-border: rgba(35, 134, 54, 0.4);
+    --accent-border: rgba(16, 185, 129, 0.4);
+    --accent-shadow: 0 4px 14px rgba(16, 185, 129, 0.28);
+    --accent-shadow-hover: 0 6px 20px rgba(16, 185, 129, 0.38);
+    --accent-cta-bg: rgba(16, 185, 129, 0.15);
+    --accent-cta-border: rgba(16, 185, 129, 0.45);
 
-    --brand-blue: #2f81f7;
-    --brand-blue-hover: #1f6feb;
+    --brand-blue: #10b981;
+    --brand-blue-hover: #059669;
 
-    --input-bg: #0d1117;
+    --input-bg: #0f172a;
 
     /* Priority Flags */
-    --priority-high: #f85149;
-    --priority-med: #d29922;
-    --priority-low: #58a6ff;
+    --priority-high: #ef4444;
+    --priority-med: #f59e0b;
+    --priority-low: #38bdf8;
 
     /* Nav Pill & Controls */
-    --nav-bg: #161b22;
+    --nav-bg: #1e293b;
     --nav-hover-bg: rgba(255, 255, 255, 0.06);
-    --nav-active-bg: #21262d;
-    --nav-active-text: #e6edf3;
-    --nav-active-border: #30363d;
-    --nav-active-shadow: 0 1px 3px rgba(1, 4, 9, 0.4);
+    --nav-active-bg: #334155;
+    --nav-active-text: #f8fafc;
+    --nav-active-border: #475569;
+    --nav-active-shadow: 0 1px 3px rgba(15, 23, 42, 0.5);
 }
 
-[data-theme="light"],
-[data-theme="discord"] {
+[data-theme="light"] {
     /* 2. DISCORD LIGHT PALETTE */
     --bg-body: #f2f3f5;
+    --bg-main: #f2f3f5;
     --bg-overlay: rgba(242, 243, 245, 0.94);
     --card-surface: #ffffff;
+    --bg-surface: #ffffff;
     --card-surface-hover: #f8f9fa;
+    --bg-surface-hover: #e3e5e8;
     --card-border: #e3e5e8;
+    --border-color: #e3e5e8;
     --border-subtle: #d1d5db;
     --border-hover: #5865f2;
 
     /* Typography Colors (Discord Slate) */
     --text-main: #2e3338;
+    --text-primary: #2e3338;
     --text-muted: #5c6370;
+    --text-secondary: #5c6370;
     --text-inverse: #ffffff;
 
     /* Status Pillars (Discord Colors) */
-    --pill-todo: #eb459e;        /* Planned (Discord Fuchsia) */
-    --pill-progress: #5865f2;    /* In Progress (Discord Blurple) */
-    --pill-done: #23a55a;        /* Completed (Discord Green) */
-    --pill-overdue: #ed4245;     /* Overdue / Alert (Discord Red) */
+    --pill-todo: #eb459e;
+    --pill-progress: #5865f2;
+    --pill-done: #23a55a;
+    --pill-overdue: #ed4245;
+    --status-danger: #ed4245;
+    --status-success: #23a55a;
 
     /* Accent & Brand Colors (Discord Blurple) */
-    --accent-yellow: #5865f2;        /* Discord Blurple */
-    --accent-yellow-hover: #4752c4;  /* Discord Blurple Hover */
+    --accent-yellow: #5865f2;
+    --accent-yellow-hover: #4752c4;
+    --accent-primary: #5865f2;
+    --accent-primary-hover: #4752c4;
     --accent-text: #ffffff;
     --accent-border: transparent;
     --accent-shadow: 0 4px 12px rgba(88, 101, 242, 0.25);
@@ -2296,117 +2356,119 @@ footer[role="contentinfo"] {
     --nav-active-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
-/* GitHub Dark Overrides */
+/* Dark Modern Emerald Overrides */
 [data-theme="dark"] body {
-    background: #0d1117;
-    color: #e6edf3;
+    background: #0f172a;
+    color: #f8fafc;
 }
 
 [data-theme="dark"] header[role="banner"] {
-    background: rgba(22, 27, 34, 0.92);
-    border-bottom-color: #30363d;
+    background: rgba(30, 41, 59, 0.95);
+    border-bottom-color: #334155;
 }
 
 [data-theme="dark"] .kanban-column {
-    background: rgba(22, 27, 34, 0.5);
-    border-color: #30363d;
+    background: rgba(30, 41, 59, 0.6);
+    border-color: #334155;
 }
 
 [data-theme="dark"] .col-label {
-    color: #e6edf3;
+    color: #f8fafc;
 }
 
 [data-theme="dark"] .col-count {
-    background: #21262d;
-    color: #e6edf3;
+    background: #334155;
+    color: #f8fafc;
+    border-color: #475569;
 }
 
 [data-theme="dark"] .task-card {
-    background: #161b22;
-    border-color: #30363d;
+    background: #1e293b;
+    border-color: #334155;
 }
 
 [data-theme="dark"] .task-card:hover {
-    background: #1c2128;
-    border-color: #8b949e;
-    box-shadow: 0 6px 20px rgba(1, 4, 9, 0.5);
+    background: #253349;
+    border-color: #475569;
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.6);
 }
 
 [data-theme="dark"] .task-card-title {
-    color: #e6edf3;
+    color: #f8fafc;
 }
 
 [data-theme="dark"] .btn-filter,
 [data-theme="dark"] .select-sort,
 [data-theme="dark"] .search-input-wrapper input {
-    background: #0d1117;
-    border-color: #30363d;
-    color: #e6edf3;
+    background: #1e293b;
+    border-color: #334155;
+    color: #f8fafc;
 }
 
 [data-theme="dark"] .btn-filter:hover,
 [data-theme="dark"] .select-sort:hover {
-    border-color: #8b949e;
+    background: #334155;
+    border-color: #475569;
     color: #ffffff;
 }
 
 [data-theme="dark"] .search-input-wrapper input:focus {
-    border-color: #2f81f7;
-    outline: 2px solid rgba(47, 129, 247, 0.3);
+    border-color: #10b981;
+    outline: 2px solid rgba(16, 185, 129, 0.35);
 }
 
 [data-theme="dark"] .mini-dashboard-container {
-    background: #161b22;
-    border-color: #30363d;
+    background: #1e293b;
+    border-color: #334155;
 }
 
 [data-theme="dark"] .mini-course-card {
-    background: #161b22;
-    border-color: #30363d;
+    background: #1e293b;
+    border-color: #334155;
 }
 
 [data-theme="dark"] .mini-course-card:hover {
-    background: #1c2128;
-    border-color: #58a6ff;
+    background: #253349;
+    border-color: #10b981;
 }
 
 [data-theme="dark"] .mini-table-wrapper {
-    background: #161b22;
-    border-color: #30363d;
+    background: #1e293b;
+    border-color: #334155;
 }
 
 [data-theme="dark"] .mini-dashboard-table thead {
-    background: #0d1117;
-    border-bottom-color: #30363d;
+    background: #0f172a;
+    border-bottom-color: #334155;
 }
 
 [data-theme="dark"] .mini-dashboard-table tbody tr:hover {
-    background: #1c2128;
+    background: #253349;
 }
 
 [data-theme="dark"] .metric-card {
-    background: #161b22;
-    border-color: #30363d;
+    background: #1e293b;
+    border-color: #334155;
 }
 
 [data-theme="dark"] .calendar-view-wrap {
-    background: #161b22;
-    border-color: #30363d;
+    background: #1e293b;
+    border-color: #334155;
 }
 
 [data-theme="dark"] .cal-cell {
-    background: #0d1117;
-    border-color: #30363d;
+    background: #0f172a;
+    border-color: #334155;
 }
 
 [data-theme="dark"] .cal-cell:hover {
-    background: #1c2128;
-    border-color: #58a6ff;
+    background: #253349;
+    border-color: #10b981;
 }
 
 [data-theme="dark"] .cal-cell.today {
-    background: rgba(47, 129, 247, 0.1);
-    border-color: #2f81f7;
+    background: rgba(16, 185, 129, 0.12);
+    border-color: #10b981;
 }
 
 /* Discord Light Overrides */
@@ -2659,10 +2721,12 @@ footer[role="contentinfo"] {
     padding: 0.75rem 0.85rem;
     gap: 0.35rem;
 }
+
 [data-density="compact"] .task-card-title {
     font-size: 0.825rem;
     margin-bottom: 0.2rem;
 }
+
 [data-density="compact"] .task-instructions-preview {
     font-size: 0.75rem;
     -webkit-line-clamp: 1;
@@ -2953,5 +3017,4 @@ footer[role="contentinfo"] {
     border-radius: var(--radius-pill);
     transition: width 0.3s ease;
 }
-
-
+
