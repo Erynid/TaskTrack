@@ -2,4 +2,4 @@
 skill/
 design/
 anti-slop/
-api/
+.env

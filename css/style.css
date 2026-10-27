@@ -30,16 +30,22 @@
     --text-inverse: #0f172a;
 
     /* Status Pillars (Harmonis & Elegan) */
-    --pill-todo: #a78bfa;        /* Planned (Soft Violet) */
-    --pill-progress: #38bdf8;    /* In Progress (Sky Blue) */
-    --pill-done: #10b981;        /* Completed (Emerald Green) */
-    --pill-overdue: #ef4444;     /* Overdue / Alert (Red) */
+    --pill-todo: #a78bfa;
+    /* Planned (Soft Violet) */
+    --pill-progress: #38bdf8;
+    /* In Progress (Sky Blue) */
+    --pill-done: #10b981;
+    /* Completed (Emerald Green) */
+    --pill-overdue: #ef4444;
+    /* Overdue / Alert (Red) */
     --status-danger: #ef4444;
     --status-success: #10b981;
 
     /* 10% Aksen: Emerald Green (CTA, Tombol Utama & Fokus Aksesibel) */
-    --accent-yellow: #10b981;        /* Emerald Primary CTA */
-    --accent-yellow-hover: #059669;  /* Emerald Hover */
+    --accent-yellow: #10b981;
+    /* Emerald Primary CTA */
+    --accent-yellow-hover: #059669;
+    /* Emerald Hover */
     --accent-primary: #10b981;
     --accent-primary-hover: #059669;
     --accent-text: #ffffff;
@@ -2258,16 +2264,22 @@ footer[role="contentinfo"] {
     --text-inverse: #0f172a;
 
     /* Status Pillars (Harmonis & Elegan) */
-    --pill-todo: #a78bfa;        /* Planned (Soft Violet) */
-    --pill-progress: #38bdf8;    /* In Progress (Sky Blue) */
-    --pill-done: #10b981;        /* Completed (Emerald Green) */
-    --pill-overdue: #ef4444;     /* Overdue / Alert (Red) */
+    --pill-todo: #a78bfa;
+    /* Planned (Soft Violet) */
+    --pill-progress: #38bdf8;
+    /* In Progress (Sky Blue) */
+    --pill-done: #10b981;
+    /* Completed (Emerald Green) */
+    --pill-overdue: #ef4444;
+    /* Overdue / Alert (Red) */
     --status-danger: #ef4444;
     --status-success: #10b981;
 
     /* 10% Aksen: Emerald Green (CTA, Tombol Utama & Fokus Aksesibel) */
-    --accent-yellow: #10b981;        /* Emerald Primary CTA */
-    --accent-yellow-hover: #059669;  /* Emerald Hover */
+    --accent-yellow: #10b981;
+    /* Emerald Primary CTA */
+    --accent-yellow-hover: #059669;
+    /* Emerald Hover */
     --accent-primary: #10b981;
     --accent-primary-hover: #059669;
     --accent-text: #ffffff;
@@ -3017,4 +3029,3 @@ footer[role="contentinfo"] {
     border-radius: var(--radius-pill);
     transition: width 0.3s ease;
 }
-
