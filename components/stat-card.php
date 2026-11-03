@@ -27,7 +27,7 @@ function renderStatCard(array $props): void {
         <?php endif; ?>
     </div>
     <!-- Baris ini menampilkan nilai angka metrik dengan ID khusus untuk pembaruan via JavaScript -->
-    <div class="metric-card-value" id="<?php echo $id; ?>" style="color: <?php echo $color; ?>;">
+    <div class="metric-card-value" id="<?php echo $id; ?>" style="--stat-color: <?php echo $color; ?>;">
         <?php echo $value; ?>
     </div>
     <!-- Baris ini menampilkan teks keterangan tambahan di bawah angka -->

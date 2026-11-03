@@ -1282,7 +1282,7 @@ main {
 .metric-card-value {
     font-size: 2rem;
     font-weight: 800;
-    color: #ffffff;
+    color: var(--stat-color, #ffffff);
     line-height: 1.1;
 }
 
@@ -1954,6 +1954,28 @@ main {
     opacity: 0.92;
 }
 
+.profile-header-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
+}
+
+.profile-user-name {
+    display: block;
+    color: #ffffff;
+}
+
+.urgent-task-subtitle {
+    display: block;
+    font-size: 0.775rem;
+    color: #fca5a5;
+}
+
 .auth-divider {
     text-align: center;
     position: relative;
@@ -1969,14 +1991,14 @@ main {
     left: 0;
     right: 0;
     height: 1px;
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--border-subtle);
     z-index: 1;
 }
 
 .auth-divider span {
     position: relative;
     z-index: 2;
-    background: #151822;
+    background: var(--card-surface);
     padding: 0 0.75rem;
 }
 
@@ -2309,63 +2331,69 @@ footer[role="contentinfo"] {
 }
 
 [data-theme="light"] {
-    /* 2. DISCORD LIGHT PALETTE */
-    --bg-body: #f2f3f5;
-    --bg-main: #f2f3f5;
-    --bg-overlay: rgba(242, 243, 245, 0.94);
-    --card-surface: #ffffff;
-    --bg-surface: #ffffff;
-    --card-surface-hover: #f8f9fa;
-    --bg-surface-hover: #e3e5e8;
-    --card-border: #e3e5e8;
-    --border-color: #e3e5e8;
-    --border-subtle: #d1d5db;
-    --border-hover: #5865f2;
+    /* ========================================================================
+       2. VICHY LIGHT PALETTE (Skema Warna 9: Vichy)
+       Warna: #BBBFBF (Silver Gray), #878787 (Neutral Gray), #05AD98 (Vichy Teal), #FFFFFF
+       Kenyamanan Visual: Latar teduh mata (tidak silau / tidak terlalu terang),
+       kontras teks tinggi & bebas error sisa elemen dark.
+       ======================================================================== */
+    /* 60% Dominan: Soft Muted Slate & Pure White Card Surface (Anti-Silau) */
+    --bg-body: #eaeded;
+    --bg-main: #eaeded;
+    --bg-overlay: rgba(234, 237, 237, 0.94);
+    --card-surface: #f7f9f9;
+    --bg-surface: #f7f9f9;
+    --card-surface-hover: #ffffff;
+    --bg-surface-hover: #dbe0e0;
+    --card-border: #bbbfbf;
+    --border-color: #bbbfbf;
+    --border-subtle: #cbd1d1;
+    --border-hover: #05ad98;
 
-    /* Typography Colors (Discord Slate) */
-    --text-main: #2e3338;
-    --text-primary: #2e3338;
-    --text-muted: #5c6370;
-    --text-secondary: #5c6370;
+    /* 30% Sekunder: Deep Slate Text & Vichy Neutral Grays */
+    --text-main: #192223;
+    --text-primary: #192223;
+    --text-muted: #5e6b6c;
+    --text-secondary: #878787;
     --text-inverse: #ffffff;
 
-    /* Status Pillars (Discord Colors) */
-    --pill-todo: #eb459e;
-    --pill-progress: #5865f2;
-    --pill-done: #23a55a;
-    --pill-overdue: #ed4245;
-    --status-danger: #ed4245;
-    --status-success: #23a55a;
+    /* Status Pillars (Kontras Tinggi & Mudah Dibaca di Latar Terang) */
+    --pill-todo: #7c3aed;
+    --pill-progress: #05ad98;
+    --pill-done: #059669;
+    --pill-overdue: #dc2626;
+    --status-danger: #dc2626;
+    --status-success: #05ad98;
 
-    /* Accent & Brand Colors (Discord Blurple) */
-    --accent-yellow: #5865f2;
-    --accent-yellow-hover: #4752c4;
-    --accent-primary: #5865f2;
-    --accent-primary-hover: #4752c4;
+    /* 10% Aksen: Vichy Teal (#05AD98) */
+    --accent-yellow: #05ad98;
+    --accent-yellow-hover: #048c7a;
+    --accent-primary: #05ad98;
+    --accent-primary-hover: #048c7a;
     --accent-text: #ffffff;
-    --accent-border: transparent;
-    --accent-shadow: 0 4px 12px rgba(88, 101, 242, 0.25);
-    --accent-shadow-hover: 0 6px 16px rgba(88, 101, 242, 0.35);
-    --accent-cta-bg: rgba(88, 101, 242, 0.12);
-    --accent-cta-border: rgba(88, 101, 242, 0.35);
+    --accent-border: rgba(5, 173, 152, 0.35);
+    --accent-shadow: 0 4px 14px rgba(5, 173, 152, 0.22);
+    --accent-shadow-hover: 0 6px 18px rgba(5, 173, 152, 0.32);
+    --accent-cta-bg: rgba(5, 173, 152, 0.12);
+    --accent-cta-border: rgba(5, 173, 152, 0.35);
 
-    --brand-blue: #5865f2;
-    --brand-blue-hover: #4752c4;
+    --brand-blue: #05ad98;
+    --brand-blue-hover: #048c7a;
 
-    --input-bg: #ebedef;
+    --input-bg: #edf1f1;
 
     /* Priority Flags */
-    --priority-high: #ed4245;
-    --priority-med: #e5a823;
-    --priority-low: #5865f2;
+    --priority-high: #dc2626;
+    --priority-med: #d97706;
+    --priority-low: #05ad98;
 
     /* Nav Pill & Controls */
-    --nav-bg: #e3e5e8;
+    --nav-bg: #dbe0e0;
     --nav-hover-bg: rgba(0, 0, 0, 0.05);
     --nav-active-bg: #ffffff;
-    --nav-active-text: #060607;
-    --nav-active-border: #d1d5db;
-    --nav-active-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    --nav-active-text: #192223;
+    --nav-active-border: #bbbfbf;
+    --nav-active-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
 /* Dark Modern Emerald Overrides */
@@ -2483,127 +2511,564 @@ footer[role="contentinfo"] {
     border-color: #10b981;
 }
 
-/* Discord Light Overrides */
+/* ========================================================================
+   VICHY LIGHT THEME OVERRIDES (Skema Warna 9: Vichy)
+   Palette: #BBBFBF, #878787, #05AD98, #FFFFFF
+   Kenyamanan Visual: Latar teduh mata (tidak silau), kontras teks tinggi,
+   seluruh angka metrik/kalender terlihat tajam dan tidak menyatu dengan background.
+   ======================================================================== */
 [data-theme="light"] body {
-    background: #f2f3f5;
-    color: #2e3338;
+    background: var(--bg-body);
+    color: var(--text-main);
 }
 
 [data-theme="light"] header[role="banner"] {
-    background: rgba(255, 255, 255, 0.94);
-    border-bottom-color: #e3e5e8;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    background: rgba(247, 249, 249, 0.96);
+    border-bottom-color: #bbbfbf;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
 [data-theme="light"] .brand-logo {
-    color: #060607;
+    color: #192223;
 }
 
 [data-theme="light"] .brand-icon {
     background: #ffffff;
-    border-color: #e3e5e8;
-    color: #5865f2;
+    border-color: #bbbfbf;
+    color: #05ad98;
+}
+
+[data-theme="light"] .brand-icon svg path {
+    stroke: #05ad98;
 }
 
 [data-theme="light"] .icon-btn {
     background: #ffffff;
-    border-color: #e3e5e8;
-    color: #4e5058;
+    border-color: #bbbfbf;
+    color: #5e6b6c;
 }
 
 [data-theme="light"] .icon-btn:hover {
-    background: #f2f3f5;
-    border-color: #5865f2;
-    color: #060607;
+    background: #edf1f1;
+    border-color: #05ad98;
+    color: #192223;
+}
+
+[data-theme="light"] .avatar-btn {
+    background: #05ad98;
+    color: #ffffff;
+    border-color: #05ad98;
+}
+
+[data-theme="light"] .avatar-btn:hover {
+    background: #048c7a;
+    border-color: #048c7a;
+    box-shadow: 0 0 12px rgba(5, 173, 152, 0.35);
+}
+
+[data-theme="light"] .page-heading h1 {
+    color: #192223;
 }
 
 [data-theme="light"] .kanban-column {
-    background: #ebedef;
-    border-color: #e3e5e8;
+    background: #edf1f1;
+    border-color: #bbbfbf;
+}
+
+[data-theme="light"] .col-header-pill {
+    background: #ffffff;
+    border-color: #bbbfbf;
 }
 
 [data-theme="light"] .col-label {
-    color: #060607;
+    color: #192223;
 }
 
 [data-theme="light"] .col-count {
-    background: #d1d5db;
-    color: #060607;
+    background: #bbbfbf;
+    color: #192223;
+    border-color: #878787;
+    font-weight: 700;
 }
 
+[data-theme="light"] .pill-planned {
+    background: rgba(124, 58, 237, 0.08);
+    border-color: rgba(124, 58, 237, 0.25);
+}
+[data-theme="light"] .pill-planned .col-label {
+    color: #7c3aed;
+}
+
+[data-theme="light"] .pill-in-progress {
+    background: rgba(5, 173, 152, 0.08);
+    border-color: rgba(5, 173, 152, 0.25);
+}
+[data-theme="light"] .pill-in-progress .col-label {
+    color: #05ad98;
+}
+
+[data-theme="light"] .pill-completed {
+    background: rgba(5, 150, 105, 0.08);
+    border-color: rgba(5, 150, 105, 0.25);
+}
+[data-theme="light"] .pill-completed .col-label {
+    color: #059669;
+}
+
+[data-theme="light"] .pill-overdue {
+    background: rgba(220, 38, 38, 0.08);
+    border-color: rgba(220, 38, 38, 0.25);
+}
+[data-theme="light"] .pill-overdue .col-label {
+    color: #dc2626;
+}
+
+[data-theme="light"] .empty-column-notice {
+    background: #f7f9f9;
+    border-color: #bbbfbf;
+    color: #5e6b6c;
+}
+
+/* Kartu Tugas (Task Card) */
 [data-theme="light"] .task-card {
     background: #ffffff;
-    border-color: #e3e5e8;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    border-color: #bbbfbf;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
 [data-theme="light"] .task-card:hover {
     background: #ffffff;
-    border-color: #5865f2;
-    box-shadow: 0 6px 18px rgba(88, 101, 242, 0.14);
+    border-color: #05ad98;
+    box-shadow: 0 6px 18px rgba(5, 173, 152, 0.14);
 }
 
 [data-theme="light"] .task-card-title {
-    color: #060607;
+    color: #192223;
 }
 
 [data-theme="light"] .task-course-subtitle {
-    color: #5c6370;
+    color: #5e6b6c;
 }
 
+[data-theme="light"] .task-instructions-preview {
+    background: #edf1f1;
+    color: #5e6b6c;
+}
+
+[data-theme="light"] .task-card-footer {
+    border-top-color: #dbe0e0;
+}
+
+[data-theme="light"] .priority-done {
+    color: #059669;
+}
+
+[data-theme="light"] .btn-lms-link {
+    background: rgba(5, 173, 152, 0.1);
+    color: #05ad98;
+    border-color: rgba(5, 173, 152, 0.25);
+}
+
+[data-theme="light"] .btn-lms-link:hover {
+    background: #05ad98;
+    color: #ffffff;
+    border-color: #05ad98;
+}
+
+[data-theme="light"] .btn-lms-link.btn-lms-urgent {
+    background: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+    border-color: rgba(220, 38, 38, 0.25);
+}
+
+[data-theme="light"] .btn-lms-link.btn-lms-urgent:hover {
+    background: #dc2626;
+    color: #ffffff;
+}
+
+[data-theme="light"] .btn-action {
+    background: #edf1f1;
+    border-color: #bbbfbf;
+    color: #5e6b6c;
+}
+
+[data-theme="light"] .btn-action:hover {
+    background: #bbbfbf;
+    color: #192223;
+}
+
+[data-theme="light"] .btn-action.btn-delete:hover {
+    background: rgba(220, 38, 38, 0.12);
+    color: #dc2626;
+    border-color: rgba(220, 38, 38, 0.3);
+}
+
+/* Toolbar & Filter Controls */
 [data-theme="light"] .btn-filter,
 [data-theme="light"] .select-sort,
 [data-theme="light"] .search-input-wrapper input {
     background: #ffffff;
-    border-color: #d1d5db;
-    color: #2e3338;
+    border-color: #bbbfbf;
+    color: #192223;
 }
 
 [data-theme="light"] .btn-filter:hover,
 [data-theme="light"] .select-sort:hover {
-    border-color: #5865f2;
-    color: #060607;
+    border-color: #05ad98;
+    color: #05ad98;
+}
+
+[data-theme="light"] .btn-filter.active {
+    background: #05ad98;
+    border-color: #05ad98;
+    color: #ffffff;
 }
 
 [data-theme="light"] .search-input-wrapper input:focus {
-    border-color: #5865f2;
-    outline: 2px solid rgba(88, 101, 242, 0.25);
+    border-color: #05ad98;
+    outline: 2px solid rgba(5, 173, 152, 0.25);
+}
+
+[data-theme="light"] .view-switcher {
+    background: #dbe0e0;
+    border-color: #bbbfbf;
+}
+
+[data-theme="light"] .view-tab {
+    color: #5e6b6c;
+}
+
+[data-theme="light"] .view-tab.active {
+    background: #ffffff;
+    color: #192223;
+    border-color: #bbbfbf;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .filter-menu-popover {
+    background: #ffffff;
+    border-color: #bbbfbf;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="light"] .filter-menu-popover label {
+    color: #5e6b6c;
+}
+
+[data-theme="light"] .filter-menu-popover select {
+    background: #edf1f1;
+    border-color: #bbbfbf;
+    color: #192223;
+}
+
+/* List View */
+[data-theme="light"] .task-list-header {
+    border-bottom-color: #bbbfbf;
+    color: #5e6b6c;
+}
+
+[data-theme="light"] .task-list-row {
+    background: #ffffff;
+    border-color: #bbbfbf;
+}
+
+[data-theme="light"] .task-list-row:hover {
+    background: #edf1f1;
+    border-color: #05ad98;
+}
+
+[data-theme="light"] .task-list-row .list-title {
+    color: #192223;
+}
+
+/* Dashboard Metric Cards & Stats (Angka Kontras Tinggi - Tidak Menyatu dengan Background) */
+[data-theme="light"] .metric-card {
+    background: #ffffff;
+    border-color: #bbbfbf;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .metric-card:hover {
+    border-color: #05ad98;
+    box-shadow: 0 4px 14px rgba(5, 173, 152, 0.15);
+}
+
+[data-theme="light"] .metric-card-header {
+    color: #5e6b6c;
+}
+
+[data-theme="light"] .metric-card-desc {
+    color: #878787;
+}
+
+[data-theme="light"] .metric-card-value {
+    color: #192223;
+}
+
+[data-theme="light"] #stat-total-tasks {
+    color: #05ad98 !important; /* Vichy Teal - Jelas & Tajam */
+}
+
+[data-theme="light"] #stat-planned-tasks {
+    color: #7c3aed !important; /* Ungu Kontras Tinggi */
+}
+
+[data-theme="light"] #stat-progress-tasks {
+    color: #0284c7 !important; /* Cyan / Biru Laut Kontras Tinggi */
+}
+
+[data-theme="light"] #stat-overdue-tasks {
+    color: #dc2626 !important; /* Merah Kontras Tinggi */
+}
+
+[data-theme="light"] .dashboard-panel {
+    background: #ffffff;
+    border-color: #bbbfbf;
+}
+
+[data-theme="light"] .dashboard-panel h3 {
+    color: #192223;
+}
+
+[data-theme="light"] .urgent-task-subtitle {
+    color: #dc2626;
+}
+
+/* Dialog & Modal */
+[data-theme="light"] .app-dialog::backdrop {
+    background: rgba(25, 34, 35, 0.45);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 [data-theme="light"] .dialog-content,
 [data-theme="light"] .task-dialog-content {
-    background: #ffffff;
-    color: #2e3338;
-    border-color: #e3e5e8;
+    background: #f7f9f9;
+    color: #192223;
+    border-color: #bbbfbf;
     box-shadow: 0 20px 45px rgba(0, 0, 0, 0.12);
 }
 
 [data-theme="light"] .dialog-title {
-    color: #060607;
+    color: #192223;
 }
 
 [data-theme="light"] .btn-close-dialog {
-    background: #ebedef;
-    color: #4e5058;
+    background: #edf1f1;
+    border-color: #bbbfbf;
+    color: #5e6b6c;
 }
 
 [data-theme="light"] .btn-close-dialog:hover {
-    background: #e3e5e8;
-    color: #060607;
+    background: #bbbfbf;
+    color: #192223;
 }
 
-[data-theme="light"] footer[role="contentinfo"] {
+/* User Profile & Settings Modal (Bebas dari sisa tampilan dark) */
+[data-theme="light"] .profile-header-card {
+    background: #edf1f1;
+    border-color: #bbbfbf;
+}
+
+[data-theme="light"] .profile-user-name {
+    color: #192223;
+}
+
+[data-theme="light"] .profile-user-email {
+    color: #5e6b6c;
+}
+
+[data-theme="light"] .auth-divider span {
+    background: #f7f9f9;
+    color: #5e6b6c;
+}
+
+[data-theme="light"] .auth-divider::before {
+    background: #bbbfbf;
+}
+
+[data-theme="light"] .btn-sso-google {
     background: #ffffff;
-    border-top-color: #e3e5e8;
+    color: #192223;
+    border: 1px solid #bbbfbf;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .btn-sso-google:hover {
+    background: #edf1f1;
+    border-color: #05ad98;
+}
+
+/* Task Detail Modal */
+[data-theme="light"] .detail-meta-card {
+    background: #edf1f1;
+    border-color: #bbbfbf;
+}
+
+[data-theme="light"] .detail-meta-card .meta-label {
+    color: #5e6b6c;
+}
+
+[data-theme="light"] .detail-meta-card .meta-value {
+    color: #192223;
+}
+
+[data-theme="light"] .detail-meta-card .meta-sub {
+    color: #05ad98;
+}
+
+[data-theme="light"] .detail-notes-box {
+    background: #edf1f1;
+    border-color: #bbbfbf;
+    color: #192223;
+}
+
+[data-theme="light"] .detail-section {
+    border-top-color: #dbe0e0;
+}
+
+[data-theme="light"] .detail-section-title {
+    color: #192223;
+}
+
+[data-theme="light"] .btn-copy-clipboard {
+    background: #edf1f1;
+    border-color: #bbbfbf;
+    color: #5e6b6c;
+}
+
+[data-theme="light"] .btn-copy-clipboard:hover {
+    background: #ffffff;
+    border-color: #05ad98;
+    color: #05ad98;
+}
+
+[data-theme="light"] .detail-course-tag {
+    background: rgba(5, 173, 152, 0.12);
+    border-color: rgba(5, 173, 152, 0.3);
+    color: #05ad98;
+}
+
+[data-theme="light"] .btn-status-pill {
+    background: #edf1f1;
+    border-color: #bbbfbf;
+    color: #5e6b6c;
+}
+
+[data-theme="light"] .btn-status-pill:hover {
+    background: rgba(5, 173, 152, 0.12);
+    border-color: #05ad98;
+    color: #05ad98;
+}
+
+[data-theme="light"] .btn-status-pill[data-status="todo"].active {
+    background: rgba(124, 58, 237, 0.12);
+    border-color: #7c3aed;
+    color: #7c3aed;
+}
+
+[data-theme="light"] .btn-status-pill[data-status="inprogress"].active {
+    background: rgba(5, 173, 152, 0.12);
+    border-color: #05ad98;
+    color: #05ad98;
+}
+
+[data-theme="light"] .btn-status-pill[data-status="done"].active {
+    background: rgba(5, 150, 105, 0.12);
+    border-color: #059669;
+    color: #059669;
+}
+
+[data-theme="light"] .btn-status-pill[data-status="overdue"].active {
+    background: rgba(220, 38, 38, 0.12);
+    border-color: #dc2626;
+    color: #dc2626;
+}
+
+/* Modal Ringkasan Cepat & Analitik (Angka Jelas & Kontras) */
+[data-theme="light"] .summary-stat-box {
+    background: #edf1f1;
+    border-color: #bbbfbf;
+}
+
+[data-theme="light"] .summary-stat-num {
+    color: #192223;
+}
+
+[data-theme="light"] #sum-total-tasks {
+    color: #05ad98 !important;
+}
+
+[data-theme="light"] #sum-completed-tasks {
+    color: #059669 !important;
+}
+
+[data-theme="light"] #sum-rate-tasks {
+    color: #048c7a !important;
+}
+
+[data-theme="light"] .summary-stat-lbl {
+    color: #5e6b6c;
+}
+
+[data-theme="light"] .course-progress-row {
+    background: #edf1f1;
+    border-color: #bbbfbf;
+}
+
+[data-theme="light"] .course-progress-header {
+    color: #192223;
+}
+
+[data-theme="light"] .course-progress-bar-bg {
+    background: #bbbfbf;
+}
+
+[data-theme="light"] .course-progress-bar-fill {
+    background: #05ad98;
+}
+
+/* Form Input & Drawer (Teks Input Jelas - Bebas Putih di Putih) */
+[data-theme="light"] .form-drawer {
+    background: #ffffff;
+    border-color: #bbbfbf;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .form-drawer h2 {
+    color: #192223;
 }
 
 [data-theme="light"] .form-fieldset {
-    background: #f8f9fa;
-    border-color: #e3e5e8;
+    background: #edf1f1;
+    border-color: #bbbfbf;
 }
 
 [data-theme="light"] .form-legend {
-    color: #5865f2;
+    color: #05ad98;
+}
+
+[data-theme="light"] .form-field label {
+    color: #5e6b6c;
+}
+
+[data-theme="light"] .field-hint {
+    color: #878787;
+}
+
+[data-theme="light"] .form-field input,
+[data-theme="light"] .form-field select,
+[data-theme="light"] .form-field textarea {
+    background: #ffffff;
+    border-color: #bbbfbf;
+    color: #192223;
+}
+
+[data-theme="light"] .form-field input:focus,
+[data-theme="light"] .form-field select:focus,
+[data-theme="light"] .form-field textarea:focus {
+    border-color: #05ad98;
+    box-shadow: 0 0 0 3px rgba(5, 173, 152, 0.2);
 }
 
 [data-theme="light"] .form-error-summary {
@@ -2622,110 +3087,135 @@ footer[role="contentinfo"] {
 }
 
 [data-theme="light"] .btn-preset-pill {
-    background: #ebedef;
-    border-color: #d1d5db;
-    color: #4e5058;
+    background: #edf1f1;
+    border-color: #bbbfbf;
+    color: #5e6b6c;
 }
 
 [data-theme="light"] .btn-preset-pill:hover {
-    background: rgba(88, 101, 242, 0.1);
-    border-color: #5865f2;
-    color: #5865f2;
+    background: rgba(5, 173, 152, 0.1);
+    border-color: #05ad98;
+    color: #05ad98;
 }
 
 [data-theme="light"] .btn-paste-clipboard {
-    color: #5865f2;
+    color: #05ad98;
 }
 
 [data-theme="light"] .btn-reset {
-    background: #ebedef;
-    border-color: #d1d5db;
-    color: #4e5058;
+    background: #edf1f1;
+    border-color: #bbbfbf;
+    color: #5e6b6c;
+}
+
+[data-theme="light"] .btn-reset:hover {
+    background: #bbbfbf;
+    color: #192223;
 }
 
 [data-theme="light"] .form-keyboard-hint kbd {
-    background: #ebedef;
-    border-color: #d1d5db;
-    color: #2e3338;
+    background: #edf1f1;
+    border-color: #bbbfbf;
+    color: #192223;
 }
 
+/* Calendar View (Angka Tanggal Tajam & Jelas) */
+[data-theme="light"] .calendar-view-wrap {
+    background: #ffffff;
+    border-color: #bbbfbf;
+}
+
+[data-theme="light"] .calendar-header-nav h2 {
+    color: #192223;
+}
+
+[data-theme="light"] .cal-day-name {
+    color: #5e6b6c;
+}
+
+[data-theme="light"] .cal-cell {
+    background: #ffffff;
+    border-color: #bbbfbf;
+}
+
+[data-theme="light"] .cal-cell:hover {
+    background: #edf1f1;
+    border-color: #05ad98;
+}
+
+[data-theme="light"] .cal-cell-num {
+    color: #192223;
+    font-weight: 700;
+}
+
+[data-theme="light"] .cal-cell.today {
+    background: rgba(5, 173, 152, 0.08);
+    border-color: #05ad98;
+}
+
+[data-theme="light"] .cal-cell.today .cal-cell-num {
+    color: #05ad98;
+    font-weight: 800;
+}
+
+/* Mini Dashboard (Optional/Academic analytics) */
 [data-theme="light"] .mini-dashboard-container {
     background: #ffffff;
-    border-color: #e3e5e8;
+    border-color: #bbbfbf;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .mini-dashboard-title {
+    color: #192223;
+}
+
+[data-theme="light"] .student-meta-value {
+    color: #192223;
 }
 
 [data-theme="light"] .mini-course-card {
     background: #ffffff;
-    border-color: #e3e5e8;
+    border-color: #bbbfbf;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 [data-theme="light"] .mini-course-card:hover {
     background: #ffffff;
-    border-color: #5865f2;
-    box-shadow: 0 6px 18px rgba(88, 101, 242, 0.12);
+    border-color: #05ad98;
+    box-shadow: 0 6px 18px rgba(5, 173, 152, 0.12);
+}
+
+[data-theme="light"] .mini-course-code {
+    background: #bbbfbf;
+    color: #192223;
+}
+
+[data-theme="light"] .mini-course-title {
+    color: #192223;
 }
 
 [data-theme="light"] .mini-table-wrapper {
     background: #ffffff;
-    border-color: #e3e5e8;
+    border-color: #bbbfbf;
 }
 
 [data-theme="light"] .mini-dashboard-table thead {
-    background: #ebedef;
-    border-bottom-color: #e3e5e8;
+    background: #edf1f1;
+    border-bottom-color: #bbbfbf;
 }
 
 [data-theme="light"] .mini-dashboard-table tbody tr:hover {
-    background: #f8f9fa;
+    background: #edf1f1;
 }
 
 [data-theme="light"] .mini-dashboard-student-bar {
-    background: #ebedef;
-    border-color: #e3e5e8;
+    background: #edf1f1;
+    border-color: #bbbfbf;
 }
 
-[data-theme="light"] .metric-card {
+[data-theme="light"] footer[role="contentinfo"] {
     background: #ffffff;
-    border-color: #e3e5e8;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-[data-theme="light"] .metric-card:hover {
-    border-color: #5865f2;
-}
-
-[data-theme="light"] .metric-label {
-    color: #5c6370;
-}
-
-[data-theme="light"] .metric-value {
-    color: #060607;
-}
-
-[data-theme="light"] .calendar-view-wrap {
-    background: #ffffff;
-    border-color: #e3e5e8;
-}
-
-[data-theme="light"] .cal-cell {
-    background: #f8f9fa;
-    border-color: #e3e5e8;
-}
-
-[data-theme="light"] .cal-cell:hover {
-    background: #ffffff;
-    border-color: #5865f2;
-}
-
-[data-theme="light"] .cal-day-number {
-    color: #2e3338;
-}
-
-[data-theme="light"] .cal-cell.today {
-    background: rgba(88, 101, 242, 0.08);
-    border-color: #5865f2;
+    border-top-color: #bbbfbf;
 }
 
 /* Kerapatan Kartu (Compact Density) */
@@ -2990,7 +3480,7 @@ footer[role="contentinfo"] {
     font-size: 1.65rem;
     font-weight: 800;
     line-height: 1.1;
-    color: #ffffff;
+    color: var(--summary-color, #ffffff);
 }
 
 .summary-stat-lbl {

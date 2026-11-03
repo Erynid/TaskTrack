@@ -122,7 +122,8 @@ $initial_tasks = [
             <!-- Tombol navigasi tab utama (Dashboard, Tasks, Calendar, dan Tambah Tugas) -->
             <nav aria-label="Navigasi Utama">
                 <ul class="nav-pill-list">
-                    <li><button type="button" class="nav-tab-btn active" data-target="view-dashboard">Dashboard</button></li>
+                    <li><button type="button" class="nav-tab-btn active" data-target="view-dashboard">Dashboard</button>
+                    </li>
                     <li><button type="button" class="nav-tab-btn" data-target="view-tasks">Tasks</button></li>
                     <li><button type="button" class="nav-tab-btn" data-target="view-calendar">Calendar</button></li>
                     <!-- Tombol ini fungsinya membuka modal dialog input tugas baru -->
@@ -407,7 +408,7 @@ $initial_tasks = [
                         'value' => '5',
                         'desc' => 'Tersimpan di sistem TaskTrack',
                         'icon_svg' => '<svg class="icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>',
-                        'color' => '#ffffff'
+                        'color' => '#f8fafc'
                     ]);
                     // Merender kartu metrik tugas berstatus Planned
                     renderStatCard([
@@ -439,7 +440,7 @@ $initial_tasks = [
                     ?>
                 </div>
 
-                <?php if (true): // Dinonaktifkan sementara: Fitur Mini Dashboard (Fetch API & JSON) ?>
+                <?php if (false): // Dinonaktifkan sementara: Fitur Mini Dashboard (Fetch API & JSON) ?>
                     <!-- ============================================================
                      FITUR MINI DASHBOARD: PROGRES AKADEMIK (FETCH API & JSON)
                      Sesuai Instruksi Tugas Kuliah Pemrograman Web
@@ -1116,11 +1117,11 @@ $initial_tasks = [
                     <div class="summary-stat-lbl">Total Tugas</div>
                 </div>
                 <div class="summary-stat-box">
-                    <div class="summary-stat-num" id="sum-completed-tasks" style="color: #86efac;">0</div>
+                    <div class="summary-stat-num" id="sum-completed-tasks" style="--summary-color: #86efac;">0</div>
                     <div class="summary-stat-lbl">Selesai</div>
                 </div>
                 <div class="summary-stat-box">
-                    <div class="summary-stat-num" id="sum-rate-tasks" style="color: #facc15;">0%</div>
+                    <div class="summary-stat-num" id="sum-rate-tasks" style="--summary-color: #facc15;">0%</div>
                     <div class="summary-stat-lbl">Tingkat Tuntas</div>
                 </div>
             </div>
@@ -1158,11 +1159,10 @@ $initial_tasks = [
             </div>
 
             <!-- Rincian kartu profil nama dan email pengguna -->
-            <div
-                style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; background: rgba(0,0,0,0.25); padding: 1rem; border-radius: 12px;">
+            <div class="profile-header-card">
                 <div class="avatar-btn" style="width: 48px; height: 48px; font-size: 1.1rem;">MD</div>
                 <div>
-                    <strong style="display: block; color: #ffffff;" id="profile-user-name">Muhammad Dzakir
+                    <strong class="profile-user-name" id="profile-user-name">Muhammad Dzakir
                         Dzakwan</strong>
                     <span style="font-size: 0.8rem; color: var(--text-muted);"
                         id="profile-user-email">dzakir.dzakwan@mahasiswa.ac.id</span>
@@ -1221,12 +1221,12 @@ $initial_tasks = [
             <div style="display: flex; flex-direction: column; gap: 0.75rem;">
                 <label
                     style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.85rem; color: var(--text-main); cursor: pointer;">
-                    <input type="checkbox" id="check-enable-sound" checked style="accent-color: #facc15;">
+                    <input type="checkbox" id="check-enable-sound" checked style="accent-color: var(--accent-yellow);">
                     Bunyikan notifikasi deadline mendesak
                 </label>
                 <label
                     style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.85rem; color: var(--text-main); cursor: pointer;">
-                    <input type="checkbox" id="check-auto-archive" style="accent-color: #facc15;">
+                    <input type="checkbox" id="check-auto-archive" style="accent-color: var(--accent-yellow);">
                     Arsipkan tugas selesai setelah 7 hari
                 </label>
             </div>

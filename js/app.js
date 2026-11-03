@@ -711,8 +711,8 @@ function renderListView() {
     // Merender setiap tugas menjadi satu baris tabel responsif
     rowsContainer.innerHTML = sortedTasks.map(t => {
         const timeInfo = formatDeadline(t.deadline, t.status);
-        const lmsPill = t.lms_url ? 
-            `<a href="${escapeHtml(t.lms_url)}" target="_blank" class="btn-lms-link">${ICONS.link} <span>${escapeHtml(t.lms_label || 'LMS')}</span></a>` : 
+        const lmsPill = t.lms_url ?
+            `<a href="${escapeHtml(t.lms_url)}" target="_blank" class="btn-lms-link">${ICONS.link} <span>${escapeHtml(t.lms_label || 'LMS')}</span></a>` :
             `<span style="color: var(--text-muted); font-size: 0.75rem;">-</span>`;
 
         return `
@@ -721,7 +721,7 @@ function renderListView() {
                     <div class="list-title" style="cursor: pointer;" onclick="window.openDetailDirect('${t.id}')">${escapeHtml(t.title)}</div>
                     <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">${escapeHtml(t.status)}</span>
                 </div>
-                <div style="font-size: 0.85rem; color: #a3b8aa;">${escapeHtml(t.course)}</div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary);">${escapeHtml(t.course)}</div>
                 <div style="font-size: 0.8rem; color: var(--text-muted);">${timeInfo.dateStr} (${timeInfo.timeStr})</div>
                 <div><span class="priority-badge priority-${t.priority || 'med'}">${ICONS.flag} <span>${escapeHtml(t.priority || 'Medium')}</span></span></div>
                 <div>${lmsPill}</div>
@@ -747,7 +747,7 @@ function renderListView() {
 }
 
 // Fungsi pembantu global untuk membuka detail tugas saat judul di list view diklik
-window.openDetailDirect = function(id) {
+window.openDetailDirect = function (id) {
     openDetailModal(id);
 };
 
@@ -855,14 +855,14 @@ function attachCardActionListeners() {
 
 // Objek ini fungsinya memetakan properti data tugas ke ID elemen input dan ID pesan error di DOM
 const FIELD_MAP = {
-    title:        { inputId: 'input-judul',     errorId: 'error-judul' },
-    course:       { inputId: 'input-matkul',    errorId: 'error-matkul' },
-    deadline:     { inputId: 'input-deadline',  errorId: 'error-deadline' },
-    priority:     { inputId: 'input-priority',  errorId: 'error-priority' },
-    status:       { inputId: 'input-status',    errorId: 'error-status' },
-    lms_url:      { inputId: 'input-url',       errorId: 'error-url' },
-    lms_label:    { inputId: 'input-url-label', errorId: 'error-url-label' },
-    instructions: { inputId: 'input-notes',     errorId: 'error-notes' }
+    title: { inputId: 'input-judul', errorId: 'error-judul' },
+    course: { inputId: 'input-matkul', errorId: 'error-matkul' },
+    deadline: { inputId: 'input-deadline', errorId: 'error-deadline' },
+    priority: { inputId: 'input-priority', errorId: 'error-priority' },
+    status: { inputId: 'input-status', errorId: 'error-status' },
+    lms_url: { inputId: 'input-url', errorId: 'error-url' },
+    lms_label: { inputId: 'input-url-label', errorId: 'error-url-label' },
+    instructions: { inputId: 'input-notes', errorId: 'error-notes' }
 };
 
 // Fungsi ini fungsinya menampilkan pesan error validasi pada field tertentu dan menandai input tidak valid
@@ -1093,28 +1093,28 @@ function resetTaskForm() {
 function initLiveFieldValidation() {
     // Objek fungsi pemanggil validator untuk masing-masing ID kolom input
     const blurValidators = {
-        'input-judul':     (val) => validateTaskTitle(val),
-        'input-matkul':    (val) => validateTaskCourse(val),
-        'input-deadline':  (val) => validateTaskDeadline(val, 'todo', !document.getElementById('task-id').value),
-        'input-priority':  (val) => validateTaskPriority(val),
-        'input-status':    (val) => validateTaskStatus(val),
-        'input-url':       (val) => validateTaskUrl(val),
+        'input-judul': (val) => validateTaskTitle(val),
+        'input-matkul': (val) => validateTaskCourse(val),
+        'input-deadline': (val) => validateTaskDeadline(val, 'todo', !document.getElementById('task-id').value),
+        'input-priority': (val) => validateTaskPriority(val),
+        'input-status': (val) => validateTaskStatus(val),
+        'input-url': (val) => validateTaskUrl(val),
         'input-url-label': (val) => {
             const url = document.getElementById('input-url').value;
             return validateTaskUrlLabel(val, url);
         },
-        'input-notes':     (val) => validateTaskNotes(val)
+        'input-notes': (val) => validateTaskNotes(val)
     };
 
     const fieldKeys = {
-        'input-judul':     'title',
-        'input-matkul':    'course',
-        'input-deadline':  'deadline',
-        'input-priority':  'priority',
-        'input-status':    'status',
-        'input-url':       'lms_url',
+        'input-judul': 'title',
+        'input-matkul': 'course',
+        'input-deadline': 'deadline',
+        'input-priority': 'priority',
+        'input-status': 'status',
+        'input-url': 'lms_url',
         'input-url-label': 'lms_label',
-        'input-notes':     'instructions'
+        'input-notes': 'instructions'
     };
 
     // Baris ini memasang event blur dan input pada seluruh elemen formulir tugas
@@ -1241,7 +1241,7 @@ function updateDashboard() {
                     <div style="background: var(--input-bg); border: 1px solid var(--border-subtle); padding: 0.85rem 1rem; border-radius: 8px; border-left: 3px solid #f87171; display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <strong style="color: var(--text-main); font-size: 0.875rem;">${escapeHtml(t.title)}</strong>
-                            <span style="display: block; font-size: 0.775rem; color: #fca5a5;">${time.timeStr} | ${escapeHtml(t.course)}</span>
+                            <span class="urgent-task-subtitle" style="display: block; font-size: 0.775rem;">${time.timeStr} | ${escapeHtml(t.course)}</span>
                         </div>
                         <button type="button" class="btn-new-task" style="padding: 0.35rem 0.8rem; font-size: 0.75rem;" onclick="window.openDetailDirect('${t.id}')">
                             Rincian
@@ -1273,16 +1273,13 @@ const miniDashboardState = {
     statusFilter: 'all'
 };
 
-// Fungsi asinkronus ini fungsinya memuat data akademik eksternal dari endpoint JSON lokal menggunakan Fetch API
+// Fungsi asinkronus untuk memuat data tugas & dashboard dari endpoint REST API PHP MySQL
 async function fetchMiniDashboardData() {
-    // Baris ini mengaktifkan status loading dan membersihkan pesan error lama
     setMiniDashboardLoading(true);
     miniDashboardState.error = null;
 
     try {
-        // Menggunakan file JSON lokal di data/academic-dashboard.json
-        const endpointUrl = 'data/academic-dashboard.json';
-        // Baris ini melakukan HTTP GET request dengan konfigurasi tanpa cache
+        const endpointUrl = 'http://localhost/tasktrack/api/index.php/dashboard';
         const response = await fetch(endpointUrl, {
             headers: {
                 'Accept': 'application/json'
@@ -1290,30 +1287,57 @@ async function fetchMiniDashboardData() {
             cache: 'no-store'
         });
 
-        // Baris ini memeriksa apakah status respons HTTP berada pada rentang sukses 200-299
         if (!response.ok) {
             throw new Error(`Gagal memuat endpoint '${endpointUrl}'. Status HTTP: ${response.status} (${response.statusText || 'Respon Gagal'})`);
         }
 
-        // Baris ini mengonversi badan respons HTTP menjadi objek JSON Javascript
         const jsonData = await response.json();
 
-        // Baris ini memvalidasi integritas struktur dasar data JSON yang diterima
-        if (!jsonData || !jsonData.courses || !Array.isArray(jsonData.courses)) {
-            throw new Error('Format data JSON tidak valid: properti courses tidak ditemukan atau bukan array.');
+        // Validasi struktur payload respons baru (data.payload.tasks)
+        if (!jsonData || !jsonData.payload || !Array.isArray(jsonData.payload.tasks)) {
+            throw new Error('Format data JSON tidak valid: properti payload.tasks tidak ditemukan atau bukan array.');
         }
 
-        // Baris ini menyimpan data ke dalam state dan memicu render antarmuka
+        // Ambil array tugas dari data.payload.tasks
+        const rawTasks = jsonData.payload.tasks;
+
+        // Normalisasi data dari schema MySQL ke format internal kartu/kanban TaskTrack
+        tasks = rawTasks.map(t => {
+            let normalizedStatus = (t.status || 'todo').toLowerCase();
+            if (normalizedStatus === 'in_progress') normalizedStatus = 'inprogress';
+
+            return {
+                id: String(t.id),
+                title: t.title || 'Tanpa Judul',
+                course: t.course || t.category_name || 'Umum',
+                deadline: t.deadline || (t.due_date ? String(t.due_date).replace(' ', 'T').slice(0, 16) : ''),
+                status: normalizedStatus,
+                priority: (t.priority || 'medium').toLowerCase(),
+                lms_url: t.lms_url || '',
+                lms_label: t.lms_label || (t.lms_url ? 'LMS' : ''),
+                instructions: t.instructions || t.description || ''
+            };
+        });
+
+        // Salurkan array tasks ke fungsi render kartu / kanban board serta tampilan terkait
+        localStorage.setItem(STORAGE_KEY_TASKS, JSON.stringify(tasks));
+        updateFilterOptions();
+        renderBoard();
+        renderListView();
+        updateDashboard();
+        renderCalendar();
+
         miniDashboardState.data = jsonData;
         miniDashboardState.isLoaded = true;
         setMiniDashboardLoading(false);
-        renderMiniDashboard();
-        announce('Data mini dashboard akademik berhasil dimuat');
+        if (typeof renderMiniDashboard === 'function') {
+            renderMiniDashboard();
+        }
+        announce('Data tugas dari API berhasil dimuat');
     } catch (error) {
-        // Baris ini menangani error jaringan atau parsing dan menampilkan state error ke antarmuka pengguna
-        console.error('Error saat memuat Mini Dashboard:', error);
-        setMiniDashboardError(error.message || 'Terjadi kesalahan tidak terduga saat memuat data akademik.');
-        announce('Gagal memuat data mini dashboard akademik');
+        console.error('Error saat memuat data tugas dari API:', error);
+        setMiniDashboardError(error.message || 'Terjadi kesalahan tidak terduga saat memuat data tugas.');
+        announce('Gagal memuat data tugas dari API');
     }
 }
 
@@ -1564,52 +1588,40 @@ function formatDateTimeSimple(isoString) {
     }
 }
 
-// Fungsi ini fungsinya menginisialisasi seluruh event listener interaktif pada fitur Mini Dashboard
 function initMiniDashboard() {
     const miniContainer = document.getElementById('mini-dashboard-container');
-    if (!miniContainer) return; // Jangan jalankan jika elemen dinonaktifkan di tampilan
+    if (!miniContainer) return;
 
-    // Baris ini memasang event listener untuk tombol Muat Ulang Data
     const refreshBtn = document.getElementById('btn-refresh-mini-dashboard');
     if (refreshBtn) {
-        refreshBtn.addEventListener('click', () => {
-            fetchMiniDashboardData();
-        });
+        refreshBtn.addEventListener('click', fetchMiniDashboardData);
     }
 
-    // Baris ini memasang event listener untuk tombol Coba Lagi pada tampilan error
     const retryBtn = document.getElementById('btn-mini-dashboard-retry');
     if (retryBtn) {
-        retryBtn.addEventListener('click', () => {
-            fetchMiniDashboardData();
-        });
+        retryBtn.addEventListener('click', fetchMiniDashboardData);
     }
 
-    // Baris ini memasang switcher tab mode tampilan: Kartu vs Tabel
     const tabCards = document.getElementById('tab-mini-cards');
     const tabTable = document.getElementById('tab-mini-table');
 
-    if (tabCards && tabTable) {
-        tabCards.addEventListener('click', () => {
-            miniDashboardState.activeTab = 'cards';
-            tabCards.classList.add('active');
-            tabCards.setAttribute('aria-selected', 'true');
-            tabTable.classList.remove('active');
-            tabTable.setAttribute('aria-selected', 'false');
-            renderMiniDashboard();
-        });
+    function setMiniDashboardTab(tabMode) {
+        miniDashboardState.activeTab = tabMode;
+        const isCards = tabMode === 'cards';
 
-        tabTable.addEventListener('click', () => {
-            miniDashboardState.activeTab = 'table';
-            tabTable.classList.add('active');
-            tabTable.setAttribute('aria-selected', 'true');
-            tabCards.classList.remove('active');
-            tabCards.setAttribute('aria-selected', 'false');
-            renderMiniDashboard();
-        });
+        tabCards.classList.toggle('active', isCards);
+        tabCards.setAttribute('aria-selected', String(isCards));
+        tabTable.classList.toggle('active', !isCards);
+        tabTable.setAttribute('aria-selected', String(!isCards));
+
+        renderMiniDashboard();
     }
 
-    // Baris ini memasang input event untuk pencarian data secara instan (real-time)
+    if (tabCards && tabTable) {
+        tabCards.addEventListener('click', () => setMiniDashboardTab('cards'));
+        tabTable.addEventListener('click', () => setMiniDashboardTab('table'));
+    }
+
     const searchInput = document.getElementById('mini-dash-search');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
@@ -1618,7 +1630,6 @@ function initMiniDashboard() {
         });
     }
 
-    // Baris ini memasang change event untuk filter kategori mata kuliah
     const filterCat = document.getElementById('mini-dash-filter-category');
     if (filterCat) {
         filterCat.addEventListener('change', (e) => {
@@ -1627,7 +1638,6 @@ function initMiniDashboard() {
         });
     }
 
-    // Baris ini memasang change event untuk filter status mata kuliah
     const filterStat = document.getElementById('mini-dash-filter-status');
     if (filterStat) {
         filterStat.addEventListener('change', (e) => {
@@ -1636,100 +1646,134 @@ function initMiniDashboard() {
         });
     }
 
-    // Baris ini mereset seluruh query pencarian dan dropdown filter ke opsi default
     const resetFilterBtn = document.getElementById('btn-mini-reset-filter');
     if (resetFilterBtn) {
         resetFilterBtn.addEventListener('click', () => {
-            miniDashboardState.searchQuery = '';
-            miniDashboardState.categoryFilter = 'all';
-            miniDashboardState.statusFilter = 'all';
-
-            if (searchInput) searchInput.value = '';
-            if (filterCat) filterCat.value = 'all';
-            if (filterStat) filterStat.value = 'all';
-
-            renderMiniDashboard();
+            resetMiniDashboardFilters(searchInput, filterCat, filterStat);
         });
     }
 
-    // Baris ini memanggil pemuatan data perdana saat mini dashboard diinisialisasi
     fetchMiniDashboardData();
 }
 
-// Variabel objek Date penanda bulan dan tahun kalender yang sedang aktif ditampilkan
+function resetMiniDashboardFilters(searchInput, filterCat, filterStat) {
+    miniDashboardState.searchQuery = '';
+    miniDashboardState.categoryFilter = 'all';
+    miniDashboardState.statusFilter = 'all';
+
+    if (searchInput) searchInput.value = '';
+    if (filterCat) filterCat.value = 'all';
+    if (filterStat) filterStat.value = 'all';
+
+    renderMiniDashboard();
+}
+
 let currentCalendarDate = new Date();
 
-// Fungsi ini fungsinya merender tampilan grid kalender bulanan serta menandai tugas pada tanggal tenggatnya
+const CALENDAR_MONTH_NAMES = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+];
+
+const CALENDAR_DAY_NAMES = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+
+const CALENDAR_STATUS_COLORS = {
+    done: '#10b981',
+    overdue: '#f97316',
+    todo: '#d946ef',
+    default: '#3b82f6'
+};
+
+function getCalendarTaskColor(status) {
+    return CALENDAR_STATUS_COLORS[status] || CALENDAR_STATUS_COLORS.default;
+}
+
+function isSameDay(date, year, month, day) {
+    return date.getFullYear() === year &&
+        date.getMonth() === month &&
+        date.getDate() === day;
+}
+
+function formatCalendarDateKey(year, month, day) {
+    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+function renderCalendarHeaderTitle(year, month) {
+    const titleElement = document.getElementById('calendar-month-year');
+    if (titleElement) {
+        titleElement.textContent = `${CALENDAR_MONTH_NAMES[month]} ${year}`;
+    }
+}
+
+function renderCalendarDayNames(grid) {
+    CALENDAR_DAY_NAMES.forEach(dayName => {
+        const headerCell = document.createElement('div');
+        headerCell.className = 'cal-day-name';
+        headerCell.textContent = dayName;
+        grid.appendChild(headerCell);
+    });
+}
+
+function renderCalendarLeadingEmptyCells(grid, count) {
+    for (let i = 0; i < count; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'cal-cell';
+        emptyCell.style.opacity = '0.3';
+        grid.appendChild(emptyCell);
+    }
+}
+
+function renderCalendarTaskPill(task) {
+    const color = getCalendarTaskColor(task.status);
+    const title = escapeHtml(task.title);
+    const course = escapeHtml(task.course);
+
+    return `
+        <span class="cal-task-pill" style="background: ${color}; cursor: pointer;" onclick="window.openDetailDirect('${task.id}')" title="${title} (${course})">
+            ${title}
+        </span>
+    `;
+}
+
+function renderCalendarDayCell(year, month, day, dayTasks, today) {
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell';
+
+    if (isSameDay(today, year, month, day)) {
+        cell.classList.add('today');
+    }
+
+    const pillsHtml = dayTasks.map(renderCalendarTaskPill).join('');
+    cell.innerHTML = `
+        <span class="cal-cell-num">${day}</span>
+        ${pillsHtml}
+    `;
+
+    return cell;
+}
+
 function renderCalendar() {
     const grid = document.getElementById('calendar-grid-cells');
-    const titleMonth = document.getElementById('calendar-month-year');
     if (!grid) return;
 
     const year = currentCalendarDate.getFullYear();
     const month = currentCalendarDate.getMonth();
 
-    // Baris ini memperbarui judul bulan dan tahun di header kalender
-    const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-    if (titleMonth) titleMonth.textContent = `${monthNames[month]} ${year}`;
-
+    renderCalendarHeaderTitle(year, month);
     grid.innerHTML = '';
-
-    // Baris ini membuat sel-sel nama hari (Min, Sen, Sel, dst)
-    const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-    days.forEach(d => {
-        const dh = document.createElement('div');
-        dh.className = 'cal-day-name';
-        dh.textContent = d;
-        grid.appendChild(dh);
-    });
+    renderCalendarDayNames(grid);
 
     const firstDayIndex = new Date(year, month, 1).getDay();
-    const lastDayDate = new Date(year, month + 1, 0).getDate();
-
-    // Baris ini merender sel-sel kosong untuk mengisi awalan minggu sebelum tanggal 1
-    for (let i = 0; i < firstDayIndex; i++) {
-        const cell = document.createElement('div');
-        cell.className = 'cal-cell';
-        cell.style.opacity = '0.3';
-        grid.appendChild(cell);
-    }
+    const totalDays = new Date(year, month + 1, 0).getDate();
+    renderCalendarLeadingEmptyCells(grid, firstDayIndex);
 
     const today = new Date();
-    // Baris ini mengelompokkan data tugas berdasarkan format tanggal YYYY-MM-DD
     const tasksByDate = groupTasksByDate(tasks);
 
-    // Baris ini merender setiap sel tanggal dari tanggal 1 sampai akhir bulan
-    for (let day = 1; day <= lastDayDate; day++) {
-        const cell = document.createElement('div');
-        cell.className = 'cal-cell';
-
-        // Baris ini menandai sel hari ini jika tanggal, bulan, dan tahun cocok dengan waktu sistem
-        const isToday = (today.getDate() === day && today.getMonth() === month && today.getFullYear() === year);
-        if (isToday) cell.classList.add('today');
-
-        const cellDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const dayTasks = tasksByDate[cellDateStr] || [];
-
-        // Baris ini merender pill penanda untuk setiap tugas yang jatuh tempo pada tanggal tersebut
-        let tasksPillHtml = '';
-        dayTasks.forEach(t => {
-            let color = '#3b82f6';
-            if (t.status === 'done') color = '#10b981';
-            else if (t.status === 'overdue') color = '#f97316';
-            else if (t.status === 'todo') color = '#d946ef';
-
-            tasksPillHtml += `
-                <span class="cal-task-pill" style="background: ${color}; cursor: pointer;" onclick="window.openDetailDirect('${t.id}')" title="${escapeHtml(t.title)} (${escapeHtml(t.course)})">
-                    ${escapeHtml(t.title)}
-                </span>
-            `;
-        });
-
-        cell.innerHTML = `
-            <span class="cal-cell-num">${day}</span>
-            ${tasksPillHtml}
-        `;
-
+    for (let day = 1; day <= totalDays; day++) {
+        const dateKey = formatCalendarDateKey(year, month, day);
+        const dayTasks = tasksByDate[dateKey] || [];
+        const cell = renderCalendarDayCell(year, month, day, dayTasks, today);
         grid.appendChild(cell);
     }
 }
@@ -1796,12 +1840,15 @@ function initApp() {
     initLiveFieldValidation();
     initDeadlinePresets();
 
-    // Baris-baris ini merender data awal ke seluruh tampilan (Filter, Kanban, List, Dashboard, Kalender)
+    // Render data awal ke seluruh tampilan (Filter, Kanban, List, Dashboard, Kalender)
     updateFilterOptions();
     renderBoard();
     renderListView();
     updateDashboard();
     renderCalendar();
+
+    // Memuat data tugas terbaru dari REST API PHP MySQL
+    fetchMiniDashboardData();
 
     // Baris ini memasang event listener untuk tombol saklar tema cepat pada header
     const themeToggleBtn = document.getElementById('btn-theme-toggle');
@@ -1906,7 +1953,7 @@ function initApp() {
         });
         taskModal.addEventListener('cancel', () => {
             [document.getElementById('btn-new-task-trigger'),
-             document.getElementById('nav-btn-open-form')]
+            document.getElementById('nav-btn-open-form')]
                 .forEach(btn => { if (btn) btn.setAttribute('aria-expanded', 'false'); });
         });
     }

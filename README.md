@@ -260,4 +260,25 @@ Jalankan perintah berikut pada terminal:
 ```bash
 & "C:\laragon\bin\php\php-8.5.10-Win32-vs17-x64\php.exe" -S 127.0.0.1:8000
 ```
-Buka peramban pada alamat: `http://127.0.0.1:8000`
+Buka peramban pada alamat: `http://127.0.0.1:8000`
+
+### 📡 Dokumentasi Endpoint REST API (Tugas 9)
+
+- **Base URL:** `http://localhost/tasktrack/api`
+- **Environment Config:** Diatur via `.env`
+
+#### 1. Get Mini Dashboard Data
+- **Endpoint:** `/dashboard`
+- **Method:** `GET`
+- **Header:** `Content-Type: application/json`
+- **Response Success (200 OK):**
+```json
+{
+  "status": "success",
+  "timestamp": "2026-10-27 17:00:00",
+  "payload": {
+    "quote": "Bekerja keraslah sekarang, bersantailah kemudian.",
+    "activeTasks": 3,
+    "upcomingExam": "Sistem Basis Data (Senin Depan)"
+  }
+}
