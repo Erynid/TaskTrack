@@ -1,4 +1,9 @@
 <?php
+// Mencegah cache browser agar pembaruan file kode JS/CSS langsung aktif
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
+
 /**
  * TaskTrack - Papan Tugas Kuliah Dark Theme (Sleek Obsidian Edition)
  * Dibangun dengan PHP Standar, HTML5 Semantik, CSS Custom Properties, dan Vanilla JS.
@@ -92,7 +97,7 @@ $initial_tasks = [
         rel="stylesheet">
 
     <!-- Stylesheet Utama Sleek Dark UI -->
-    <link rel="stylesheet" href="css/style.css?v=<?= filemtime(__DIR__ . '/css/style.css') ?>">
+    <link rel="stylesheet" href="css/style.css?v=<?= time() ?>">
 </head>
 
 <body>
@@ -109,11 +114,8 @@ $initial_tasks = [
             <!-- Tautan logo beranda aplikasi -->
             <a href="index.php" class="brand-logo" aria-label="TaskTrack Beranda">
                 <div class="brand-icon" aria-hidden="true">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="3" y="3" width="18" height="18" rx="6" stroke="rgba(255,255,255,0.22)"
-                            stroke-width="1.6" fill="#181c26" />
-                        <path d="M8 12.5L11 15.5L16.5 9" stroke="#facc15" stroke-width="2.4" stroke-linecap="round"
-                            stroke-linejoin="round" />
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
                 </div>
                 <span><?= $app_name ?></span>
@@ -272,33 +274,61 @@ $initial_tasks = [
                         </button>
                     </div>
 
-                    <!-- Tombol switcher antara mode Kanban dan mode List tabel -->
-                    <div class="view-switcher" role="tablist" aria-label="Pilih Mode Tampilan">
-                        <button type="button" id="tab-view-kanban" class="view-tab active" role="tab"
-                            aria-selected="true" aria-controls="kanban-view-container">
-                            <svg class="icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                aria-hidden="true">
-                                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-                                <line x1="9" y1="3" x2="9" y2="21"></line>
-                                <line x1="15" y1="3" x2="15" y2="21"></line>
-                            </svg>
-                            <span>Kanban view</span>
-                        </button>
-                        <button type="button" id="tab-view-list" class="view-tab" role="tab" aria-selected="false"
-                            aria-controls="list-view-container">
-                            <svg class="icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                aria-hidden="true">
-                                <line x1="8" y1="6" x2="21" y2="6"></line>
-                                <line x1="8" y1="12" x2="21" y2="12"></line>
-                                <line x1="8" y1="18" x2="21" y2="18"></line>
-                                <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                                <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                                <line x1="3" y1="18" x2="3.01" y2="18"></line>
-                            </svg>
-                            <span>List view</span>
-                        </button>
+                    <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+                        <!-- Tombol switcher antara mode Kanban dan mode List tabel -->
+                        <div class="view-switcher" role="tablist" aria-label="Pilih Mode Tampilan">
+                            <button type="button" id="tab-view-kanban" class="view-tab active" role="tab"
+                                aria-selected="true" aria-controls="kanban-view-container">
+                                <svg class="icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    aria-hidden="true">
+                                    <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                                    <line x1="9" y1="3" x2="9" y2="21"></line>
+                                    <line x1="15" y1="3" x2="15" y2="21"></line>
+                                </svg>
+                                <span>Kanban view</span>
+                            </button>
+                            <button type="button" id="tab-view-list" class="view-tab" role="tab" aria-selected="false"
+                                aria-controls="list-view-container">
+                                <svg class="icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    aria-hidden="true">
+                                    <line x1="8" y1="6" x2="21" y2="6"></line>
+                                    <line x1="8" y1="12" x2="21" y2="12"></line>
+                                    <line x1="8" y1="18" x2="21" y2="18"></line>
+                                    <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                                    <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                                    <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                                </svg>
+                                <span>List view</span>
+                            </button>
+                        </div>
+
+                        <!-- Quick Density Switcher: Comfortable vs Compact -->
+                        <div class="view-switcher density-switcher" role="group" aria-label="Pilih Kerapatan Tampilan">
+                            <button type="button" id="btn-density-comfortable" class="view-tab active"
+                                title="Kerapatan Lega (Comfortable - Luas & Bernapas)" aria-pressed="true">
+                                <svg class="icon-svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    aria-hidden="true">
+                                    <rect x="3" y="3" width="18" height="18" rx="3"></rect>
+                                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                                </svg>
+                                <span>Lega</span>
+                            </button>
+                            <button type="button" id="btn-density-compact" class="view-tab"
+                                title="Kerapatan Padat (Compact - Muat 2x Lebih Banyak)" aria-pressed="false">
+                                <svg class="icon-svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    aria-hidden="true">
+                                    <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                                    <line x1="3" y1="8" x2="21" y2="8"></line>
+                                    <line x1="3" y1="13" x2="21" y2="13"></line>
+                                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                                </svg>
+                                <span>Padat</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -816,10 +846,9 @@ $initial_tasks = [
                                     Judul Tugas <span class="required-mark" aria-hidden="true">*</span>
                                     <span class="sr-only">(Wajib diisi)</span>
                                 </label>
-                                <span id="hint-judul" class="field-hint">Min. 5 karakter</span>
                             </div>
                             <input type="text" id="input-judul" name="judul" required aria-required="true"
-                                aria-invalid="false" aria-describedby="hint-judul error-judul"
+                                aria-invalid="false" aria-describedby="error-judul"
                                 placeholder="Contoh: Implementasi Normalisasi Database" maxlength="100">
                             <div id="error-judul" class="field-error-msg" role="alert" aria-live="polite"></div>
                         </div>
@@ -831,10 +860,9 @@ $initial_tasks = [
                                     Mata Kuliah <span class="required-mark" aria-hidden="true">*</span>
                                     <span class="sr-only">(Wajib diisi)</span>
                                 </label>
-                                <span id="hint-matkul" class="field-hint">Min. 3 karakter</span>
                             </div>
                             <input type="text" id="input-matkul" name="matkul" list="course-suggestions" required
-                                aria-required="true" aria-invalid="false" aria-describedby="hint-matkul error-matkul"
+                                aria-required="true" aria-invalid="false" aria-describedby="error-matkul"
                                 placeholder="Contoh: Pemrograman Web Dasar" maxlength="60">
                             <!-- Datalist rekomendasi nama matkul umum -->
                             <datalist id="course-suggestions">
@@ -1234,7 +1262,7 @@ $initial_tasks = [
     </dialog>
 
     <!-- Baris ini fungsinya memuat modul JavaScript utama aplikasi dengan sistem ES Module -->
-    <script type="module" src="js/app.js?v=<?= filemtime(__DIR__ . '/js/app.js') ?>"></script>
+    <script type="module" src="js/app.js?v=<?= time() ?>"></script>
 </body>
 
 </html>

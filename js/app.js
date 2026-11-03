@@ -23,7 +23,7 @@ import taskProcessor, {
     groupTasksByCourse,
     groupTasksByDate,
     parseTasksFromJSON
-} from './taskProcessor.js';
+} from './taskProcessor.js?v=2';
 
 const STORAGE_KEY_TASKS = 'tasktrack_agro_tasks';
 const STORAGE_KEY_AUTH = 'tasktrack_agro_auth';
@@ -268,6 +268,29 @@ function applyDensity(densityName) {
     const valid = densityName === 'compact' ? 'compact' : 'comfortable';
     document.documentElement.setAttribute('data-density', valid);
     localStorage.setItem(STORAGE_KEY_DENSITY, valid);
+
+    // Sinkronkan nilai dropdown di Settings Modal
+    const densitySelect = document.getElementById('select-density');
+    if (densitySelect && densitySelect.value !== valid) {
+        densitySelect.value = valid;
+    }
+
+    // Sinkronkan status aktif pada quick density switcher di toolbar
+    const btnComfortable = document.getElementById('btn-density-comfortable');
+    const btnCompact = document.getElementById('btn-density-compact');
+    if (btnComfortable && btnCompact) {
+        if (valid === 'compact') {
+            btnCompact.classList.add('active');
+            btnCompact.setAttribute('aria-pressed', 'true');
+            btnComfortable.classList.remove('active');
+            btnComfortable.setAttribute('aria-pressed', 'false');
+        } else {
+            btnComfortable.classList.add('active');
+            btnComfortable.setAttribute('aria-pressed', 'true');
+            btnCompact.classList.remove('active');
+            btnCompact.setAttribute('aria-pressed', 'false');
+        }
+    }
 }
 
 // 7. INTERAKSI 1: FILTER, PENCARIAN & SORTING
@@ -1871,6 +1894,23 @@ function initApp() {
         densitySelect.addEventListener('change', (e) => {
             applyDensity(e.target.value);
             announce(`Kerapatan tampilan diubah ke ${e.target.value}`);
+        });
+    }
+
+    // Tombol pintas cepat kerapatan tampilan (Quick Density Switcher pada Toolbar)
+    const btnDensityComfortable = document.getElementById('btn-density-comfortable');
+    if (btnDensityComfortable) {
+        btnDensityComfortable.addEventListener('click', () => {
+            applyDensity('comfortable');
+            announce('Kerapatan tampilan diubah ke mode Lega (Comfortable)');
+        });
+    }
+
+    const btnDensityCompact = document.getElementById('btn-density-compact');
+    if (btnDensityCompact) {
+        btnDensityCompact.addEventListener('click', () => {
+            applyDensity('compact');
+            announce('Kerapatan tampilan diubah ke mode Padat (Compact)');
         });
     }
 

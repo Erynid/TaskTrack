@@ -87,38 +87,27 @@ export function sanitizeInput(str) {
         .trim(); // Menghapus spasi berlebih di awal dan akhir
 }
 
-// Fungsi ini fungsinya memvalidasi judul tugas agar wajib diisi dan memiliki panjang 5-100 karakter
+// Fungsi ini fungsinya memvalidasi judul tugas agar wajib diisi dan memiliki panjang maksimal 100 karakter
 export function validateTaskTitle(title) {
-    // Baris ini memeriksa apakah input judul kosong
     if (!title || typeof title !== 'string' || !title.trim()) {
         return 'Judul tugas wajib diisi.';
     }
     const clean = title.trim();
-    // Validasi panjang karakter minimal
-    if (clean.length < 5) {
-        return `Judul tugas minimal 5 karakter (saat ini: ${clean.length} karakter).`;
-    }
-    // Validasi panjang karakter maksimal
     if (clean.length > 100) {
         return `Judul tugas maksimal 100 karakter (saat ini: ${clean.length} karakter).`;
     }
-    return null; // Mengembalikan null jika validasi lolos
+    return null;
 }
 
-// Fungsi ini fungsinya memvalidasi nama mata kuliah agar terisi 3-60 karakter dan format karakter aman
+// Fungsi ini fungsinya memvalidasi nama mata kuliah agar terisi maksimal 60 karakter dan format karakter aman
 export function validateTaskCourse(course) {
-    // Baris ini memastikan nama mata kuliah tidak kosong
     if (!course || typeof course !== 'string' || !course.trim()) {
         return 'Nama mata kuliah wajib diisi.';
     }
     const clean = course.trim();
-    if (clean.length < 3) {
-        return `Nama mata kuliah minimal 3 karakter (saat ini: ${clean.length} karakter).`;
-    }
     if (clean.length > 60) {
         return `Nama mata kuliah maksimal 60 karakter (saat ini: ${clean.length} karakter).`;
     }
-    // Baris ini memverifikasi karakter hanya huruf, angka, spasi, dan simbol umum
     const validPattern = /^[a-zA-Z0-9\s()\-.,&/]+$/;
     if (!validPattern.test(clean)) {
         return 'Nama mata kuliah hanya boleh memuat huruf, angka, spasi, dan tanda baca umum.';
