@@ -40,11 +40,12 @@ class Database
         try {
             $this->conn = new PDO($dsn, $user, $pass, $options);
         } catch (PDOException $e) {
+            error_log('[TaskTrack Database Connection Error] ' . $e->getMessage());
             http_response_code(500);
             header('Content-Type: application/json; charset=utf-8');
             echo json_encode([
                 'status' => 'error',
-                'message' => 'Koneksi Database Gagal: ' . $e->getMessage()
+                'message' => 'Koneksi Database Gagal. Silakan periksa konfigurasi server.'
             ]);
             exit;
         }

@@ -109,12 +109,67 @@ const defaultTasks = [
 ];
 
 // State & Storage
+const API_TASKS_URL = 'api/tasks.php';
+
 let tasks = loadTasks();
 let filterState = {
     course: 'all',
     search: '',
     sort: 'deadline-asc'
 };
+
+function normalizeTaskFromApi(apiTask) {
+    let deadline = apiTask.due_date || apiTask.deadline || '';
+    let status = apiTask.status || 'todo';
+    if (status === 'in_progress') status = 'inprogress';
+
+    return {
+        id: String(apiTask.id),
+        title: apiTask.title || '',
+        course: apiTask.category_name || apiTask.course || 'Umum',
+        category_id: apiTask.category_id || null,
+        category_color: apiTask.category_color || apiTask.color_code || null,
+        deadline: deadline,
+        status: status,
+        priority: (apiTask.priority || 'medium').toLowerCase(),
+        lms_url: apiTask.lms_url || '',
+        lms_label: apiTask.lms_label || (apiTask.lms_url ? 'LMS' : ''),
+        instructions: apiTask.description || apiTask.instructions || ''
+    };
+}
+
+async function fetchTasksFromAPI(queryParams = {}) {
+    try {
+        const url = new URL(API_TASKS_URL, window.location.href);
+        Object.entries(queryParams).forEach(([k, v]) => {
+            if (v !== null && v !== undefined && v !== '' && v !== 'all') {
+                url.searchParams.set(k, v);
+            }
+        });
+
+        const response = await fetch(url.toString(), {
+            headers: { 'Accept': 'application/json' }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const json = await response.json();
+        if (json.status === 'success' && Array.isArray(json.data)) {
+            tasks = json.data.map(normalizeTaskFromApi);
+            localStorage.setItem(STORAGE_KEY_TASKS, JSON.stringify(tasks));
+            updateFilterOptions();
+            renderBoard();
+            renderListView();
+            updateDashboard();
+            renderCalendar();
+            return tasks;
+        }
+    } catch (err) {
+        console.warn('Gagal memuat tugas dari API, menggunakan penyimpanan lokal:', err);
+    }
+}
 
 function loadTasks() {
     const stored = localStorage.getItem(STORAGE_KEY_TASKS);
@@ -143,6 +198,114 @@ function announce(message) {
     }
 }
 
+function showToast(message, type = 'info', duration = 3000) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast-message ${type === 'success' ? 'toast-success' : (type === 'danger' ? 'toast-danger' : '')}`;
+    toast.textContent = message;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        toast.style.transition = 'all 0.2s ease';
+        setTimeout(() => toast.remove(), 200);
+    }, duration);
+}
+
+function showConfirmModal({
+    title = 'Hapus Tugas',
+    message = 'Apakah Anda yakin ingin menghapus data ini?',
+    confirmText = 'Hapus',
+    cancelText = 'Batal',
+    danger = true
+} = {}) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('confirm-modal');
+        const titleEl = document.getElementById('confirm-dialog-title');
+        const msgEl = document.getElementById('confirm-dialog-message');
+        const confirmBtn = document.getElementById('btn-confirm-action');
+        const cancelBtn = document.getElementById('btn-confirm-cancel');
+
+        if (!modal || !confirmBtn || !cancelBtn) {
+            resolve(window.confirm(message));
+            return;
+        }
+
+        if (titleEl) titleEl.textContent = title;
+        if (msgEl) msgEl.textContent = message;
+        confirmBtn.textContent = confirmText;
+        cancelBtn.textContent = cancelText;
+
+        if (danger) {
+            confirmBtn.className = 'btn-apple-danger';
+        } else {
+            confirmBtn.className = 'btn-apple-prominent';
+        }
+
+        let isHandled = false;
+
+        const cleanup = () => {
+            confirmBtn.removeEventListener('click', onConfirm);
+            cancelBtn.removeEventListener('click', onCancel);
+            modal.removeEventListener('cancel', onCancel);
+            modal.removeEventListener('click', onBackdrop);
+        };
+
+        const closeDialog = () => {
+            try {
+                if (typeof modal.close === 'function') modal.close();
+            } catch (_) {}
+            modal.removeAttribute('open');
+        };
+
+        const onConfirm = () => {
+            if (isHandled) return;
+            isHandled = true;
+            cleanup();
+            closeDialog();
+            resolve(true);
+        };
+
+        const onCancel = () => {
+            if (isHandled) return;
+            isHandled = true;
+            cleanup();
+            closeDialog();
+            resolve(false);
+        };
+
+        const onBackdrop = (e) => {
+            if (e.target === modal) {
+                onCancel();
+            }
+        };
+
+        confirmBtn.addEventListener('click', onConfirm);
+        cancelBtn.addEventListener('click', onCancel);
+        modal.addEventListener('cancel', (e) => {
+            e.preventDefault();
+            onCancel();
+        });
+        modal.addEventListener('click', onBackdrop);
+
+        if (typeof modal.showModal === 'function') {
+            try {
+                modal.showModal();
+            } catch (_) {
+                modal.setAttribute('open', '');
+            }
+        } else {
+            modal.setAttribute('open', '');
+        }
+
+        setTimeout(() => cancelBtn.focus(), 50);
+    });
+}
+
 function escapeHtml(val) {
     if (val === null || val === undefined) return '';
     return String(val)
@@ -153,6 +316,15 @@ function escapeHtml(val) {
         .replace(/'/g, '&#039;');
 }
 const safeStr = escapeHtml;
+
+function safeUrl(url) {
+    if (!url || typeof url !== 'string') return '';
+    const clean = url.trim();
+    if (/^https?:\/\//i.test(clean)) {
+        return clean;
+    }
+    return '';
+}
 
 function formatDeadline(deadlineStr, status) {
     if (!deadlineStr) return { dateStr: 'Belum ditentukan', timeStr: 'Segera', isOverdue: false };
@@ -290,6 +462,7 @@ function initFilterAndSortControls() {
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             filterState.search = e.target.value.toLowerCase().trim();
+            listPagination.page = 1;
             renderBoard();
             renderListView();
         });
@@ -313,6 +486,7 @@ function initFilterAndSortControls() {
     if (filterSelect) {
         filterSelect.addEventListener('change', () => {
             filterState.course = filterSelect.value;
+            listPagination.page = 1;
             if (filterCurrentLabel) {
                 filterCurrentLabel.textContent = filterSelect.value === 'all' ? 'Filter' : filterSelect.value;
             }
@@ -361,6 +535,7 @@ const closeDetailModalBtn = document.getElementById('btn-close-detail-modal');
 const closeDetailSecondaryBtn = document.getElementById('btn-close-detail-secondary');
 const copyDetailNotesBtn = document.getElementById('btn-copy-detail-notes');
 const editFromDetailBtn = document.getElementById('btn-edit-from-detail');
+const deleteFromDetailBtn = document.getElementById('btn-delete-from-detail');
 let activeDetailTaskId = null; // Menyimpan ID tugas yang sedang aktif dibuka pada modal detail
 
 function openDetailModal(taskId) {
@@ -399,8 +574,9 @@ function openDetailModal(taskId) {
     }
 
     if (lmsEl) {
-        if (task.lms_url) {
-            lmsEl.innerHTML = `<a href="${escapeHtml(task.lms_url)}" target="_blank" rel="noopener noreferrer" class="btn-lms-link">${ICONS.link} <span>${escapeHtml(task.lms_label || 'Buka Link')}</span></a>`;
+        const validLmsUrl = safeUrl(task.lms_url);
+        if (validLmsUrl) {
+            lmsEl.innerHTML = `<a href="${escapeHtml(validLmsUrl)}" target="_blank" rel="noopener noreferrer" class="btn-lms-link">${ICONS.link} <span>${escapeHtml(task.lms_label || 'Buka Link')}</span></a>`;
         } else {
             lmsEl.innerHTML = '<span style="color: var(--text-muted); font-size: 0.8rem;">Tidak ada tautan</span>';
         }
@@ -450,12 +626,26 @@ function closeDetailModal() {
     activeDetailTaskId = null;
 }
 
-function updateTaskStatus(taskId, newStatus) {
+async function updateTaskStatus(taskId, newStatus) {
     const task = findTaskById(tasks, taskId);
     if (!task) return;
     task.status = newStatus;
     saveTasks(); // Simpan dan perbarui tampilan kanban
     announce(`Status tugas "${task.title}" diperbarui ke ${newStatus}`);
+
+    try {
+        const apiStatus = newStatus === 'inprogress' ? 'in_progress' : newStatus;
+        await fetch(`${API_TASKS_URL}?id=${encodeURIComponent(taskId)}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ status: apiStatus })
+        });
+    } catch (err) {
+        console.warn('Gagal sync status ke server:', err);
+    }
 }
 
 const summaryModal = document.getElementById('summary-modal');
@@ -565,11 +755,12 @@ function renderBoard() {
         }
 
         let lmsButtonHtml = '';
-        if (task.lms_url) {
+        const validTaskUrl = safeUrl(task.lms_url);
+        if (validTaskUrl) {
             const label = escapeHtml((task.lms_label || 'LMS').replace(/[^\x20-\x7E]/g, '').trim());
             const isUrgentLink = timeInfo.isOverdue && task.status !== 'done';
             lmsButtonHtml = `
-                <a href="${escapeHtml(task.lms_url)}" target="_blank" rel="noopener noreferrer" 
+                <a href="${escapeHtml(validTaskUrl)}" target="_blank" rel="noopener noreferrer" 
                    class="btn-lms-link ${isUrgentLink ? 'btn-lms-urgent' : ''}" 
                    aria-label="Buka pengumpulan untuk ${escapeHtml(task.title)}">
                     ${ICONS.link}
@@ -646,7 +837,9 @@ function renderBoard() {
     attachCardActionListeners();
 }
 
-// List View Rendering
+// List View Rendering & Pagination
+let listPagination = { page: 1, limit: 5 };
+
 function renderListView() {
     const rowsContainer = document.getElementById('list-view-rows');
     if (!rowsContainer) return;
@@ -655,13 +848,24 @@ function renderListView() {
 
     if (sortedTasks.length === 0) {
         rowsContainer.innerHTML = '<div class="empty-column-notice">Tidak ada tugas yang sesuai dengan pencarian atau filter.</div>';
+        const oldBar = document.getElementById('list-view-pagination');
+        if (oldBar) oldBar.remove();
         return;
     }
 
-    rowsContainer.innerHTML = sortedTasks.map(t => {
+    const totalRecords = sortedTasks.length;
+    const totalPages = Math.ceil(totalRecords / listPagination.limit) || 1;
+    if (listPagination.page > totalPages) listPagination.page = totalPages;
+    if (listPagination.page < 1) listPagination.page = 1;
+
+    const startIndex = (listPagination.page - 1) * listPagination.limit;
+    const pageTasks = sortedTasks.slice(startIndex, startIndex + listPagination.limit);
+
+    rowsContainer.innerHTML = pageTasks.map(t => {
         const timeInfo = formatDeadline(t.deadline, t.status);
-        const lmsPill = t.lms_url ?
-            `<a href="${escapeHtml(t.lms_url)}" target="_blank" class="btn-lms-link">${ICONS.link} <span>${escapeHtml(t.lms_label || 'LMS')}</span></a>` :
+        const validListUrl = safeUrl(t.lms_url);
+        const lmsPill = validListUrl ?
+            `<a href="${escapeHtml(validListUrl)}" target="_blank" rel="noopener noreferrer" class="btn-lms-link">${ICONS.link} <span>${escapeHtml(t.lms_label || 'LMS')}</span></a>` :
             `<span style="color: var(--text-muted); font-size: 0.75rem;">-</span>`;
 
         return `
@@ -691,6 +895,43 @@ function renderListView() {
     });
     rowsContainer.querySelectorAll('.btn-delete').forEach(btn => {
         btn.addEventListener('click', () => deleteTask(btn.getAttribute('data-id')));
+    });
+
+    let paginationBar = document.getElementById('list-view-pagination');
+    if (!paginationBar) {
+        paginationBar = document.createElement('div');
+        paginationBar.id = 'list-view-pagination';
+        paginationBar.className = 'apple-pagination-bar';
+        rowsContainer.parentNode.appendChild(paginationBar);
+    }
+
+    const endDisplay = Math.min(startIndex + listPagination.limit, totalRecords);
+    paginationBar.innerHTML = `
+        <div class="pagination-info">Menampilkan ${startIndex + 1}&ndash;${endDisplay} dari ${totalRecords} tugas</div>
+        <div class="pagination-controls">
+            <button type="button" class="btn-pagination-nav" id="btn-page-prev" ${listPagination.page <= 1 ? 'disabled' : ''}>
+                &larr; Sebelumnya
+            </button>
+            <span class="pagination-indicator">Halaman ${listPagination.page} / ${totalPages}</span>
+            <button type="button" class="btn-pagination-nav" id="btn-page-next" ${listPagination.page >= totalPages ? 'disabled' : ''}>
+                Berikutnya &rarr;
+            </button>
+        </div>
+    `;
+
+    const prevBtn = document.getElementById('btn-page-prev');
+    const nextBtn = document.getElementById('btn-page-next');
+    if (prevBtn) prevBtn.addEventListener('click', () => {
+        if (listPagination.page > 1) {
+            listPagination.page--;
+            renderListView();
+        }
+    });
+    if (nextBtn) nextBtn.addEventListener('click', () => {
+        if (listPagination.page < totalPages) {
+            listPagination.page++;
+            renderListView();
+        }
     });
 }
 
@@ -740,9 +981,7 @@ function initDropzones() {
 
             const taskIndex = findTaskIndex(tasks, id);
             if (taskIndex > -1 && tasks[taskIndex].status !== statusKey) {
-                tasks[taskIndex].status = statusKey; // Ubah status tugas ke kolom baru
-                saveTasks();
-                announce(`Tugas "${tasks[taskIndex].title}" dipindahkan ke kolom ${statusKey}`);
+                updateTaskStatus(id, statusKey);
             }
         });
     });
@@ -753,11 +992,8 @@ function attachCardActionListeners() {
         btn.addEventListener('click', () => {
             const id = btn.getAttribute('data-id');
             const nextStatus = btn.getAttribute('data-next');
-            const task = findTaskById(tasks, id);
-            if (task && nextStatus) {
-                task.status = nextStatus;
-                saveTasks();
-                announce(`Tugas "${task.title}" dipindahkan ke ${nextStatus}`);
+            if (id && nextStatus) {
+                updateTaskStatus(id, nextStatus);
             }
         });
     });
@@ -893,34 +1129,53 @@ let lastActiveTrigger = null; // Menyimpan elemen tombol yang aktif sebelum moda
 function openTaskModal(task = null) {
     if (!taskModal) return;
 
+    disableBrowserAutofill();
     clearAllFieldErrors();
     hideErrorSummary();
 
+    const formTitle = document.getElementById('form-title');
+    const saveBtnLabel = document.getElementById('save-btn-label');
+
     if (task) {
-        document.getElementById('task-id').value = task.id;
-        document.getElementById('input-judul').value = task.title;
-        document.getElementById('input-matkul').value = task.course;
-        document.getElementById('input-deadline').value = task.deadline;
-        document.getElementById('input-priority').value = task.priority || 'medium';
-        document.getElementById('input-status').value = task.status || 'todo';
-        document.getElementById('input-url').value = task.lms_url || '';
-        document.getElementById('input-url-label').value = task.lms_label || '';
-        document.getElementById('input-notes').value = task.instructions || '';
+        const taskIdInput = document.getElementById('task-id');
+        if (taskIdInput) taskIdInput.value = task.id;
+        const inputJudul = document.getElementById('input-judul');
+        if (inputJudul) inputJudul.value = task.title;
+        const inputMatkul = document.getElementById('input-matkul');
+        if (inputMatkul) inputMatkul.value = task.course;
+        let dVal = task.deadline || '';
+        if (dVal && dVal.length === 10) dVal += 'T23:59';
+        const inputDeadline = document.getElementById('input-deadline');
+        if (inputDeadline) inputDeadline.value = dVal;
+        const inputPriority = document.getElementById('input-priority');
+        if (inputPriority) inputPriority.value = task.priority || 'medium';
+        const inputStatus = document.getElementById('input-status');
+        if (inputStatus) inputStatus.value = task.status || 'todo';
+        const inputUrl = document.getElementById('input-url');
+        if (inputUrl) inputUrl.value = task.lms_url || '';
+        const inputUrlLabel = document.getElementById('input-url-label');
+        if (inputUrlLabel) inputUrlLabel.value = task.lms_label || '';
+        const inputNotes = document.getElementById('input-notes');
+        if (inputNotes) inputNotes.value = task.instructions || '';
         updateNotesCounter(task.instructions || '');
 
-        document.getElementById('form-title').textContent = 'Perbarui Kartu Tugas';
-        document.getElementById('save-btn-label').textContent = 'Perbarui Kartu Tugas';
+        if (formTitle) formTitle.textContent = 'Perbarui Kartu Tugas';
+        if (saveBtnLabel) saveBtnLabel.textContent = 'Perbarui Kartu Tugas';
         announce(`Formulir dibuka untuk menyunting tugas "${task.title}"`);
     } else {
         resetTaskForm();
-        document.getElementById('form-title').textContent = 'Tambah Tugas Kuliah Baru';
-        document.getElementById('save-btn-label').textContent = 'Simpan Kartu Tugas';
+        if (formTitle) formTitle.textContent = 'Tambah Tugas Kuliah Baru';
+        if (saveBtnLabel) saveBtnLabel.textContent = 'Simpan Kartu Tugas';
         announce('Formulir tambah tugas baru dibuka');
     }
 
-    if (typeof taskModal.showModal === 'function') {
-        taskModal.showModal();
-    } else {
+    try {
+        if (typeof taskModal.showModal === 'function') {
+            taskModal.showModal();
+        } else {
+            taskModal.setAttribute('open', '');
+        }
+    } catch (_) {
         taskModal.setAttribute('open', '');
     }
 
@@ -938,11 +1193,12 @@ function openTaskModal(task = null) {
 function closeTaskModal() {
     if (!taskModal) return;
 
-    if (typeof taskModal.close === 'function') {
-        taskModal.close();
-    } else {
-        taskModal.removeAttribute('open');
-    }
+    try {
+        if (typeof taskModal.close === 'function') {
+            taskModal.close();
+        }
+    } catch (_) {}
+    taskModal.removeAttribute('open');
 
     const allTriggers = [
         document.getElementById('btn-new-task-trigger'),
@@ -951,7 +1207,7 @@ function closeTaskModal() {
     allTriggers.forEach(btn => { if (btn) btn.setAttribute('aria-expanded', 'false'); });
 
     if (lastActiveTrigger) {
-        lastActiveTrigger.focus();
+        try { lastActiveTrigger.focus(); } catch (_) {}
         lastActiveTrigger = null;
     }
 }
@@ -964,22 +1220,72 @@ function editTask(id) {
     openTaskModal(task);
 }
 
-function deleteTask(id) {
+async function deleteTask(id) {
+    if (id === null || id === undefined || id === '') return;
     const task = findTaskById(tasks, id);
-    if (!task) return;
+    const taskTitle = task ? task.title : 'tugas ini';
 
-    if (confirm(`Apakah Anda yakin ingin menghapus tugas "${task.title}"?`)) {
-        tasks = tasks.filter(t => t.id !== id);
+    const confirmed = await showConfirmModal({
+        title: 'Hapus Tugas',
+        message: task ? `Apakah Anda yakin ingin menghapus tugas "${taskTitle}"? Tindakan ini tidak dapat dibatalkan.` : 'Apakah Anda yakin ingin menghapus tugas ini?',
+        confirmText: 'Hapus Tugas',
+        cancelText: 'Batal',
+        danger: true
+    });
+
+    if (!confirmed) return;
+
+    // Cek apakah tugas ada di database server (ID numerik) atau lokal/demo ('task-1', dll)
+    const isServerTask = !isNaN(Number(id)) && !String(id).startsWith('task-');
+
+    if (!isServerTask) {
+        tasks = tasks.filter(t => String(t.id) !== String(id));
         saveTasks();
-        announce(`Tugas "${task.title}" telah dihapus`);
+        announce(`Tugas "${taskTitle}" berhasil dihapus`);
+        showToast(`Tugas "${taskTitle}" berhasil dihapus`, 'success');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_TASKS_URL}?id=${encodeURIComponent(id)}`, {
+            method: 'DELETE',
+            headers: { 'Accept': 'application/json' }
+        });
+
+        const resData = await response.json().catch(() => ({}));
+
+        if (response.ok || response.status === 404) {
+            tasks = tasks.filter(t => String(t.id) !== String(id));
+            saveTasks();
+            announce(`Tugas "${taskTitle}" berhasil dihapus dari sistem`);
+            showToast(`Tugas "${taskTitle}" berhasil dihapus`, 'success');
+        } else {
+            const errorMsg = resData.error?.message || 'Gagal menghapus tugas dari server.';
+            showToast(errorMsg, 'danger');
+        }
+    } catch (err) {
+        console.warn('Gagal koneksi server saat menghapus tugas, hapus offline:', err);
+        tasks = tasks.filter(t => String(t.id) !== String(id));
+        saveTasks();
+        announce(`Tugas "${taskTitle}" dihapus secara lokal`);
+        showToast(`Tugas "${taskTitle}" dihapus secara lokal`, 'info');
     }
 }
 
 function resetTaskForm() {
     if (!taskForm) return;
-    taskForm.reset();
-    document.getElementById('task-id').value = '';
-    document.getElementById('save-btn-label').textContent = 'Simpan Kartu Tugas';
+    try {
+        taskForm.reset();
+    } catch (_) {}
+    const taskIdInput = document.getElementById('task-id');
+    if (taskIdInput) taskIdInput.value = '';
+
+    const saveBtnLabel = document.getElementById('save-btn-label');
+    if (saveBtnLabel) saveBtnLabel.textContent = 'Simpan Kartu Tugas';
+
+    const formTitle = document.getElementById('form-title');
+    if (formTitle) formTitle.textContent = 'Tambah Tugas Kuliah Baru';
+
     clearAllFieldErrors();
     hideErrorSummary();
     updateNotesCounter('');
@@ -1583,11 +1889,22 @@ function renderCalendarDayCell(year, month, day, dayTasks, today) {
         cell.classList.add('today');
     }
 
-    const pillsHtml = dayTasks.map(renderCalendarTaskPill).join('');
-    cell.innerHTML = `
-        <span class="cal-cell-num">${day}</span>
-        ${pillsHtml}
-    `;
+    if (dayTasks && dayTasks.length > 0) {
+        cell.classList.add('has-tasks');
+        const pillsHtml = dayTasks.map(renderCalendarTaskPill).join('');
+        cell.innerHTML = `
+            <div class="cal-cell-grid">
+                <span class="cal-cell-num">${day}</span>
+                <div class="cal-tasks-wrapper">
+                    ${pillsHtml}
+                </div>
+            </div>
+        `;
+    } else {
+        cell.innerHTML = `
+            <span class="cal-cell-num">${day}</span>
+        `;
+    }
 
     return cell;
 }
@@ -1657,9 +1974,23 @@ function activateKanbanView() {
     }
 }
 
+// Matikan autofill & form history bawaan browser
+function disableBrowserAutofill() {
+    document.querySelectorAll('form').forEach(f => {
+        f.setAttribute('autocomplete', 'off');
+    });
+    document.querySelectorAll('input:not([type="checkbox"]):not([type="radio"]), textarea').forEach(el => {
+        el.setAttribute('autocomplete', 'off');
+        el.setAttribute('autocorrect', 'off');
+        el.setAttribute('autocapitalize', 'off');
+        el.setAttribute('spellcheck', 'false');
+    });
+}
+
 // App Initialization
 
 function initApp() {
+    disableBrowserAutofill();
     initPreferences();
     initFilterAndSortControls();
     initDropzones();
@@ -1671,6 +2002,9 @@ function initApp() {
     renderListView();
     updateDashboard();
     renderCalendar();
+
+    // Fetch dynamic tasks dari RESTful API backend
+    fetchTasksFromAPI();
 
     fetchMiniDashboardData();
 
@@ -1797,7 +2131,7 @@ function initApp() {
     }
 
     if (taskForm) {
-        taskForm.addEventListener('submit', (e) => {
+        taskForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const rawData = collectFormData();
@@ -1816,31 +2150,110 @@ function initApp() {
                 return;
             }
 
+            const apiPayload = {
+                title: result.sanitizedData.title,
+                course: result.sanitizedData.course,
+                due_date: result.sanitizedData.deadline ? result.sanitizedData.deadline.slice(0, 10) : '',
+                priority: result.sanitizedData.priority,
+                status: result.sanitizedData.status === 'inprogress' ? 'in_progress' : result.sanitizedData.status,
+                description: result.sanitizedData.instructions || '',
+                lms_url: result.sanitizedData.lms_url || '',
+                lms_label: result.sanitizedData.lms_label || ''
+            };
+
+            const submitBtn = taskForm.querySelector('button[type="submit"]');
+            const saveBtnLabel = document.getElementById('save-btn-label');
+            const defaultBtnText = isNew ? 'Simpan Kartu Tugas' : 'Perbarui Kartu Tugas';
+
+            if (submitBtn) submitBtn.disabled = true;
+            if (saveBtnLabel) saveBtnLabel.textContent = 'Menyimpan...';
+
+            let saved = false;
+
             try {
-                const validatedTask = validateTask(result.sanitizedData);
+                const url = isNew ? API_TASKS_URL : `${API_TASKS_URL}?id=${encodeURIComponent(editId)}`;
+                const method = isNew ? 'POST' : 'PUT';
 
-                if (!isNew) {
-                    const idx = findTaskIndex(tasks, editId);
-                    if (idx > -1) {
-                        tasks[idx] = validatedTask;
-                        announce(`Tugas "${validatedTask.title}" berhasil diperbarui`);
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(apiPayload)
+                });
+
+                const resJson = await response.json().catch(() => ({}));
+
+                if (response.ok && resJson.status === 'success') {
+                    saved = true;
+                    const savedTask = normalizeTaskFromApi(resJson.data);
+                    const successMsg = isNew
+                        ? `Tugas baru "${savedTask.title}" berhasil ditambahkan`
+                        : `Tugas "${savedTask.title}" berhasil diperbarui`;
+
+                    // 1. Tutup modal & reset form terlebih dahulu
+                    closeTaskModal();
+                    resetTaskForm();
+
+                    // 2. Perbarui state lokal & render LANGSUNG ke layar (instan)
+                    if (isNew) {
+                        tasks = tasks.filter(t => String(t.id) !== String(savedTask.id));
+                        tasks.unshift(savedTask);
+                    } else {
+                        const idx = tasks.findIndex(t => String(t.id) === String(editId));
+                        if (idx > -1) tasks[idx] = savedTask;
+                        else tasks.unshift(savedTask);
                     }
-                } else {
-                    tasks.push(validatedTask);
-                    announce(`Tugas baru "${validatedTask.title}" berhasil ditambahkan`);
-                }
 
-                saveTasks();
-                resetTaskForm();
-                closeTaskModal();
-            } catch (err) {
-                if (err instanceof TaskDataError) {
-                    showErrorSummary({ _general: err.message });
-                    announce(`Validasi gagal: ${err.message}`);
+                    saveTasks();
+                    announce(successMsg);
+
+                    // 3. Re-sync dari backend di background
+                    fetchTasksFromAPI();
+
+                } else if (response.status === 400 && resJson.error?.fields) {
+                    Object.entries(resJson.error.fields).forEach(([fKey, msg]) => {
+                        const mappedKey = fKey === 'due_date' ? 'deadline' : (fKey === 'description' ? 'instructions' : fKey);
+                        showFieldError(mappedKey, msg);
+                    });
+                    showErrorSummary(resJson.error.fields);
+                    announce('Validasi server gagal. Periksa kolom isian yang bermasalah.');
+                } else if (response.status === 404) {
+                    showErrorSummary({ _general: 'Tugas tidak ditemukan di server.' });
+                    announce('Tugas tidak ditemukan di server.');
                 } else {
-                    console.error('Terjadi kesalahan:', err);
-                    showErrorSummary({ _general: 'Terjadi kesalahan yang tidak diharapkan.' });
+                    const msg = resJson.error?.message || 'Terjadi kesalahan saat memproses data di server.';
+                    showErrorSummary({ _general: msg });
+                    announce(`Gagal menyimpan: ${msg}`);
                 }
+            } catch (networkErr) {
+                console.warn('Gagal koneksi API server, fallback ke local storage:', networkErr);
+                saved = true;
+
+                closeTaskModal();
+                resetTaskForm();
+
+                // Fallback offline
+                try {
+                    const validatedTask = validateTask(result.sanitizedData);
+                    if (!isNew) {
+                        const idx = findTaskIndex(tasks, editId);
+                        if (idx > -1) tasks[idx] = validatedTask;
+                    } else {
+                        tasks = tasks.filter(t => String(t.id) !== String(validatedTask.id));
+                        tasks.unshift(validatedTask);
+                    }
+                    const offlineMsg = isNew
+                        ? `Tugas baru "${result.sanitizedData.title}" berhasil ditambahkan (offline)`
+                        : `Tugas "${result.sanitizedData.title}" berhasil diperbarui (offline)`;
+                    saveTasks();
+                    announce(offlineMsg);
+                } catch (_) { /* silent */ }
+            } finally {
+                if (submitBtn) submitBtn.disabled = false;
+                const labelEl = document.getElementById('save-btn-label');
+                if (labelEl) labelEl.textContent = defaultBtnText;
             }
         });
     }
@@ -1885,7 +2298,7 @@ function initApp() {
         copyDetailNotesBtn.addEventListener('click', async () => {
             const task = findTaskById(tasks, activeDetailTaskId);
             if (!task || !task.instructions) {
-                alert('Tidak ada instruksi untuk disalin.');
+                showToast('Tidak ada instruksi untuk disalin.', 'info');
                 return;
             }
             try {
@@ -1897,8 +2310,9 @@ function initApp() {
                     setTimeout(() => { label.textContent = original; }, 1800);
                 }
                 announce('Catatan tugas berhasil disalin ke clipboard');
+                showToast('Catatan tugas berhasil disalin ke clipboard', 'success');
             } catch {
-                alert('Gagal menyalin catatan ke clipboard');
+                showToast('Gagal menyalin catatan ke clipboard', 'danger');
             }
         });
     }
@@ -1908,6 +2322,16 @@ function initApp() {
             const id = activeDetailTaskId;
             closeDetailModal();
             if (id) editTask(id);
+        });
+    }
+
+    if (deleteFromDetailBtn) {
+        deleteFromDetailBtn.addEventListener('click', () => {
+            const id = activeDetailTaskId;
+            if (id) {
+                closeDetailModal();
+                deleteTask(id);
+            }
         });
     }
 
@@ -1971,12 +2395,7 @@ function initApp() {
 
     if (googleSsoBtn) {
         googleSsoBtn.addEventListener('click', () => {
-            const mock = { name: 'Muhammad Dzakir Dzakwan', email: 'dzakir.dzakwan@mahasiswa.ac.id' };
-            localStorage.setItem(STORAGE_KEY_AUTH, JSON.stringify(mock));
-            if (profileUserName) profileUserName.textContent = mock.name;
-            closeSettingsModal();
-            alert('Berhasil masuk via Google!');
-            announce('Berhasil masuk menggunakan Google');
+            window.location.href = 'auth/google.php';
         });
     }
 
@@ -1984,7 +2403,7 @@ function initApp() {
     if (notifDashboardBtn) {
         notifDashboardBtn.addEventListener('click', async () => {
             if (!('Notification' in window)) {
-                alert('Browser Anda belum mendukung Web Notification API.');
+                showToast('Browser Anda belum mendukung Web Notification API.', 'info');
                 return;
             }
             try {
@@ -1996,7 +2415,7 @@ function initApp() {
                         body: 'Pengingat deadline otomatis H-1 dan H-3 jam sebelum waktu pengumpulan telah diaktifkan.',
                         icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="%23141720"/><path d="M10 16.5L14 20.5L22 11" stroke="%23facc15" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>'
                     });
-                    alert('Izin notifikasi berhasil diaktifkan!');
+                    showToast('Izin notifikasi berhasil diaktifkan!', 'success');
                 }
             } catch (e) {
                 console.error('Izin notifikasi gagal', e);
@@ -2012,7 +2431,183 @@ function initApp() {
         initMiniDashboard();
     }
 
+    // Inisialisasi Manajemen Portal Perkuliahan Kustom (Default Kosong)
+    initPortalManager();
+
     switchView('view-dashboard');
+}
+
+// =========================================================================
+// Custom Campus Portals Management (Per-User, Default: Empty)
+// =========================================================================
+function initPortalManager() {
+    const userEmailEl = document.getElementById('profile-user-email');
+    const userKey = userEmailEl && userEmailEl.textContent.trim() 
+        ? userEmailEl.textContent.trim().toLowerCase().replace(/[^a-z0-9]/g, '_') 
+        : 'default';
+    const STORAGE_KEY_PORTALS = `tasktrack_portals_${userKey}`;
+
+    const portalListEl = document.getElementById('sidebar-portal-list');
+    const portalEmptyEl = document.getElementById('portal-empty-notice');
+    const addPortalBtn = document.getElementById('btn-add-portal-trigger');
+    const quickAddPortalBtn = document.getElementById('btn-portal-quick-add');
+    const portalModal = document.getElementById('portal-modal');
+    const closePortalModalBtn = document.getElementById('btn-close-portal-modal');
+    const cancelPortalBtn = document.getElementById('btn-cancel-portal');
+    const portalForm = document.getElementById('portal-form');
+
+    function loadPortals() {
+        const stored = localStorage.getItem(STORAGE_KEY_PORTALS);
+        if (!stored) return []; // Default kosong untuk akun baru
+        try {
+            const parsed = JSON.parse(stored);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (_) {
+            return [];
+        }
+    }
+
+    function savePortals(portals) {
+        localStorage.setItem(STORAGE_KEY_PORTALS, JSON.stringify(portals));
+    }
+
+    function renderPortals() {
+        if (!portalListEl) return;
+        const portals = loadPortals();
+
+        if (portals.length === 0) {
+            portalListEl.innerHTML = '';
+            if (portalEmptyEl) portalEmptyEl.style.display = 'flex';
+            return;
+        }
+
+        if (portalEmptyEl) portalEmptyEl.style.display = 'none';
+
+        portalListEl.innerHTML = portals.map(p => {
+            const safeName = escapeHtml(p.name);
+            const safePortalUrl = safeUrl(p.url) || '#';
+            const color = escapeHtml(p.color || '#3b82f6');
+            return `
+                <li>
+                    <div class="sidebar-portal-item">
+                        <a href="${safePortalUrl}" target="_blank" rel="noopener noreferrer" class="sidebar-external-link" title="${safeName} (${safePortalUrl})">
+                            <span class="portal-indicator-dot" style="background: ${color};" aria-hidden="true"></span>
+                            <span>${safeName}</span>
+                            <svg class="ext-arrow" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                        </a>
+                        <button type="button" class="btn-delete-portal" data-id="${escapeHtml(p.id)}" title="Hapus portal ${safeName}" aria-label="Hapus portal ${safeName}">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    </div>
+                </li>
+            `;
+        }).join('');
+
+        portalListEl.querySelectorAll('.btn-delete-portal').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const id = btn.getAttribute('data-id');
+                const pList = loadPortals();
+                const targetP = pList.find(p => p.id === id);
+                const pName = targetP ? targetP.name : 'ini';
+
+                const confirmed = await showConfirmModal({
+                    title: 'Hapus Portal Perkuliahan',
+                    message: `Hapus tautan portal "${pName}" dari daftar pintasan sidebar?`,
+                    confirmText: 'Hapus Portal',
+                    cancelText: 'Batal',
+                    danger: true
+                });
+
+                if (confirmed) {
+                    const updated = pList.filter(p => p.id !== id);
+                    savePortals(updated);
+                    renderPortals();
+                    announce('Portal berhasil dihapus');
+                    showToast(`Portal "${pName}" berhasil dihapus`, 'success');
+                }
+            });
+        });
+    }
+
+    function openPortalModal() {
+        if (!portalModal) return;
+        if (portalForm) portalForm.reset();
+        if (typeof portalModal.showModal === 'function') {
+            try { portalModal.showModal(); } catch (_) { portalModal.setAttribute('open', ''); }
+        } else {
+            portalModal.setAttribute('open', '');
+        }
+        setTimeout(() => {
+            const inputName = document.getElementById('input-portal-name');
+            if (inputName) inputName.focus();
+        }, 60);
+    }
+
+    function closePortalModal() {
+        if (!portalModal) return;
+        try {
+            if (typeof portalModal.close === 'function') portalModal.close();
+        } catch (_) {}
+        portalModal.removeAttribute('open');
+    }
+
+    if (addPortalBtn) addPortalBtn.addEventListener('click', openPortalModal);
+    if (quickAddPortalBtn) quickAddPortalBtn.addEventListener('click', openPortalModal);
+    if (closePortalModalBtn) closePortalModalBtn.addEventListener('click', closePortalModal);
+    if (cancelPortalBtn) cancelPortalBtn.addEventListener('click', closePortalModal);
+
+    if (portalModal) {
+        portalModal.addEventListener('click', (e) => {
+            if (e.target === portalModal) closePortalModal();
+        });
+    }
+
+    if (portalForm) {
+        portalForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nameInput = document.getElementById('input-portal-name');
+            const urlInput = document.getElementById('input-portal-url');
+            const colorSelect = document.getElementById('select-portal-color');
+
+            const name = (nameInput?.value || '').trim();
+            let url = (urlInput?.value || '').trim();
+            const color = colorSelect?.value || '#3b82f6';
+
+            if (!name) {
+                showToast('Nama portal wajib diisi.', 'danger');
+                nameInput?.focus();
+                return;
+            }
+
+            if (!url) {
+                showToast('URL tautan wajib diisi.', 'danger');
+                urlInput?.focus();
+                return;
+            }
+
+            // Normalisasi protokol URL jika user tidak mengetikkan http/https
+            if (!/^https?:\/\//i.test(url)) {
+                url = 'https://' + url;
+            }
+
+            const currentPortals = loadPortals();
+            currentPortals.push({
+                id: 'portal-' + Date.now(),
+                name: name,
+                url: url,
+                color: color
+            });
+
+            savePortals(currentPortals);
+            renderPortals();
+            closePortalModal();
+            announce(`Portal "${name}" berhasil ditambahkan`);
+        });
+    }
+
+    // Render awal
+    renderPortals();
 }
 
 if (document.readyState === 'loading') {

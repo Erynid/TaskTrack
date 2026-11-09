@@ -2,8 +2,8 @@
   "status": "success",
   "generated_at": "2026-10-13T19:00:00Z",
   "student": {
-    "name": "Muhammad Dzakir Dzakwan",
-    "nim": "24060122140123",
+    "name": "Mahasiswa TaskTrack",
+    "nim": null,
     "major": "Informatika",
     "semester": "Semester 5 (Ganjil 2026/2027)",
     "ipk_target": 3.85,

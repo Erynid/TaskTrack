@@ -1,0 +1,43 @@
+# ==============================================================================
+# TaskTrack - Apache Security Configuration (.htaccess)
+# ==============================================================================
+
+# 1. Matikan Directory Browsing (Listing berkas folder)
+Options -Indexes
+
+# 2. Blokir Akses Langsung ke Berkas Dotfiles (.env, .git, .gitignore, dll.)
+<FilesMatch "^\.">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# 3. Blokir Akses Langsung ke Berkas Konfigurasi, Database, & Data Mentah
+<FilesMatch "(^#.*#|\.(bak|config|dist|fla|inc|ini|log|psd|sh|sql|sw[op]|env))$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# 4. Blokir Akses Langsung ke Folder Data Internal
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^data/ - [F,L]
+</IfModule>
+
+# 5. Pasang HTTP Security Headers Standar (Defense in Depth)
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+

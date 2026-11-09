@@ -1,6 +1,6 @@
 <?php
 /**
- * Reusable Component: FeatureCard
+ * Reusable Component: FeatureCard (Apple Bento Edition)
  *
  * @param array $props [
  *   'icon' => string (SVG markup),
@@ -8,7 +8,9 @@
  *   'desc' => string,
  *   'tag' => string,
  *   'tag_class' => string,
- *   'col_span' => string
+ *   'col_span' => string,
+ *   'variant' => string ('hero' | 'medium' | 'compact' | 'wide'),
+ *   'visual_html' => string (optional HTML snippet rendered inside)
  * ]
  */
 function renderFeatureCard(array $props): void {
@@ -18,16 +20,27 @@ function renderFeatureCard(array $props): void {
     $tag = htmlspecialchars($props['tag'] ?? 'Fitur');
     $tagClass = htmlspecialchars($props['tag_class'] ?? 'tag-primary');
     $colSpan = htmlspecialchars($props['col_span'] ?? '');
+    $variant = htmlspecialchars($props['variant'] ?? 'default');
+    $visualHtml = $props['visual_html'] ?? '';
 ?>
-<div class="feature-card <?php echo $colSpan; ?>" role="article">
-    <div class="feature-card-header">
-        <div class="feature-icon-bubble" aria-hidden="true">
-            <?php echo $iconSvg; ?>
+<div class="bento-card bento-card-<?php echo $variant; ?> <?php echo $colSpan; ?>" role="article">
+    <div class="bento-card-content">
+        <div class="bento-header-row">
+            <?php if (!empty($iconSvg)): ?>
+                <div class="bento-icon-ring" aria-hidden="true">
+                    <?php echo $iconSvg; ?>
+                </div>
+            <?php endif; ?>
+            <span class="bento-badge <?php echo $tagClass; ?>"><?php echo $tag; ?></span>
         </div>
-        <span class="feature-tag <?php echo $tagClass; ?>"><?php echo $tag; ?></span>
+        <h3 class="bento-title"><?php echo $title; ?></h3>
+        <p class="bento-desc"><?php echo $desc; ?></p>
+        <?php if (!empty($visualHtml)): ?>
+            <div class="bento-visual-slot">
+                <?php echo $visualHtml; ?>
+            </div>
+        <?php endif; ?>
     </div>
-    <h3 class="feature-title"><?php echo $title; ?></h3>
-    <p class="feature-desc"><?php echo $desc; ?></p>
 </div>
 <?php
 }

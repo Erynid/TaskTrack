@@ -11,7 +11,14 @@ function renderTaskCard(array $task): void {
     $deadline = htmlspecialchars($task['deadline'] ?? '');
     $status = htmlspecialchars($task['status'] ?? 'todo');
     $priority = strtolower($task['priority'] ?? 'medium');
-    $lmsUrl = htmlspecialchars($task['lms_url'] ?? '');
+    $rawUrl = trim($task['lms_url'] ?? '');
+    $lmsUrl = '';
+    if (!empty($rawUrl)) {
+        // Hanya izinkan skema http:// atau https:// untuk mencegah XSS via javascript: URI
+        if (preg_match('/^https?:\/\//i', $rawUrl) && filter_var($rawUrl, FILTER_VALIDATE_URL)) {
+            $lmsUrl = htmlspecialchars($rawUrl);
+        }
+    }
     $rawLabel = $task['lms_label'] ?? 'LMS';
     $linkLabel = preg_replace('/[^\x20-\x7E]/', '', (string)$rawLabel);
     $linkLabel = trim($linkLabel);

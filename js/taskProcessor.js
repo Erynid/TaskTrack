@@ -383,13 +383,13 @@ export const getUniqueCourses = (tasks) => {
 };
 
 export const findTaskById = (tasks, id) => {
-    if (!Array.isArray(tasks) || !id) return null;
-    return tasks.find(task => task.id === id) || null;
+    if (!Array.isArray(tasks) || id === null || id === undefined || id === '') return null;
+    return tasks.find(task => task && String(task.id) === String(id)) || null;
 };
 
 export const findTaskIndex = (tasks, id) => {
-    if (!Array.isArray(tasks) || !id) return -1;
-    return tasks.findIndex(task => task.id === id);
+    if (!Array.isArray(tasks) || id === null || id === undefined || id === '') return -1;
+    return tasks.findIndex(task => task && String(task.id) === String(id));
 };
 
 export const hasCriticalDeadlines = (tasks, thresholdHours = 24, referenceDate = new Date()) => {
