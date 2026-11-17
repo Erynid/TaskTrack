@@ -95,7 +95,10 @@ class TaskModel
                 t.status, 
                 t.priority, 
                 t.due_date, 
+                t.lms_url,
+                t.lms_label,
                 t.created_at,
+                t.updated_at,
                 c.name AS category_name, 
                 c.color_code 
             FROM tasks t 
@@ -139,7 +142,10 @@ class TaskModel
                 t.status, 
                 t.priority, 
                 t.due_date, 
+                t.lms_url,
+                t.lms_label,
                 t.created_at,
+                t.updated_at,
                 c.name AS category_name, 
                 c.color_code 
             FROM tasks t 
@@ -170,7 +176,10 @@ class TaskModel
                 t.status, 
                 t.priority, 
                 t.due_date, 
+                t.lms_url,
+                t.lms_label,
                 t.created_at,
+                t.updated_at,
                 c.name AS category_name, 
                 c.color_code 
             FROM tasks t 
@@ -211,6 +220,8 @@ class TaskModel
         }
 
         $categoryId = isset($data['category_id']) && $data['category_id'] !== '' ? (int)$data['category_id'] : null;
+        $lmsUrl = trim((string)($data['lms_url'] ?? ''));
+        $lmsLabel = trim((string)($data['lms_label'] ?? ''));
 
         // Gunakan Transaksi Atomik (Requirement Modul 11)
         $this->db->beginTransaction();
@@ -232,8 +243,8 @@ class TaskModel
             }
 
             $stmt = $this->db->prepare("
-                INSERT INTO tasks (user_id, category_id, title, description, status, priority, due_date)
-                VALUES (:user_id, :category_id, :title, :description, :status, :priority, :due_date)
+                INSERT INTO tasks (user_id, category_id, title, description, status, priority, due_date, lms_url, lms_label)
+                VALUES (:user_id, :category_id, :title, :description, :status, :priority, :due_date, :lms_url, :lms_label)
             ");
             $stmt->execute([
                 'user_id' => $userId,
@@ -242,7 +253,9 @@ class TaskModel
                 'description' => $description,
                 'status' => $status,
                 'priority' => $priority,
-                'due_date' => $dueDate
+                'due_date' => $dueDate,
+                'lms_url' => $lmsUrl ?: null,
+                'lms_label' => $lmsLabel ?: null
             ]);
 
             $newId = (int)$this->db->lastInsertId();
@@ -256,7 +269,9 @@ class TaskModel
                 'description' => $description,
                 'status' => $status,
                 'priority' => $priority,
-                'due_date' => $dueDate
+                'due_date' => $dueDate,
+                'lms_url' => $lmsUrl ?: null,
+                'lms_label' => $lmsLabel ?: null
             ];
         } catch (Exception $e) {
             $this->db->rollBack();
@@ -305,6 +320,8 @@ class TaskModel
         }
 
         $categoryId = isset($data['category_id']) && $data['category_id'] !== '' ? (int)$data['category_id'] : $existing['category_id'];
+        $lmsUrl = array_key_exists('lms_url', $data) ? trim((string)$data['lms_url']) : ($existing['lms_url'] ?? null);
+        $lmsLabel = array_key_exists('lms_label', $data) ? trim((string)$data['lms_label']) : ($existing['lms_label'] ?? null);
 
         $this->db->beginTransaction();
         try {
@@ -331,7 +348,9 @@ class TaskModel
                     description = :description,
                     status = :status,
                     priority = :priority,
-                    due_date = :due_date
+                    due_date = :due_date,
+                    lms_url = :lms_url,
+                    lms_label = :lms_label
                 WHERE id = :id AND user_id = :user_id
             ");
             $stmt->execute([
@@ -341,6 +360,8 @@ class TaskModel
                 'status' => $status,
                 'priority' => $priority,
                 'due_date' => $dueDate,
+                'lms_url' => $lmsUrl ?: null,
+                'lms_label' => $lmsLabel ?: null,
                 'id' => $taskId,
                 'user_id' => $userId
             ]);

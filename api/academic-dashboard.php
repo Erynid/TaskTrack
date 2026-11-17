@@ -5,15 +5,45 @@
  * Header: Content-Type application/json; charset=utf-8
  */
 
+if (!is_writable(session_save_path())) {
+    session_save_path(sys_get_temp_dir());
+}
+if (session_status() === PHP_SESSION_NONE) {
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => '/',
+        'domain' => '',
+        'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+    session_start();
+}
+
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: SAMEORIGIN');
+header('Referrer-Policy: strict-origin-when-cross-origin');
 
-$allowedOrigins = ['http://localhost', 'http://127.0.0.1'];
+// Autentikasi Pengguna (Fail-Closed)
+if (!isset($_SESSION['user'])) {
+    http_response_code(401);
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Akses ditolak: Autentikasi sesi diperlukan untuk mengakses ringkasan akademik.'
+    ]);
+    exit;
+}
+
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-if (in_array(rtrim($origin, '/'), $allowedOrigins, true)) {
-    header("Access-Control-Allow-Origin: $origin");
+$serverHost = $_SERVER['HTTP_HOST'] ?? 'localhost';
+if (!empty($origin)) {
+    $parsedOrigin = parse_url($origin, PHP_URL_HOST);
+    if ($parsedOrigin === 'localhost' || $parsedOrigin === '127.0.0.1' || $parsedOrigin === $serverHost) {
+        header("Access-Control-Allow-Origin: $origin");
+        header('Access-Control-Allow-Credentials: true');
+    }
 }
 header('Access-Control-Allow-Methods: GET');
 
@@ -36,6 +66,15 @@ if ($content === false) {
         'message' => 'Gagal membaca berkas data akademik.'
     ]);
     exit;
+}
+
+$data = json_decode($content, true);
+if (is_array($data) && !empty($_SESSION['user']['name'])) {
+    $data['student']['name'] = $_SESSION['user']['name'];
+    if (!empty($_SESSION['user']['email'])) {
+        $data['student']['email'] = $_SESSION['user']['email'];
+    }
+    $content = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 }
 
 http_response_code(200);

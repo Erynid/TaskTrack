@@ -171,6 +171,79 @@
 }
 
 /* --------------------------------------------------------------------------
+   Ronova Mode Theme (Genshin Impact - Ruler of Death: Obsidian & Crimson Void)
+   -------------------------------------------------------------------------- */
+[data-theme="ronova"] {
+    --bg-body: #090508;
+    --bg-mesh-1: radial-gradient(circle at 100% 100%, rgba(225, 29, 72, 0.12) 0%, transparent 55%);
+    --bg-mesh-2: radial-gradient(circle at 0% 0%, rgba(251, 191, 36, 0.04) 0%, transparent 45%);
+
+    --bg-window: #0f080e;
+    --bg-surface: #140b13;
+    --bg-surface-elevated: #1e101d;
+    --bg-surface-hover: #271425;
+    --card-surface: #130a12;
+    --card-surface-hover: #1c0e1a;
+    --bg-overlay: rgba(9, 4, 8, 0.85);
+    --input-bg: #0f070e;
+
+    --border-color: rgba(225, 29, 72, 0.16);
+    --border-subtle: rgba(225, 29, 72, 0.08);
+    --border-hover: rgba(244, 63, 94, 0.35);
+    --border-active: #e11d48;
+    --card-border: rgba(225, 29, 72, 0.14);
+
+    --text-main: #fdf2f8;
+    --text-primary: #fdf2f8;
+    --text-secondary: #d8b4c5;
+    --text-muted: #9d7589;
+    --text-subtle: #6c4b5c;
+    --text-inverse: #090508;
+
+    --accent-primary: #e11d48;
+    --accent-primary-hover: #be123c;
+    --accent-primary-light: rgba(225, 29, 72, 0.14);
+    --accent-glow: 0 0 18px rgba(225, 29, 72, 0.35);
+    --accent-text: #ffffff;
+    --accent-yellow: #fbbf24;
+    --accent-yellow-hover: #f59e0b;
+
+    --status-todo: #fb7185;
+    --status-todo-bg: rgba(251, 113, 133, 0.1);
+    --status-todo-border: rgba(251, 113, 133, 0.25);
+
+    --status-progress: #fbbf24;
+    --status-progress-bg: rgba(251, 191, 36, 0.1);
+    --status-progress-border: rgba(251, 191, 36, 0.25);
+
+    --status-done: #10b981;
+    --status-done-bg: rgba(16, 185, 129, 0.1);
+    --status-done-border: rgba(16, 185, 129, 0.25);
+
+    --status-urgent: #e11d48;
+    --status-urgent-bg: rgba(225, 29, 72, 0.14);
+    --status-urgent-border: rgba(225, 29, 72, 0.35);
+
+    --priority-high: #e11d48;
+    --priority-high-bg: rgba(225, 29, 72, 0.14);
+    --priority-med: #fbbf24;
+    --priority-med-bg: rgba(251, 191, 36, 0.1);
+    --priority-low: #fb7185;
+    --priority-low-bg: rgba(251, 113, 133, 0.1);
+    --priority-done: #10b981;
+    --priority-done-bg: rgba(16, 185, 129, 0.1);
+
+    --pill-todo: #fb7185;
+    --pill-progress: #fbbf24;
+    --pill-done: #10b981;
+    --pill-overdue: #e11d48;
+
+    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(225, 29, 72, 0.1);
+    --shadow-card-hover: 0 8px 24px rgba(225, 29, 72, 0.18), inset 0 1px 0 rgba(225, 29, 72, 0.2);
+    --shadow-dialog: 0 24px 60px -10px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(225, 29, 72, 0.35);
+}
+
+/* --------------------------------------------------------------------------
    2. GLOBAL RESET & BASE TYPOGRAPHY
    -------------------------------------------------------------------------- */
 *, *::before, *::after {
@@ -6089,5 +6162,300 @@ dialog.confirm-dialog {
 
 .toast-message.toast-danger {
     border-left: 3px solid #ef4444;
+}
+
+/* ==========================================================================
+   Ronova Theme Specific Components & Corner Art (Genshin Impact Lore)
+   ========================================================================== */
+#kanban-view-container {
+    position: relative;
+}
+
+[data-theme="ronova"] #kanban-view-container {
+    padding-bottom: 2.25rem;
+}
+
+/* Ronova Corner Face Widget */
+.ronova-grid-corner {
+    display: none;
+}
+
+[data-theme="ronova"] .ronova-grid-corner {
+    display: block;
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    z-index: 20;
+    pointer-events: auto;
+    animation: ronovaFloatEntrance 0.6s var(--ease-out) forwards;
+}
+
+@keyframes ronovaFloatEntrance {
+    0% {
+        opacity: 0;
+        transform: translateY(16px) scale(0.92);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.ronova-corner-inner {
+    position: relative;
+    width: 200px;
+    background: #0f080e;
+    border: 1px solid rgba(225, 29, 72, 0.4);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 
+        0 16px 40px rgba(0, 0, 0, 0.8),
+        0 0 20px rgba(225, 29, 72, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: transform 0.35s var(--ease-out), box-shadow 0.35s var(--ease-out), border-color 0.35s ease;
+}
+
+.ronova-corner-inner:hover {
+    transform: translateY(-4px) scale(1.02);
+    border-color: rgba(225, 29, 72, 0.8);
+    box-shadow: 
+        0 24px 50px rgba(0, 0, 0, 0.9),
+        0 0 35px rgba(225, 29, 72, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.ronova-face-frame {
+    position: relative;
+    width: 100%;
+    height: 190px;
+    overflow: hidden;
+    background: #090508;
+}
+
+.ronova-face-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    transition: transform 0.5s var(--ease-out), filter 0.5s var(--ease-out);
+}
+
+.ronova-corner-inner:hover .ronova-face-img {
+    transform: scale(1.06);
+    filter: brightness(1.05) contrast(1.02);
+}
+
+.ronova-face-vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(to top, #0f080e 0%, rgba(15, 8, 14, 0.1) 40%, transparent 80%),
+                radial-gradient(circle at 50% 10%, rgba(225, 29, 72, 0.15) 0%, transparent 60%);
+}
+
+.ronova-face-shimmer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.08) 50%, transparent 60%);
+    opacity: 0;
+    transform: translateX(-100%);
+    transition: opacity 0.3s ease, transform 0.75s ease;
+}
+
+.ronova-corner-inner:hover .ronova-face-shimmer {
+    opacity: 1;
+    transform: translateX(100%);
+}
+
+.ronova-corner-badge {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.5rem 0.75rem;
+    background: #0f080e;
+    border-top: 1px solid rgba(225, 29, 72, 0.2);
+}
+
+.ronova-badge-icon {
+    font-size: 0.85rem;
+    color: #fbbf24;
+    text-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
+    line-height: 1;
+}
+
+.ronova-badge-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.ronova-badge-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #fdf2f8;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+}
+
+.ronova-badge-sub {
+    font-size: 0.65rem;
+    color: #d8b4c5;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Atmospheric watermark mask on the grid container for full immersion */
+[data-theme="ronova"] #kanban-view-container::before {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    right: -10px;
+    width: 380px;
+    height: 380px;
+    background: url('../assets/images/ronova-face.jpg') no-repeat right bottom;
+    background-size: cover;
+    opacity: 0.08;
+    pointer-events: none;
+    z-index: 0;
+    border-radius: 24px;
+    mask-image: radial-gradient(circle at 80% 80%, black 20%, transparent 75%);
+    -webkit-mask-image: radial-gradient(circle at 80% 80%, black 20%, transparent 75%);
+    filter: drop-shadow(0 0 20px rgba(225, 29, 72, 0.3));
+}
+
+/* Responsive adjustment for Ronova Corner */
+@media (max-width: 768px) {
+    .ronova-corner-inner {
+        width: 140px;
+    }
+    .ronova-face-frame {
+        height: 130px;
+    }
+    .ronova-corner-badge {
+        padding: 0.35rem 0.5rem;
+    }
+    .ronova-badge-title {
+        font-size: 0.6875rem;
+    }
+    .ronova-badge-sub {
+        font-size: 0.5625rem;
+    }
+}
+
+/* ==========================================================================
+   Ronova Chibi Border Peeker ("Nyempil" di Luar Grid Samping Angka 3)
+   ========================================================================== */
+.kanban-column {
+    position: relative;
+}
+
+[data-theme="ronova"] .tasks-command-toolbar {
+    margin-bottom: 2.25rem;
+}
+
+.ronova-chibi-peeker {
+    display: none;
+}
+
+[data-theme="ronova"] .ronova-chibi-peeker {
+    display: block;
+    position: absolute;
+    top: -46px;
+    right: 4px;
+    width: 82px;
+    height: auto;
+    z-index: 30;
+    pointer-events: auto;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.25s ease;
+    animation: ronovaChibiPopIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes ronovaChibiPopIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.7);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.ronova-chibi-peeker:hover {
+    transform: translateY(-8px) scale(1.12);
+    filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.75)) drop-shadow(0 0 16px rgba(225, 29, 72, 0.7));
+}
+
+.ronova-chibi-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 10px rgba(225, 29, 72, 0.35));
+    transition: transform 0.25s ease;
+}
+
+/* Speech Bubble above Ronova Chibi */
+.ronova-chibi-bubble {
+    position: absolute;
+    bottom: calc(100% + 4px);
+    right: 50%;
+    transform: translateX(50%) translateY(4px);
+    background: #0f080e;
+    border: 1px solid rgba(225, 29, 72, 0.6);
+    border-radius: 10px;
+    padding: 5px 9px;
+    white-space: nowrap;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: #fdf2f8;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7), 0 0 12px rgba(225, 29, 72, 0.35);
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s var(--ease-out);
+    z-index: 35;
+}
+
+.ronova-chibi-bubble::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px 5px 0 5px;
+    border-style: solid;
+    border-color: rgba(225, 29, 72, 0.6) transparent transparent transparent;
+}
+
+.ronova-chibi-peeker:hover .ronova-chibi-bubble,
+.ronova-chibi-bubble.show-bubble {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateX(50%) translateY(0) !important;
+}
+
+@keyframes chibiBounceAnim {
+    0%, 100% { transform: translateY(0) scale(1); }
+    30% { transform: translateY(-12px) scale(1.15); }
+    60% { transform: translateY(-3px) scale(0.96); }
+}
+
+.ronova-chibi-peeker.chibi-bounce {
+    animation: chibiBounceAnim 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+@media (max-width: 768px) {
+    .ronova-chibi-peeker {
+        width: 64px;
+        top: -36px;
+        right: 0;
+    }
 }
 

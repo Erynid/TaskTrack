@@ -27,26 +27,39 @@ if (!isset($_SESSION['user'])) {
 }
 
 $logged_user = $_SESSION['user'];
+$user_id = (int) ($logged_user['id'] ?? ($_SESSION['user_id'] ?? 0));
 $user_name = htmlspecialchars($logged_user['name'] ?? 'Mahasiswa');
 $user_email = htmlspecialchars($logged_user['email'] ?? '');
 $user_avatar = $logged_user['avatar'] ?? ($logged_user['avatar_url'] ?? null);
+$user_role = htmlspecialchars($_SESSION['role'] ?? ($logged_user['role'] ?? 'mahasiswa'));
 
-// Ambil avatar dari database jika belum ada di sesi
-if (empty($user_avatar)) {
+// Ambil avatar, ID, atau role dari database jika belum lengkap di sesi
+if (empty($user_avatar) || $user_id <= 0 || empty($user_role)) {
     try {
         require_once __DIR__ . '/config/database.php';
         $db = Database::getInstance();
         $raw_email = trim($logged_user['email'] ?? '');
-        $user_id = (int)($logged_user['id'] ?? 0);
-        $st = $db->prepare('SELECT avatar_url, username FROM users WHERE (email != "" AND email = :email) OR id = :id LIMIT 1');
+        $st = $db->prepare('SELECT id, avatar_url, username, role FROM users WHERE (email != "" AND email = :email) OR id = :id LIMIT 1');
         $st->execute([
             'email' => $raw_email,
             'id' => $user_id
         ]);
         $row = $st->fetch(PDO::FETCH_ASSOC);
-        if ($row && !empty($row['avatar_url'])) {
-            $user_avatar = $row['avatar_url'];
-            $_SESSION['user']['avatar'] = $user_avatar;
+        if ($row) {
+            if ($user_id <= 0 && !empty($row['id'])) {
+                $user_id = (int)$row['id'];
+                $_SESSION['user_id'] = $user_id;
+                $_SESSION['user']['id'] = $user_id;
+            }
+            if (empty($user_avatar) && !empty($row['avatar_url'])) {
+                $user_avatar = $row['avatar_url'];
+                $_SESSION['user']['avatar'] = $user_avatar;
+            }
+            if (!empty($row['role'])) {
+                $user_role = $row['role'];
+                $_SESSION['role'] = $user_role;
+                $_SESSION['user']['role'] = $user_role;
+            }
         }
     } catch (Throwable $e) {
         // Fallback gracefully
@@ -62,63 +75,53 @@ require_once __DIR__ . '/components/stat-card.php';
 $app_name = "TaskTrack";
 $current_year = date("Y");
 
-$initial_tasks = [
-    [
-        'id' => 'task-1',
-        'title' => 'Tugas Semantik HTML & Aksesibilitas Web',
-        'course' => 'Pemrograman Web Dasar',
-        'deadline' => date('Y-m-d\TH:i', strtotime('+3 days')),
-        'status' => 'todo',
-        'priority' => 'high',
-        'lms_url' => 'https://elearning.kampus.ac.id',
-        'lms_label' => 'LMS',
-        'instructions' => 'Pastikan struktur heading bertingkat, form memiliki label terkait, dan kontras warna memenuhi standar WCAG AA.'
-    ],
-    [
-        'id' => 'task-2',
-        'title' => 'Desain Entity Relationship Diagram (ERD)',
-        'course' => 'Sistem Basis Data',
-        'deadline' => date('Y-m-d\TH:i', strtotime('+6 days')),
-        'status' => 'todo',
-        'priority' => 'low',
-        'lms_url' => 'https://classroom.google.com',
-        'lms_label' => 'Classroom',
-        'instructions' => 'Rancang ERD sistem rekam medis klinik lengkap dengan kardinalitas 1-to-N dan relasi antar entitas.'
-    ],
-    [
-        'id' => 'task-3',
-        'title' => 'Konfigurasi Routing OSPF & Subnetting',
-        'course' => 'Jaringan Komputer Lanjut',
-        'deadline' => date('Y-m-d\TH:i', strtotime('+2 days')),
-        'status' => 'inprogress',
-        'priority' => 'medium',
-        'lms_url' => 'https://elearning.kampus.ac.id',
-        'lms_label' => 'LMS',
-        'instructions' => 'Simulasikan di Cisco Packet Tracer dengan 3 router dan 4 subnet kelas C.'
-    ],
-    [
-        'id' => 'task-4',
-        'title' => 'Resume Materi Algoritma Dijkstra',
-        'course' => 'Struktur Data & Algoritma',
-        'deadline' => date('Y-m-d\TH:i', strtotime('-7 days')),
-        'status' => 'done',
-        'priority' => 'low',
-        'lms_url' => 'https://elearning.kampus.ac.id',
-        'lms_label' => 'LMS',
-        'instructions' => 'Ringkas algoritma pencarian rute terpendek dengan matriks bobot berarah.'
-    ],
-    [
-        'id' => 'task-5',
-        'title' => 'Upload Revisi Laporan Praktikum Modul 1',
-        'course' => 'Pemrograman Berorientasi Objek',
-        'deadline' => date('Y-m-d\TH:i', strtotime('+4 hours')),
-        'status' => 'overdue',
-        'priority' => 'high',
-        'lms_url' => 'https://elearning.kampus.ac.id',
-        'lms_label' => 'Kumpulkan Segera',
-        'instructions' => 'Perbaiki diagram class dan lampirkan screenshot eksekusi unit test modul 1.'
-    ]
-];
+require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/models/TaskModel.php';
+
+$user_tasks = [];
+$counts = ['todo' => 0, 'inprogress' => 0, 'done' => 0, 'overdue' => 0];
+
+try {
+    $taskModel = new TaskModel();
+    $rawDbTasks = $taskModel->getTasksByUserId($user_id);
+    foreach ($rawDbTasks as $t) {
+        $st = $t['status'];
+        if ($st === 'in_progress') $st = 'inprogress';
+
+        $deadlineStr = $t['due_date'] ? $t['due_date'] . 'T23:59' : '';
+        $isOverdue = false;
+        if (!empty($deadlineStr) && $st !== 'done') {
+            $diff = strtotime($deadlineStr) - time();
+            if ($diff <= 0 || $diff < 86400) {
+                $isOverdue = true;
+            }
+        }
+
+        $formatted = [
+            'id' => (string)$t['id'],
+            'title' => $t['title'],
+            'course' => $t['category_name'] ?: 'Umum',
+            'category_id' => $t['category_id'] ?? null,
+            'category_color' => $t['color_code'] ?? null,
+            'deadline' => $deadlineStr,
+            'status' => $st,
+            'priority' => strtolower($t['priority'] ?: 'medium'),
+            'lms_url' => $t['lms_url'] ?: '',
+            'lms_label' => $t['lms_label'] ?: '',
+            'instructions' => $t['description'] ?: '',
+            'is_overdue' => $isOverdue
+        ];
+        $user_tasks[] = $formatted;
+
+        if ($isOverdue && $st !== 'done') {
+            $counts['overdue']++;
+        } elseif (isset($counts[$st])) {
+            $counts[$st]++;
+        }
+    }
+} catch (Throwable $e) {
+    $user_tasks = [];
+}
 ?>
 <!DOCTYPE html>
 <html lang="id" data-theme="dark">
@@ -126,16 +129,31 @@ $initial_tasks = [
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $app_name ?> Studio &mdash; Pusat Kendali Tugas &amp; Akademik Mahasiswa</title>
-    <meta name="description" content="Workspace studio visual pelacak tugas perkuliahan mahasiswa berstandar Apple HIG dan WCAG AA.">
+    <title>TaskTrack</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="favicon.svg">
+    <meta name="description"
+        content="Workspace studio visual pelacak tugas perkuliahan mahasiswa berstandar Apple HIG dan WCAG AA.">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0a0c10">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="css/style.css?v=<?= time() ?>">
+    <script>
+        (function () {
+            try {
+                const saved = localStorage.getItem('tasktrack_theme');
+                if (saved === 'light' || saved === 'ronova') {
+                    document.documentElement.setAttribute('data-theme', saved);
+                }
+            } catch (e) { }
+        })();
+    </script>
 </head>
 
 <body class="studio-body">
@@ -144,7 +162,7 @@ $initial_tasks = [
 
     <!-- APPLE WORKSPACE SHELL -->
     <div class="apple-studio-shell">
-        
+
         <!-- ====================================================================
              A. LEFT UNIFIED APPLE SIDEBAR (COMMAND NAVIGATION RAIL)
              ==================================================================== -->
@@ -153,7 +171,8 @@ $initial_tasks = [
             <div class="sidebar-header">
                 <a href="dashboard.php" class="sidebar-brand-link" aria-label="TaskTrack Beranda Studio">
                     <div class="dock-brand-icon" aria-hidden="true">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5"
+                            stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="20 6 9 17 4 12"></polyline>
                         </svg>
                     </div>
@@ -166,9 +185,11 @@ $initial_tasks = [
 
             <!-- Primary Action in Sidebar: + Tambah Tugas Baru -->
             <div class="sidebar-action-wrap">
-                <button type="button" class="btn-apple-sidebar-action nav-tab-btn nav-form-cta" id="nav-btn-open-form" aria-haspopup="dialog" aria-expanded="false" title="Tambah Tugas Baru (Alt + N)">
+                <button type="button" class="btn-apple-sidebar-action nav-tab-btn nav-form-cta" id="nav-btn-open-form"
+                    aria-haspopup="dialog" aria-expanded="false" title="Tambah Tugas Baru (Alt + N)">
                     <span class="action-icon-pill">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
                         </svg>
@@ -183,8 +204,10 @@ $initial_tasks = [
                 <span class="sidebar-section-title">Ruang Kerja</span>
                 <ul class="sidebar-nav-list" role="tablist">
                     <li>
-                        <button type="button" class="sidebar-nav-btn nav-tab-btn active" data-target="view-dashboard" role="tab" aria-selected="true">
-                            <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <button type="button" class="sidebar-nav-btn nav-tab-btn active" data-target="view-dashboard"
+                            role="tab" aria-selected="true">
+                            <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
                                 <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
                                 <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
                                 <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
@@ -195,8 +218,10 @@ $initial_tasks = [
                         </button>
                     </li>
                     <li>
-                        <button type="button" class="sidebar-nav-btn nav-tab-btn" data-target="view-tasks" role="tab" aria-selected="false">
-                            <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <button type="button" class="sidebar-nav-btn nav-tab-btn" data-target="view-tasks" role="tab"
+                            aria-selected="false">
+                            <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
                                 <rect x="3" y="3" width="18" height="18" rx="2"></rect>
                                 <line x1="9" y1="3" x2="9" y2="21"></line>
                                 <line x1="15" y1="3" x2="15" y2="21"></line>
@@ -206,8 +231,10 @@ $initial_tasks = [
                         </button>
                     </li>
                     <li>
-                        <button type="button" class="sidebar-nav-btn nav-tab-btn" data-target="view-calendar" role="tab" aria-selected="false">
-                            <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <button type="button" class="sidebar-nav-btn nav-tab-btn" data-target="view-calendar" role="tab"
+                            aria-selected="false">
+                            <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
                                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                                 <line x1="16" y1="2" x2="16" y2="6"></line>
                                 <line x1="8" y1="2" x2="8" y2="6"></line>
@@ -224,8 +251,10 @@ $initial_tasks = [
             <div class="sidebar-nav-section" id="sidebar-portal-section">
                 <div class="sidebar-section-header">
                     <span class="sidebar-section-title">Portal Perkuliahan</span>
-                    <button type="button" class="btn-add-portal-trigger" id="btn-add-portal-trigger" title="Tambah Tautan Portal Baru" aria-label="Tambah portal perkuliahan">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <button type="button" class="btn-add-portal-trigger" id="btn-add-portal-trigger"
+                        title="Tambah Tautan Portal Baru" aria-label="Tambah portal perkuliahan">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
                         </svg>
@@ -242,10 +271,18 @@ $initial_tasks = [
 
             <!-- Sidebar Bottom: User Profile & Offline Status -->
             <div class="sidebar-footer">
-                <div class="sidebar-user-tile" id="btn-open-profile" role="button" tabindex="0" title="Buka Pengaturan Akun: <?= $user_name ?>">
-                    <div class="sidebar-avatar"><?php if (!empty($user_avatar)): ?><img src="<?= htmlspecialchars($user_avatar) ?>" alt="<?= $user_name ?>" referrerpolicy="no-referrer" loading="eager" onerror="this.remove();" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; z-index: 1;"><?php endif; ?><span><?= $initials ?></span></div>
+                <div class="sidebar-user-tile" id="btn-open-profile" role="button" tabindex="0"
+                    title="Buka Pengaturan Akun: <?= $user_name ?>">
+                    <div class="sidebar-avatar"><?php if (!empty($user_avatar)): ?><img
+                                src="<?= htmlspecialchars($user_avatar) ?>" alt="<?= $user_name ?>"
+                                referrerpolicy="no-referrer" loading="eager" onerror="this.remove();"
+                                style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; z-index: 1;"><?php endif; ?><span><?= $initials ?></span>
+                    </div>
                     <div class="sidebar-user-info">
-                        <strong class="sidebar-user-name"><?= $user_name ?></strong>
+                        <div style="display: flex; align-items: center; gap: 0.35rem;">
+                            <strong class="sidebar-user-name"><?= $user_name ?></strong>
+                            <span style="font-size: 0.625rem; font-weight: 700; text-transform: uppercase; padding: 1px 5px; border-radius: 4px; background: <?= $user_role === 'admin' ? 'rgba(239, 68, 68, 0.18)' : ($user_role === 'viewer' ? 'rgba(148, 163, 184, 0.18)' : 'rgba(56, 189, 248, 0.18)') ?>; color: <?= $user_role === 'admin' ? '#f87171' : ($user_role === 'viewer' ? '#94a3b8' : '#38bdf8') ?>; border: 1px solid <?= $user_role === 'admin' ? 'rgba(239, 68, 68, 0.35)' : ($user_role === 'viewer' ? 'rgba(148, 163, 184, 0.35)' : 'rgba(56, 189, 248, 0.35)') ?>;"><?= ucfirst($user_role) ?></span>
+                        </div>
                         <span style="font-size: 0.75rem; color: var(--text-muted);"><?= $user_email ?></span>
                     </div>
                 </div>
@@ -256,7 +293,8 @@ $initial_tasks = [
                         <span>Lokal &bull; Siap</span>
                     </span>
                     <a href="index.php" class="sidebar-home-icon-btn" title="Kembali ke Landing Page">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
                             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                             <polyline points="9 22 9 12 15 12 15 22"></polyline>
                         </svg>
@@ -269,19 +307,21 @@ $initial_tasks = [
              B. MAIN WORKSPACE CANVAS (TOPBAR & FLUID CONTENT AREA)
              ==================================================================== -->
         <div class="studio-main-wrapper">
-            
+
             <!-- Top Unified Command Bar (Frosted Glass Header) -->
             <header class="studio-topbar" role="banner">
                 <div class="topbar-left-zone">
                     <!-- Mobile Hamburger Toggle -->
-                    <button type="button" id="btn-toggle-sidebar" class="sidebar-mobile-toggle" aria-label="Buka/Tutup Menu Samping">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <button type="button" id="btn-toggle-sidebar" class="sidebar-mobile-toggle"
+                        aria-label="Buka/Tutup Menu Samping">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
                             <line x1="3" y1="12" x2="21" y2="12"></line>
                             <line x1="3" y1="6" x2="21" y2="6"></line>
                             <line x1="3" y1="18" x2="21" y2="18"></line>
                         </svg>
                     </button>
-                    
+
                     <div class="topbar-breadcrumb">
                         <span class="crumb-root">TaskTrack</span>
                         <span class="crumb-slash">/</span>
@@ -293,12 +333,15 @@ $initial_tasks = [
                 <div class="topbar-search-zone">
                     <div class="spotlight-search-field">
                         <span class="spotlight-search-icon" aria-hidden="true">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
                                 <circle cx="11" cy="11" r="8"></circle>
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                             </svg>
                         </span>
-                        <input type="search" id="search-task-input" placeholder="Cari tugas kuliah, mata kuliah, atau tag..." aria-label="Cari tugas kuliah" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                        <input type="search" id="search-task-input"
+                            placeholder="Cari tugas kuliah, mata kuliah, atau tag..." aria-label="Cari tugas kuliah"
+                            autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                         <kbd class="spotlight-shortcut-badge" hidden style="display: none;">⌘K</kbd>
                     </div>
                 </div>
@@ -306,8 +349,10 @@ $initial_tasks = [
                 <!-- Topbar Control Cluster -->
                 <div class="topbar-right-controls">
                     <!-- Quick Summary Button -->
-                    <button type="button" id="btn-quick-summary" class="topbar-icon-action" title="Buka Ringkasan &amp; Analitik (Alt + S)" aria-label="Buka Ringkasan">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <button type="button" id="btn-quick-summary" class="topbar-icon-action"
+                        title="Buka Ringkasan &amp; Analitik (Alt + S)" aria-label="Buka Ringkasan">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
                             <line x1="18" y1="20" x2="18" y2="10"></line>
                             <line x1="12" y1="20" x2="12" y2="4"></line>
                             <line x1="6" y1="20" x2="6" y2="14"></line>
@@ -316,8 +361,10 @@ $initial_tasks = [
                     </button>
 
                     <!-- Theme Toggle -->
-                    <button type="button" id="btn-theme-toggle" class="topbar-icon-action" title="Ganti Tampilan (Dark / Light)" aria-label="Ganti Tema">
-                        <svg class="icon-svg" id="theme-toggle-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <button type="button" id="btn-theme-toggle" class="topbar-icon-action"
+                        title="Ganti Tampilan (Dark / Light / Ronova)" aria-label="Ganti Tema">
+                        <svg class="icon-svg" id="theme-toggle-icon" width="15" height="15" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="5"></circle>
                             <line x1="12" y1="1" x2="12" y2="3"></line>
                             <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -331,10 +378,14 @@ $initial_tasks = [
                     </button>
 
                     <!-- Settings Trigger -->
-                    <button type="button" id="btn-open-settings" class="topbar-icon-action" title="Pengaturan &amp; Notifikasi" aria-label="Pengaturan">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <button type="button" id="btn-open-settings" class="topbar-icon-action"
+                        title="Pengaturan &amp; Notifikasi" aria-label="Pengaturan">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
                             <circle cx="12" cy="12" r="3"></circle>
-                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                            <path
+                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                            </path>
                         </svg>
                         <span id="notif-badge" class="badge-dot" title="Notifikasi Aktif"></span>
                     </button>
@@ -343,12 +394,12 @@ $initial_tasks = [
 
             <!-- Main Studio Content Viewport -->
             <main id="main-content" class="studio-viewport" tabindex="-1">
-                
+
                 <!-- ================================================================
                      VIEW 1: DASHBOARD (REDESIGNED TOTAL: HERO HUD + BENTO METRICS + URGENT)
                      ================================================================ -->
                 <section id="view-dashboard" class="app-view-section active-view" aria-labelledby="heading-dashboard">
-                    
+
                     <!-- 1. Academic Hero HUD Banner (Reordered to top) -->
                     <div class="academic-hero-hud">
                         <div class="hud-editorial">
@@ -359,11 +410,13 @@ $initial_tasks = [
                                 <span class="badge-sub">Status: Aktif</span>
                             </div>
                             <h1 class="hud-title" id="heading-dashboard">Selamat datang, <?= $user_name ?></h1>
-                            <p class="hud-desc">Seluruh catatan tugas dan alur tenggat perkuliahan Anda siap ditinjau secara terstruktur.</p>
+                            <p class="hud-desc">Seluruh catatan tugas dan alur tenggat perkuliahan Anda siap ditinjau
+                                secara terstruktur.</p>
                         </div>
                         <div class="hud-action-cluster">
                             <button type="button" class="btn-apple-prominent" id="btn-new-task-trigger">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5">
                                     <line x1="12" y1="5" x2="12" y2="19"></line>
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
@@ -417,14 +470,16 @@ $initial_tasks = [
                             <div class="panel-header-row">
                                 <div class="panel-title-cluster">
                                     <span class="panel-icon-capsule rose-tint" aria-hidden="true">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
                                             <circle cx="12" cy="12" r="10"></circle>
                                             <polyline points="12 6 12 12 16 14"></polyline>
                                         </svg>
                                     </span>
                                     <div>
                                         <h2 class="panel-main-title">Tugas Paling Mendesak (&lt; 24 Jam)</h2>
-                                        <span class="panel-sub-desc">Kumpulkan sebelum portal e-learning kampus ditutup</span>
+                                        <span class="panel-sub-desc">Kumpulkan sebelum portal e-learning kampus
+                                            ditutup</span>
                                     </div>
                                 </div>
                             </div>
@@ -436,23 +491,28 @@ $initial_tasks = [
                             <div class="panel-header-row">
                                 <div class="panel-title-cluster">
                                     <span class="panel-icon-capsule blue-tint" aria-hidden="true">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
                                             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                                             <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                                         </svg>
                                     </span>
                                     <div>
                                         <h2 class="panel-main-title">Pengingat &amp; Notifikasi Browser</h2>
-                                        <span class="panel-sub-desc">Peringatan otomatis H-1 dan H-3 jam sebelum deadline</span>
+                                        <span class="panel-sub-desc">Peringatan otomatis H-1 dan H-3 jam sebelum
+                                            deadline</span>
                                     </div>
                                 </div>
                             </div>
                             <div class="panel-body-content">
                                 <p class="panel-text">
-                                    Web Push Notification memberikan peringatan pop-up langsung pada peramban saat batas waktu penyerahan tugas mendekati masa kritis.
+                                    Web Push Notification memberikan peringatan pop-up langsung pada peramban saat batas
+                                    waktu penyerahan tugas mendekati masa kritis.
                                 </p>
-                                <button type="button" id="btn-dashboard-enable-notif" class="btn-apple-translucent-full">
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <button type="button" id="btn-dashboard-enable-notif"
+                                    class="btn-apple-translucent-full">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
                                         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                                         <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                                     </svg>
@@ -467,22 +527,26 @@ $initial_tasks = [
                      VIEW 2: TASKS KANBAN (REDESIGNED TOTAL: COMMAND TOOLBAR + APPLE BOARD)
                      ================================================================ -->
                 <section id="view-tasks" class="app-view-section" aria-labelledby="page-title">
-                    
+
                     <!-- Sub-header & Filter Toolbar (Redesigned) -->
                     <div class="tasks-command-toolbar">
                         <div class="toolbar-left-cluster">
                             <h1 id="page-title" class="tasks-page-title">Papan Alur Tugas</h1>
-                            
+
                             <!-- Filter Popover Component -->
                             <div class="filter-dropdown-wrapper">
-                                <button type="button" id="btn-filter-toggle" class="btn-apple-control" aria-expanded="false" aria-haspopup="true" aria-label="Filter tugas kuliah">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <button type="button" id="btn-filter-toggle" class="btn-apple-control"
+                                    aria-expanded="false" aria-haspopup="true" aria-label="Filter tugas kuliah">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
                                         <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                                     </svg>
                                     <span id="filter-current-label">Filter Mata Kuliah</span>
                                 </button>
-                                <div id="filter-popover" class="filter-menu-popover" role="dialog" aria-label="Menu Filter Mata Kuliah">
-                                    <label for="filter-course-select" class="filter-label">Mata Kuliah / Kategori:</label>
+                                <div id="filter-popover" class="filter-menu-popover" role="dialog"
+                                    aria-label="Menu Filter Mata Kuliah">
+                                    <label for="filter-course-select" class="filter-label">Mata Kuliah /
+                                        Kategori:</label>
                                     <select id="filter-course-select" class="select-apple">
                                         <option value="all">Semua Kategori</option>
                                     </select>
@@ -493,7 +557,8 @@ $initial_tasks = [
                             <div class="sort-dropdown-wrapper">
                                 <label for="sort-task-select" class="sr-only">Urutkan Berdasarkan</label>
                                 <div class="select-wrapper">
-                                    <select id="sort-task-select" class="select-apple select-sort" aria-label="Urutkan tugas perkuliahan">
+                                    <select id="sort-task-select" class="select-apple select-sort"
+                                        aria-label="Urutkan tugas perkuliahan">
                                         <option value="deadline-asc">Tenggat Terdekat</option>
                                         <option value="deadline-desc">Tenggat Terjauh</option>
                                         <option value="priority-desc">Prioritas Tertinggi</option>
@@ -508,16 +573,20 @@ $initial_tasks = [
                         <div class="toolbar-right-cluster">
                             <!-- Kanban / List Segmented Switcher -->
                             <div class="apple-segmented-control" role="tablist" aria-label="Pilih Mode Tampilan">
-                                <button type="button" id="tab-view-kanban" class="seg-btn active" role="tab" aria-selected="true" aria-controls="kanban-view-container">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <button type="button" id="tab-view-kanban" class="seg-btn active" role="tab"
+                                    aria-selected="true" aria-controls="kanban-view-container">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
                                         <rect x="3" y="3" width="18" height="18" rx="2"></rect>
                                         <line x1="9" y1="3" x2="9" y2="21"></line>
                                         <line x1="15" y1="3" x2="15" y2="21"></line>
                                     </svg>
                                     <span>Kanban</span>
                                 </button>
-                                <button type="button" id="tab-view-list" class="seg-btn" role="tab" aria-selected="false" aria-controls="list-view-container">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <button type="button" id="tab-view-list" class="seg-btn" role="tab"
+                                    aria-selected="false" aria-controls="list-view-container">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
                                         <line x1="8" y1="6" x2="21" y2="6"></line>
                                         <line x1="8" y1="12" x2="21" y2="12"></line>
                                         <line x1="8" y1="18" x2="21" y2="18"></line>
@@ -530,9 +599,12 @@ $initial_tasks = [
                             </div>
 
                             <!-- Density Segmented Switcher -->
-                            <div class="apple-segmented-control density-switcher" role="group" aria-label="Pilih Kerapatan Tampilan">
-                                <button type="button" id="btn-density-comfortable" class="seg-btn active" title="Kerapatan Lega" aria-pressed="true">Lega</button>
-                                <button type="button" id="btn-density-compact" class="seg-btn" title="Kerapatan Padat" aria-pressed="false">Padat</button>
+                            <div class="apple-segmented-control density-switcher" role="group"
+                                aria-label="Pilih Kerapatan Tampilan">
+                                <button type="button" id="btn-density-comfortable" class="seg-btn active"
+                                    title="Kerapatan Lega" aria-pressed="true">Lega</button>
+                                <button type="button" id="btn-density-compact" class="seg-btn" title="Kerapatan Padat"
+                                    aria-pressed="false">Padat</button>
                             </div>
                         </div>
                     </div>
@@ -542,17 +614,32 @@ $initial_tasks = [
                         <section class="apple-kanban-board" aria-label="Papan Alur Tugas Kanban">
                             <!-- Column 1: Planned -->
                             <div class="kanban-column" aria-labelledby="col-planned" data-status="todo">
+
+                                <!-- Ronova Chibi Border Peeker (Nyempil di luar grid samping angka 3) -->
+                                <div class="ronova-chibi-peeker" id="ronova-chibi-peeker" role="button" tabindex="0"
+                                    aria-label="Ronova Chibi" title="Klik Ronova Chibi!">
+                                    <div class="ronova-chibi-bubble" id="ronova-chibi-bubble">
+                                        <span>Semangat nugasnya! ✦</span>
+                                    </div>
+                                    <img src="assets/images/ronova-chibi-peeker.png?v=<?= time() ?>"
+                                        alt="Ronova Chibi Peeker" class="ronova-chibi-img" loading="eager">
+                                </div>
+
                                 <div class="kanban-column-header">
                                     <div class="col-header-left">
                                         <span class="col-status-dot dot-blue" aria-hidden="true"></span>
                                         <span class="col-title" id="col-planned">Rencana</span>
                                     </div>
-                                    <span class="col-counter" id="count-todo">2</span>
+                                    <span class="col-counter" id="count-todo"><?= (int)($counts['todo'] ?? 0) ?></span>
                                 </div>
-                                <div class="column-dropzone" id="dropzone-todo" role="list" aria-label="Daftar tugas direncanakan">
+                                <div class="column-dropzone" id="dropzone-todo" role="list"
+                                    aria-label="Daftar tugas direncanakan">
                                     <?php
-                                    renderTaskCard($initial_tasks[0]);
-                                    renderTaskCard($initial_tasks[1]);
+                                    foreach ($user_tasks as $task) {
+                                        if ($task['status'] === 'todo' && empty($task['is_overdue'])) {
+                                            renderTaskCard($task);
+                                        }
+                                    }
                                     ?>
                                 </div>
                             </div>
@@ -564,10 +651,17 @@ $initial_tasks = [
                                         <span class="col-status-dot dot-amber" aria-hidden="true"></span>
                                         <span class="col-title" id="col-progress">Sedang Jalan</span>
                                     </div>
-                                    <span class="col-counter" id="count-inprogress">1</span>
+                                    <span class="col-counter" id="count-inprogress"><?= (int)($counts['inprogress'] ?? 0) ?></span>
                                 </div>
-                                <div class="column-dropzone" id="dropzone-inprogress" role="list" aria-label="Daftar tugas sedang dikerjakan">
-                                    <?php renderTaskCard($initial_tasks[2]); ?>
+                                <div class="column-dropzone" id="dropzone-inprogress" role="list"
+                                    aria-label="Daftar tugas sedang dikerjakan">
+                                    <?php
+                                    foreach ($user_tasks as $task) {
+                                        if ($task['status'] === 'inprogress' && empty($task['is_overdue'])) {
+                                            renderTaskCard($task);
+                                        }
+                                    }
+                                    ?>
                                 </div>
                             </div>
 
@@ -578,10 +672,17 @@ $initial_tasks = [
                                         <span class="col-status-dot dot-green" aria-hidden="true"></span>
                                         <span class="col-title" id="col-completed">Selesai</span>
                                     </div>
-                                    <span class="col-counter" id="count-done">1</span>
+                                    <span class="col-counter" id="count-done"><?= (int)($counts['done'] ?? 0) ?></span>
                                 </div>
-                                <div class="column-dropzone" id="dropzone-done" role="list" aria-label="Daftar tugas selesai">
-                                    <?php renderTaskCard($initial_tasks[3]); ?>
+                                <div class="column-dropzone" id="dropzone-done" role="list"
+                                    aria-label="Daftar tugas selesai">
+                                    <?php
+                                    foreach ($user_tasks as $task) {
+                                        if ($task['status'] === 'done') {
+                                            renderTaskCard($task);
+                                        }
+                                    }
+                                    ?>
                                 </div>
                             </div>
 
@@ -592,13 +693,39 @@ $initial_tasks = [
                                         <span class="col-status-dot dot-rose" aria-hidden="true"></span>
                                         <span class="col-title" id="col-overdue">Mendekati Tenggat</span>
                                     </div>
-                                    <span class="col-counter counter-urgent" id="count-overdue">1</span>
+                                    <span class="col-counter counter-urgent" id="count-overdue"><?= (int)($counts['overdue'] ?? 0) ?></span>
                                 </div>
-                                <div class="column-dropzone" id="dropzone-overdue" role="list" aria-label="Daftar tugas mendesak atau terlewat">
-                                    <?php renderTaskCard($initial_tasks[4]); ?>
+                                <div class="column-dropzone" id="dropzone-overdue" role="list"
+                                    aria-label="Daftar tugas mendesak atau terlewat">
+                                    <?php
+                                    foreach ($user_tasks as $task) {
+                                        if (!empty($task['is_overdue']) && $task['status'] !== 'done') {
+                                            renderTaskCard($task);
+                                        }
+                                    }
+                                    ?>
                                 </div>
                             </div>
                         </section>
+
+                        <!-- Ronova Theme Corner Display (Active only in Ronova Theme) -->
+                        <div class="ronova-grid-corner" id="ronova-corner-widget" aria-label="Karakter Tema Ronova">
+                            <div class="ronova-corner-inner">
+                                <div class="ronova-face-frame">
+                                    <img src="assets/images/ronova-face.jpg?v=<?= time() ?>"
+                                        alt="Ronova (Genshin Impact)" class="ronova-face-img" loading="lazy">
+                                    <div class="ronova-face-vignette"></div>
+                                    <div class="ronova-face-shimmer"></div>
+                                </div>
+                                <div class="ronova-corner-badge">
+                                    <span class="ronova-badge-icon" aria-hidden="true">✦</span>
+                                    <div class="ronova-badge-text">
+                                        <span class="ronova-badge-title">Ronova</span>
+                                        <span class="ronova-badge-sub">Shade of Death</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Apple List View Table -->
@@ -629,14 +756,18 @@ $initial_tasks = [
                                 <h2 id="calendar-month-year" class="cal-month-heading"><?= date('F Y') ?></h2>
                             </div>
                             <div class="calendar-nav-buttons">
-                                <button type="button" class="btn-apple-control" id="btn-prev-month" aria-label="Bulan sebelumnya">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <button type="button" class="btn-apple-control" id="btn-prev-month"
+                                    aria-label="Bulan sebelumnya">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2.5">
                                         <polyline points="15 18 9 12 15 6"></polyline>
                                     </svg>
                                 </button>
                                 <button type="button" class="btn-apple-control" id="btn-today-month">Bulan Ini</button>
-                                <button type="button" class="btn-apple-control" id="btn-next-month" aria-label="Bulan berikutnya">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <button type="button" class="btn-apple-control" id="btn-next-month"
+                                    aria-label="Bulan berikutnya">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2.5">
                                         <polyline points="9 18 15 12 9 6"></polyline>
                                     </svg>
                                 </button>
@@ -659,10 +790,13 @@ $initial_tasks = [
             <div class="dialog-header">
                 <div>
                     <h2 id="form-title" class="dialog-title">Tambah Tugas Kuliah Baru</h2>
-                    <p class="form-subtitle">Masukkan rincian penugasan serta tautan e-learning untuk akses langsung pengumpulan.</p>
+                    <p class="form-subtitle">Masukkan rincian penugasan serta tautan e-learning untuk akses langsung
+                        pengumpulan.</p>
                 </div>
-                <button type="button" id="btn-close-task-modal" class="btn-close-dialog" aria-label="Tutup dialog tugas">
-                    <svg class="icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <button type="button" id="btn-close-task-modal" class="btn-close-dialog"
+                    aria-label="Tutup dialog tugas">
+                    <svg class="icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
@@ -672,9 +806,12 @@ $initial_tasks = [
             <form id="task-form" action="javascript:void(0);" novalidate autocomplete="off">
                 <input type="hidden" id="task-id" name="task_id" value="">
 
-                <div id="form-error-summary" class="form-error-summary" role="alert" aria-live="assertive" tabindex="-1" hidden>
+                <div id="form-error-summary" class="form-error-summary" role="alert" aria-live="assertive" tabindex="-1"
+                    hidden>
                     <div class="error-summary-header">
-                        <svg class="icon-svg error-summary-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <svg class="icon-svg error-summary-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            aria-hidden="true">
                             <circle cx="12" cy="12" r="10"></circle>
                             <line x1="12" y1="8" x2="12" y2="12"></line>
                             <line x1="12" y1="16" x2="12.01" y2="16"></line>
@@ -710,8 +847,8 @@ $initial_tasks = [
                             </div>
                             <input type="text" id="input-matkul" name="matkul" list="course-suggestions" required
                                 aria-required="true" aria-invalid="false" aria-describedby="error-matkul"
-                                placeholder="Contoh: Pemrograman Web Dasar" maxlength="60"
-                                autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                                placeholder="Contoh: Pemrograman Web Dasar" maxlength="60" autocomplete="off"
+                                autocorrect="off" autocapitalize="off" spellcheck="false">
                             <datalist id="course-suggestions">
                                 <option value="Pemrograman Web Dasar">
                                 <option value="Sistem Basis Data">
@@ -740,9 +877,12 @@ $initial_tasks = [
                                 aria-describedby="hint-deadline error-deadline" autocomplete="off">
                             <div class="deadline-preset-pills" role="group" aria-label="Pintasan cepat tenggat waktu">
                                 <span class="preset-label">Pintasan:</span>
-                                <button type="button" class="btn-preset-pill" data-days="1" title="Set tenggat 1 hari ke depan">+1 Hari</button>
-                                <button type="button" class="btn-preset-pill" data-days="3" title="Set tenggat 3 hari ke depan">+3 Hari</button>
-                                <button type="button" class="btn-preset-pill" data-days="7" title="Set tenggat 1 minggu ke depan">+1 Minggu</button>
+                                <button type="button" class="btn-preset-pill" data-days="1"
+                                    title="Set tenggat 1 hari ke depan">+1 Hari</button>
+                                <button type="button" class="btn-preset-pill" data-days="3"
+                                    title="Set tenggat 3 hari ke depan">+3 Hari</button>
+                                <button type="button" class="btn-preset-pill" data-days="7"
+                                    title="Set tenggat 1 minggu ke depan">+1 Minggu</button>
                             </div>
                             <div id="error-deadline" class="field-error-msg" role="alert" aria-live="polite"></div>
                         </div>
@@ -752,7 +892,8 @@ $initial_tasks = [
                                 <label for="input-priority" id="label-priority">Prioritas</label>
                                 <span id="hint-priority" class="field-hint">Tingkat penting</span>
                             </div>
-                            <select id="input-priority" name="priority" aria-describedby="hint-priority error-priority" aria-invalid="false">
+                            <select id="input-priority" name="priority" aria-describedby="hint-priority error-priority"
+                                aria-invalid="false">
                                 <option value="high">Tinggi (High)</option>
                                 <option value="medium" selected>Sedang (Medium)</option>
                                 <option value="low">Rendah (Low)</option>
@@ -765,7 +906,8 @@ $initial_tasks = [
                                 <label for="input-status" id="label-status">Status Kolom</label>
                                 <span id="hint-status" class="field-hint">Posisi alur</span>
                             </div>
-                            <select id="input-status" name="status" aria-describedby="hint-status error-status" aria-invalid="false">
+                            <select id="input-status" name="status" aria-describedby="hint-status error-status"
+                                aria-invalid="false">
                                 <option value="todo" selected>Rencana</option>
                                 <option value="inprogress">Sedang Jalan</option>
                                 <option value="done">Selesai</option>
@@ -786,8 +928,8 @@ $initial_tasks = [
                             </div>
                             <input type="url" id="input-url" name="url_pengumpulan"
                                 placeholder="https://elearning.kampus.ac.id/mod/assign/..."
-                                aria-describedby="hint-url error-url" aria-invalid="false"
-                                autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                                aria-describedby="hint-url error-url" aria-invalid="false" autocomplete="off"
+                                autocorrect="off" autocapitalize="off" spellcheck="false">
                             <div id="error-url" class="field-error-msg" role="alert" aria-live="polite"></div>
                         </div>
 
@@ -813,19 +955,24 @@ $initial_tasks = [
                                 </div>
                                 <div class="notes-tools">
                                     <span id="notes-char-counter" class="char-counter" aria-live="polite">0 / 500</span>
-                                    <button type="button" id="btn-paste-clipboard" class="btn-paste-clipboard" title="Tempel dari Clipboard">
-                                        <svg class="icon-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-                                             <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                                    <button type="button" id="btn-paste-clipboard" class="btn-paste-clipboard"
+                                        title="Tempel dari Clipboard">
+                                        <svg class="icon-svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round" aria-hidden="true">
+                                            <path
+                                                d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2">
+                                            </path>
+                                            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
                                         </svg>
                                         <span id="paste-clipboard-label">Tempel</span>
                                     </button>
                                 </div>
                             </div>
                             <textarea id="input-notes" name="notes" rows="3"
-                                placeholder="Salin instruksi atau format pengumpulan di sini..."
-                                maxlength="500" aria-describedby="hint-notes error-notes notes-char-counter"
-                                aria-invalid="false" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+                                placeholder="Salin instruksi atau format pengumpulan di sini..." maxlength="500"
+                                aria-describedby="hint-notes error-notes notes-char-counter" aria-invalid="false"
+                                autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
                             <div id="error-notes" class="field-error-msg" role="alert" aria-live="polite"></div>
                         </div>
                     </div>
@@ -833,7 +980,9 @@ $initial_tasks = [
 
                 <div class="form-actions-row">
                     <button type="submit" id="btn-submit-task" class="btn-apple-prominent">
-                        <svg class="icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <svg class="icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                            aria-hidden="true">
                             <polyline points="20 6 9 17 4 12"></polyline>
                         </svg>
                         <span id="save-btn-label">Simpan Kartu Tugas</span>
@@ -859,8 +1008,10 @@ $initial_tasks = [
                     <span class="detail-course-tag" id="detail-course-name">Mata Kuliah</span>
                     <h2 id="detail-task-title" class="dialog-title" style="margin-top: 0.35rem;">Judul Tugas Kuliah</h2>
                 </div>
-                <button type="button" id="btn-close-detail-modal" class="btn-close-dialog" aria-label="Tutup rincian tugas">
-                    <svg class="icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <button type="button" id="btn-close-detail-modal" class="btn-close-dialog"
+                    aria-label="Tutup rincian tugas">
+                    <svg class="icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
@@ -890,8 +1041,11 @@ $initial_tasks = [
             <div class="detail-section">
                 <div class="detail-section-header">
                     <h3 class="detail-section-title">Instruksi &amp; Catatan Penugasan</h3>
-                    <button type="button" id="btn-copy-detail-notes" class="btn-copy-clipboard" title="Salin instruksi tugas">
-                        <svg class="icon-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <button type="button" id="btn-copy-detail-notes" class="btn-copy-clipboard"
+                        title="Salin instruksi tugas">
+                        <svg class="icon-svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            aria-hidden="true">
                             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                         </svg>
@@ -915,14 +1069,17 @@ $initial_tasks = [
 
             <div class="dialog-footer-actions">
                 <button type="button" id="btn-edit-from-detail" class="btn-apple-prominent">
-                    <svg class="icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <svg class="icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                     </svg>
                     <span>Edit Tugas</span>
                 </button>
-                <button type="button" id="btn-delete-from-detail" class="btn-apple-control" style="color: #f87171; border-color: rgba(248, 113, 113, 0.35);">
-                    <svg class="icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <button type="button" id="btn-delete-from-detail" class="btn-apple-control"
+                    style="color: #f87171; border-color: rgba(248, 113, 113, 0.35);">
+                    <svg class="icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
@@ -945,8 +1102,10 @@ $initial_tasks = [
                     <h2 id="summary-dialog-title" class="dialog-title">Ringkasan Tugas Mahasiswa</h2>
                     <p class="form-subtitle">Ikhtisar beban akademik, statistik penyelesaian, dan deadline aktif.</p>
                 </div>
-                <button type="button" id="btn-close-summary-modal" class="btn-close-dialog" aria-label="Tutup ringkasan">
-                    <svg class="icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <button type="button" id="btn-close-summary-modal" class="btn-close-dialog"
+                    aria-label="Tutup ringkasan">
+                    <svg class="icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
@@ -970,7 +1129,8 @@ $initial_tasks = [
 
             <div style="margin-top: 1.5rem;">
                 <h3 class="detail-section-title">Distribusi per Mata Kuliah</h3>
-                <div id="summary-course-breakdown" style="display: flex; flex-direction: column; gap: 0.65rem; margin-top: 0.6rem; max-height: 220px; overflow-y: auto;">
+                <div id="summary-course-breakdown"
+                    style="display: flex; flex-direction: column; gap: 0.65rem; margin-top: 0.6rem; max-height: 220px; overflow-y: auto;">
                 </div>
             </div>
 
@@ -990,7 +1150,8 @@ $initial_tasks = [
             <div class="dialog-header">
                 <h2 id="settings-dialog-title" class="dialog-title">Profil &amp; Preferensi Studio</h2>
                 <button type="button" id="btn-close-settings" class="btn-close-dialog" aria-label="Tutup dialog">
-                    <svg class="icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <svg class="icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
@@ -998,10 +1159,18 @@ $initial_tasks = [
             </div>
 
             <div class="profile-header-card">
-                <div class="sidebar-avatar" style="width: 48px; height: 48px; font-size: 1.15rem;"><?php if (!empty($user_avatar)): ?><img src="<?= htmlspecialchars($user_avatar) ?>" alt="<?= $user_name ?>" referrerpolicy="no-referrer" loading="eager" onerror="this.remove();" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; z-index: 1;"><?php endif; ?><span><?= $initials ?></span></div>
+                <div class="sidebar-avatar" style="width: 48px; height: 48px; font-size: 1.15rem;">
+                    <?php if (!empty($user_avatar)): ?><img src="<?= htmlspecialchars($user_avatar) ?>"
+                            alt="<?= $user_name ?>" referrerpolicy="no-referrer" loading="eager" onerror="this.remove();"
+                            style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; z-index: 1;"><?php endif; ?><span><?= $initials ?></span>
+                </div>
                 <div>
-                    <strong class="profile-user-name" id="profile-user-name"><?= $user_name ?></strong>
-                    <span style="font-size: 0.8125rem; color: var(--text-muted); display: block;" id="profile-user-email"><?= $user_email ?></span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 2px;">
+                        <strong class="profile-user-name" id="profile-user-name"><?= $user_name ?></strong>
+                        <span class="role-badge" style="font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; padding: 2px 7px; border-radius: 6px; letter-spacing: 0.04em; background: <?= $user_role === 'admin' ? 'rgba(239, 68, 68, 0.18)' : ($user_role === 'viewer' ? 'rgba(148, 163, 184, 0.18)' : 'rgba(56, 189, 248, 0.18)') ?>; color: <?= $user_role === 'admin' ? '#f87171' : ($user_role === 'viewer' ? '#94a3b8' : '#38bdf8') ?>; border: 1px solid <?= $user_role === 'admin' ? 'rgba(239, 68, 68, 0.35)' : ($user_role === 'viewer' ? 'rgba(148, 163, 184, 0.35)' : 'rgba(56, 189, 248, 0.35)') ?>;"><?= ucfirst($user_role) ?></span>
+                    </div>
+                    <span style="font-size: 0.8125rem; color: var(--text-muted); display: block;"
+                        id="profile-user-email"><?= $user_email ?></span>
                 </div>
             </div>
 
@@ -1011,15 +1180,20 @@ $initial_tasks = [
 
             <div style="display: flex; flex-direction: column; gap: 0.85rem; margin-bottom: 1.25rem;">
                 <div>
-                    <label for="select-theme" style="display: block; font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 0.35rem;">Tema Tampilan:</label>
+                    <label for="select-theme"
+                        style="display: block; font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 0.35rem;">Tema
+                        Tampilan:</label>
                     <select id="select-theme" class="select-apple" style="width: 100%;">
                         <option value="dark">Dark Appearance (Default)</option>
                         <option value="light">Light Appearance</option>
+                        <option value="ronova">Ronova (Crimson Shade)</option>
                     </select>
                 </div>
 
                 <div>
-                    <label for="select-density" style="display: block; font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 0.35rem;">Kerapatan Kartu (Density):</label>
+                    <label for="select-density"
+                        style="display: block; font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 0.35rem;">Kerapatan
+                        Kartu (Density):</label>
                     <select id="select-density" class="select-apple" style="width: 100%;">
                         <option value="comfortable">Lega (Comfortable)</option>
                         <option value="compact">Padat (Compact)</option>
@@ -1032,26 +1206,36 @@ $initial_tasks = [
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem;">
-                <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.84375rem; color: var(--text-main); cursor: pointer;">
+                <label
+                    style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.84375rem; color: var(--text-main); cursor: pointer;">
                     <input type="checkbox" id="check-enable-sound" checked style="accent-color: var(--accent-primary);">
                     Bunyikan suara saat ada tugas &lt; 24 jam
                 </label>
-                <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.84375rem; color: var(--text-main); cursor: pointer;">
+                <label
+                    style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.84375rem; color: var(--text-main); cursor: pointer;">
                     <input type="checkbox" id="check-auto-archive" style="accent-color: var(--accent-primary);">
                     Arsipkan otomatis tugas yang sudah selesai
                 </label>
             </div>
 
-            <div style="padding-top: 1rem; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
-                <a href="index.php" style="color: var(--text-muted); font-size: 0.8125rem; text-decoration: none;">&larr; Landing Page</a>
-                <a href="logout.php" class="btn-apple-control" style="color: #f43f5e; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.8125rem;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                        <polyline points="16 17 21 12 16 7"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                    <span>Keluar Akun</span>
-                </a>
+            <div
+                style="padding-top: 1rem; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+                <a href="index.php"
+                    style="color: var(--text-muted); font-size: 0.8125rem; text-decoration: none;">&larr; Landing
+                    Page</a>
+                <form method="POST" action="logout.php" style="display: inline; margin: 0; padding: 0;">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
+                    <button type="submit" class="btn-apple-control"
+                        style="color: #f43f5e; background: transparent; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.8125rem;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        <span>Keluar Akun</span>
+                    </button>
+                </form>
             </div>
         </div>
     </dialog>
@@ -1066,8 +1250,10 @@ $initial_tasks = [
                     <h2 id="portal-dialog-title" class="dialog-title">Tambah Portal Perkuliahan</h2>
                     <p class="form-subtitle">Tambahkan tautan cepat ke LMS, SIAKAD, atau portal kampus Anda.</p>
                 </div>
-                <button type="button" id="btn-close-portal-modal" class="btn-close-dialog" aria-label="Tutup dialog portal">
-                    <svg class="icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <button type="button" id="btn-close-portal-modal" class="btn-close-dialog"
+                    aria-label="Tutup dialog portal">
+                    <svg class="icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
@@ -1076,21 +1262,28 @@ $initial_tasks = [
 
             <form id="portal-form" action="javascript:void(0);" novalidate autocomplete="off">
                 <div class="form-field" style="margin-bottom: 1rem;">
-                    <label for="input-portal-name" style="display: block; font-size: 0.8125rem; margin-bottom: 0.35rem; color: var(--text-secondary);">
+                    <label for="input-portal-name"
+                        style="display: block; font-size: 0.8125rem; margin-bottom: 0.35rem; color: var(--text-secondary);">
                         Nama Portal <span class="required-mark" style="color: #ef4444;">*</span>
                     </label>
-                    <input type="text" id="input-portal-name" required placeholder="Contoh: Moodle, SIAKAD, Classroom" class="input-apple" style="width: 100%;" maxlength="40" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                    <input type="text" id="input-portal-name" required placeholder="Contoh: Moodle, SIAKAD, Classroom"
+                        class="input-apple" style="width: 100%;" maxlength="40" autocomplete="off" autocorrect="off"
+                        autocapitalize="off" spellcheck="false">
                 </div>
 
                 <div class="form-field" style="margin-bottom: 1rem;">
-                    <label for="input-portal-url" style="display: block; font-size: 0.8125rem; margin-bottom: 0.35rem; color: var(--text-secondary);">
+                    <label for="input-portal-url"
+                        style="display: block; font-size: 0.8125rem; margin-bottom: 0.35rem; color: var(--text-secondary);">
                         URL Tautan <span class="required-mark" style="color: #ef4444;">*</span>
                     </label>
-                    <input type="url" id="input-portal-url" required placeholder="https://elearning.kampus.ac.id" class="input-apple" style="width: 100%;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                    <input type="url" id="input-portal-url" required placeholder="https://elearning.kampus.ac.id"
+                        class="input-apple" style="width: 100%;" autocomplete="off" autocorrect="off"
+                        autocapitalize="off" spellcheck="false">
                 </div>
 
                 <div class="form-field" style="margin-bottom: 1.5rem;">
-                    <label for="select-portal-color" style="display: block; font-size: 0.8125rem; margin-bottom: 0.35rem; color: var(--text-secondary);">
+                    <label for="select-portal-color"
+                        style="display: block; font-size: 0.8125rem; margin-bottom: 0.35rem; color: var(--text-secondary);">
                         Warna Indikator
                     </label>
                     <select id="select-portal-color" class="select-apple" style="width: 100%;">
@@ -1117,10 +1310,12 @@ $initial_tasks = [
     <!-- ====================================================================
          MODAL 6: KONFIRMASI HAPUS (APPLE DESTRUCTIVE ACTION SHEET)
          ==================================================================== -->
-    <dialog id="confirm-modal" class="app-dialog confirm-dialog" aria-labelledby="confirm-dialog-title" aria-describedby="confirm-dialog-message" aria-modal="true">
+    <dialog id="confirm-modal" class="app-dialog confirm-dialog" aria-labelledby="confirm-dialog-title"
+        aria-describedby="confirm-dialog-message" aria-modal="true">
         <div class="confirm-dialog-body">
             <div class="confirm-icon-orb" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="3 6 5 6 21 6"></polyline>
                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                     <line x1="10" y1="11" x2="10" y2="17"></line>
@@ -1128,7 +1323,8 @@ $initial_tasks = [
                 </svg>
             </div>
             <h3 id="confirm-dialog-title" class="confirm-title">Hapus Tugas</h3>
-            <p id="confirm-dialog-message" class="confirm-desc">Apakah Anda yakin ingin menghapus tugas ini? Tindakan ini tidak dapat dibatalkan.</p>
+            <p id="confirm-dialog-message" class="confirm-desc">Apakah Anda yakin ingin menghapus tugas ini? Tindakan
+                ini tidak dapat dibatalkan.</p>
             <div class="confirm-actions">
                 <button type="button" id="btn-confirm-cancel" class="btn-apple-control">Batal</button>
                 <button type="button" id="btn-confirm-action" class="btn-apple-danger">Hapus Tugas</button>
@@ -1139,6 +1335,9 @@ $initial_tasks = [
     <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
     <!-- CORE SCRIPTS -->
+    <script>
+        window.SERVER_INITIAL_TASKS = <?= json_encode($user_tasks, JSON_UNESCAPED_UNICODE) ?>;
+    </script>
     <script type="module" src="js/app.js?v=<?= time() ?>"></script>
 
     <!-- APPLE STUDIO INTERACTION ENHANCEMENTS -->

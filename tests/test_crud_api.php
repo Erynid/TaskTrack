@@ -5,12 +5,18 @@
  */
 
 require_once __DIR__ . '/../models/TaskModel.php';
+require_once __DIR__ . '/../config/database.php';
 
 echo "====================================================================\n";
 echo " TEST SUITE: MODUL 11 CRUD FULL-STACK & VALIDATION TEST MATRIX\n";
 echo "====================================================================\n\n";
 
-$userId = 1;
+$pdo = Database::getInstance();
+$stmtU = $pdo->query('SELECT id FROM users ORDER BY id ASC LIMIT 1');
+$userId = (int)$stmtU->fetchColumn();
+if (!$userId) {
+    die("ERROR: Tidak ada pengguna yang ditemukan di database untuk menjalankan unit test.\n");
+}
 $taskModel = new TaskModel();
 
 $testsPassed = 0;
@@ -33,6 +39,7 @@ function assertTest(string $testName, bool $condition, string $details = ''): vo
 // TEST 1: READ COLLECTION (GET /api/tasks.php)
 // --------------------------------------------------------------------------
 $collection = $taskModel->getTasksWithFilter($userId, ['page' => 1, 'limit' => 10]);
+$firstTask = $collection['data'][0] ?? null;
 assertTest(
     'GET Collection (Read Semua Tugas)',
     isset($collection['data']) && is_array($collection['data']),
@@ -42,18 +49,19 @@ assertTest(
 // --------------------------------------------------------------------------
 // TEST 2: FITUR PENCARIAN (Search Query Parameter)
 // --------------------------------------------------------------------------
-$searchResult = $taskModel->getTasksWithFilter($userId, ['search' => 'ERD']);
-$foundERD = false;
+$searchKeyword = $firstTask ? explode(' ', trim($firstTask['title']))[0] : 'Tugas';
+$searchResult = $taskModel->getTasksWithFilter($userId, ['search' => $searchKeyword]);
+$foundMatch = false;
 foreach ($searchResult['data'] as $t) {
-    if (stripos($t['title'], 'ERD') !== false) {
-        $foundERD = true;
+    if (stripos($t['title'], $searchKeyword) !== false) {
+        $foundMatch = true;
         break;
     }
 }
 assertTest(
-    'Fitur Pencarian (Search: keyword "ERD")',
-    $foundERD,
-    "Berhasil memfilter tugas yang relevan dengan kata kunci 'ERD'."
+    "Fitur Pencarian (Search: keyword \"{$searchKeyword}\")",
+    $foundMatch,
+    "Berhasil memfilter tugas yang relevan dengan kata kunci '{$searchKeyword}'."
 );
 
 // --------------------------------------------------------------------------
@@ -86,11 +94,12 @@ assertTest(
 // --------------------------------------------------------------------------
 // TEST 5: READ BY ID (GET /api/tasks.php?id={id}) - SUCCESS
 // --------------------------------------------------------------------------
-$task1 = $taskModel->getTaskById(1, $userId);
+$targetId = $firstTask ? (int)$firstTask['id'] : 24;
+$taskTarget = $taskModel->getTaskById($targetId, $userId);
 assertTest(
-    'GET by ID (Eksistensi Tugas ID = 1)',
-    $task1 !== null && (int)$task1['id'] === 1,
-    "Judul: " . ($task1['title'] ?? '')
+    "GET by ID (Eksistensi Tugas ID = {$targetId})",
+    $taskTarget !== null && (int)$taskTarget['id'] === $targetId,
+    "Judul: " . ($taskTarget['title'] ?? '')
 );
 
 // --------------------------------------------------------------------------

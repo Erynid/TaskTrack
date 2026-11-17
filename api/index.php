@@ -67,6 +67,9 @@ $path = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
 if (strpos($path, '/tasks') !== false) {
     require __DIR__ . '/tasks.php';
     exit;
+} elseif (strpos($path, '/me') !== false) {
+    require __DIR__ . '/me.php';
+    exit;
 } elseif (strpos($path, '/dashboard') !== false) {
     // Autentikasi Pengguna
     if (!isset($_SESSION['user'])) {

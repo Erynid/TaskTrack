@@ -49,64 +49,8 @@ const ICONS = {
     alertTriangle: '<svg class="icon-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>'
 };
 
-// Default Task Data
-const defaultTasks = [
-    {
-        id: 'task-1',
-        title: 'Tugas Semantik HTML & Aksesibilitas Web',
-        course: 'Pemrograman Web Dasar',
-        deadline: new Date(Date.now() + 3 * 24 * 3600 * 1000).toISOString().slice(0, 16),
-        status: 'todo',
-        priority: 'high',
-        lms_url: 'https://elearning.kampus.ac.id',
-        lms_label: 'LMS',
-        instructions: 'Pastikan struktur heading bertingkat, form memiliki label terkait, dan kontras warna memenuhi standar WCAG AA.'
-    },
-    {
-        id: 'task-2',
-        title: 'Desain Entity Relationship Diagram (ERD)',
-        course: 'Sistem Basis Data',
-        deadline: new Date(Date.now() + 6 * 24 * 3600 * 1000).toISOString().slice(0, 16),
-        status: 'todo',
-        priority: 'low',
-        lms_url: 'https://classroom.google.com',
-        lms_label: 'Classroom',
-        instructions: 'Rancang ERD sistem rekam medis klinik lengkap dengan kardinalitas 1-to-N dan relasi antar entitas.'
-    },
-    {
-        id: 'task-3',
-        title: 'Konfigurasi Routing OSPF & Subnetting',
-        course: 'Jaringan Komputer Lanjut',
-        deadline: new Date(Date.now() + 2 * 24 * 3600 * 1000).toISOString().slice(0, 16),
-        status: 'inprogress',
-        priority: 'medium',
-        lms_url: 'https://elearning.kampus.ac.id',
-        lms_label: 'LMS',
-        instructions: 'Simulasikan di Cisco Packet Tracer dengan 3 router dan 4 subnet kelas C.'
-    },
-    {
-        id: 'task-4',
-        title: 'Resume Materi Algoritma Dijkstra',
-        course: 'Struktur Data & Algoritma',
-        deadline: new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString().slice(0, 16),
-        status: 'done',
-        priority: 'low',
-        lms_url: 'https://elearning.kampus.ac.id',
-        lms_label: 'LMS',
-        instructions: 'Ringkas algoritma pencarian rute terpendek dengan matriks bobot berarah.'
-    },
-    {
-        id: 'task-5',
-        title: 'Upload Revisi Laporan Praktikum Modul 1',
-        course: 'Pemrograman Berorientasi Objek',
-        deadline: new Date(Date.now() + 4 * 3600 * 1000).toISOString().slice(0, 16),
-        status: 'overdue',
-        priority: 'high',
-        lms_url: 'https://elearning.kampus.ac.id',
-        lms_label: 'Kumpulkan Segera',
-        instructions: 'Perbaiki diagram class dan lampirkan screenshot eksekusi unit test modul 1.'
-    }
-];
+// Default Task Data (Dikosongkan agar murni menggunakan data database)
+const defaultTasks = [];
 
 // State & Storage
 const API_TASKS_URL = 'api/tasks.php';
@@ -172,12 +116,14 @@ async function fetchTasksFromAPI(queryParams = {}) {
 }
 
 function loadTasks() {
+    if (window.SERVER_INITIAL_TASKS && Array.isArray(window.SERVER_INITIAL_TASKS)) {
+        return window.SERVER_INITIAL_TASKS.map(normalizeTaskFromApi);
+    }
     const stored = localStorage.getItem(STORAGE_KEY_TASKS);
     if (stored) {
-        return parseTasksFromJSON(stored, defaultTasks);
+        return parseTasksFromJSON(stored, []);
     }
-    localStorage.setItem(STORAGE_KEY_TASKS, JSON.stringify(defaultTasks));
-    return [...defaultTasks];
+    return [];
 }
 
 function saveTasks() {
@@ -353,12 +299,18 @@ function formatDeadline(deadlineStr, status) {
 }
 
 // Theme & Density Preferences
-const AVAILABLE_THEMES = ['dark', 'light'];
+const AVAILABLE_THEMES = ['dark', 'light', 'ronova'];
+
+const THEME_LABELS = {
+    'dark': 'Dark Appearance',
+    'light': 'Light Appearance',
+    'ronova': 'Ronova (Genshin Impact)'
+};
 
 function initPreferences() {
     let savedTheme = localStorage.getItem(STORAGE_KEY_THEME) || 'dark';
     if (!AVAILABLE_THEMES.includes(savedTheme)) {
-        savedTheme = savedTheme === 'light' ? 'light' : 'dark';
+        savedTheme = 'dark';
     }
     const savedDensity = localStorage.getItem(STORAGE_KEY_DENSITY) || 'comfortable';
     const savedViewMode = localStorage.getItem(STORAGE_KEY_VIEW_MODE) || 'kanban';
@@ -383,7 +335,7 @@ function initPreferences() {
 
 function applyTheme(themeName) {
     if (!AVAILABLE_THEMES.includes(themeName)) {
-        themeName = themeName === 'light' ? 'light' : 'dark';
+        themeName = 'dark';
     }
     document.documentElement.setAttribute('data-theme', themeName);
     localStorage.setItem(STORAGE_KEY_THEME, themeName);
@@ -395,7 +347,9 @@ function applyTheme(themeName) {
 
     const themeToggleBtn = document.getElementById('btn-theme-toggle');
     if (themeToggleBtn) {
-        const nextName = themeName === 'dark' ? 'Light Mode' : 'Dark Mode';
+        const currentIndex = AVAILABLE_THEMES.indexOf(themeName);
+        const nextTheme = AVAILABLE_THEMES[(currentIndex + 1) % AVAILABLE_THEMES.length];
+        const nextName = THEME_LABELS[nextTheme] || nextTheme;
         themeToggleBtn.setAttribute('title', `Ganti ke tema ${nextName}`);
         themeToggleBtn.setAttribute('aria-label', `Ganti ke tema ${nextName}`);
     }
@@ -403,13 +357,14 @@ function applyTheme(themeName) {
 
 function cycleTheme() {
     const current = localStorage.getItem(STORAGE_KEY_THEME) || 'dark';
-    const nextTheme = current === 'dark' ? 'light' : 'dark';
+    const currentIndex = AVAILABLE_THEMES.indexOf(current);
+    const nextTheme = AVAILABLE_THEMES[(currentIndex + 1) % AVAILABLE_THEMES.length];
     applyTheme(nextTheme);
 
     const themeSelect = document.getElementById('select-theme');
     if (themeSelect) themeSelect.value = nextTheme;
 
-    const themeLabel = nextTheme === 'dark' ? 'Dark Mode' : 'Light Mode';
+    const themeLabel = THEME_LABELS[nextTheme] || nextTheme;
     announce(`Tema diubah menjadi ${themeLabel}`);
 }
 
@@ -438,6 +393,49 @@ function applyDensity(densityName) {
             btnCompact.setAttribute('aria-pressed', 'false');
         }
     }
+}
+
+// Ronova Chibi Interaction ("Nyempil" di Luar Grid Samping Angka 3)
+function initRonovaChibi() {
+    const chibi = document.getElementById('ronova-chibi-peeker');
+    const bubble = document.getElementById('ronova-chibi-bubble');
+    if (!chibi || !bubble) return;
+
+    const voiceLines = [
+        "Semangat nugasnya! ✦",
+        "Jangan tunda ya, nanti menumpuk! ✦",
+        "Aku mencatat semua tenggatmu... ✦",
+        "Tugasmu sedang kupantau~ ✦",
+        "Satu tugas selesai, satu beban terangkat! ✦",
+        "Ruler of Death percaya padamu! ✦"
+    ];
+
+    let lineIndex = 0;
+    let timer = null;
+
+    const triggerReaction = () => {
+        lineIndex = (lineIndex + 1) % voiceLines.length;
+        const textSpan = bubble.querySelector('span');
+        if (textSpan) textSpan.textContent = voiceLines[lineIndex];
+
+        bubble.classList.add('show-bubble');
+        chibi.classList.remove('chibi-bounce');
+        void chibi.offsetWidth;
+        chibi.classList.add('chibi-bounce');
+
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => {
+            bubble.classList.remove('show-bubble');
+        }, 3000);
+    };
+
+    chibi.addEventListener('click', triggerReaction);
+    chibi.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            triggerReaction();
+        }
+    });
 }
 
 // Filter, Search & Sorting
@@ -2007,6 +2005,7 @@ function initApp() {
     fetchTasksFromAPI();
 
     fetchMiniDashboardData();
+    initRonovaChibi();
 
     const themeToggleBtn = document.getElementById('btn-theme-toggle');
     if (themeToggleBtn) {

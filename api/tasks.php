@@ -48,6 +48,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
 }
 
 require_once __DIR__ . '/../models/TaskModel.php';
+require_once __DIR__ . '/../config/auth.php';
 
 // Helper Response Format Standar Modul 11
 function apiResponseSuccess(array $data, int $code = 200, string $message = '', ?array $pagination = null): void
@@ -88,16 +89,11 @@ function apiResponseError(int $code, string $message, array $fieldErrors = []): 
 
 // Global Exception Handler Boundary (Generic 500 error without internal leak)
 try {
-    // Autentikasi Pengguna
-    $userId = $_SESSION['user']['id'] ?? null;
-    // Fallback development jika dijalankan tanpa login session via CLI/curl lokal
+    // Autentikasi Pengguna (Fail-Closed: 401 Unauthorized jika tidak ada sesi login valid)
+    $userId = getCurrentUserId();
+    $userRole = getCurrentUserRole();
     if (!$userId) {
-        $env = getenv('APP_ENV') ?: 'development';
-        if ($env === 'development' || isset($_GET['dev_user_id'])) {
-            $userId = (int)($_GET['dev_user_id'] ?? 1);
-        } else {
-            apiResponseError(401, 'Autentikasi diperlukan. Silakan login terlebih dahulu.');
-        }
+        apiResponseError(401, 'Autentikasi diperlukan. Sesi Anda tidak valid atau telah kedaluwarsa. Silakan login terlebih dahulu.');
     }
 
     $taskModel = new TaskModel();
@@ -109,6 +105,15 @@ try {
             $method = strtoupper($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']);
         } elseif (isset($_POST['_method'])) {
             $method = strtoupper($_POST['_method']);
+        }
+    }
+
+    // Otorisasi Role-Based Access Control (RBAC) - Modul 12 Langkah 5:
+    // Operasi state-changing (Create, Update, Delete) hanya diizinkan untuk role 'admin' dan 'mahasiswa'.
+    // Role 'viewer' hanya memiliki izin baca (GET) dan ditolak dengan 403 Forbidden.
+    if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+        if (!in_array($userRole, ['admin', 'mahasiswa'], true)) {
+            apiResponseError(403, 'Akses ditolak: Akun dengan role "' . $userRole . '" hanya memiliki izin baca (read-only) dan tidak diizinkan membuat, mengubah, atau menghapus tugas.');
         }
     }
 
@@ -194,12 +199,14 @@ try {
 
         $createdTask = $taskModel->createTask($userId, [
             'title' => $title,
-            'description' => trim((string)($inputData['description'] ?? '')),
+            'description' => trim((string)($inputData['description'] ?? ($inputData['instructions'] ?? ''))),
             'category_id' => $inputData['category_id'] ?? null,
             'category_name' => $inputData['category_name'] ?? ($inputData['course'] ?? null),
             'status' => $status,
             'priority' => $priority,
-            'due_date' => $dueDate ?: date('Y-m-d', strtotime('+3 days'))
+            'due_date' => $dueDate ?: date('Y-m-d', strtotime('+3 days')),
+            'lms_url' => trim((string)($inputData['lms_url'] ?? '')),
+            'lms_label' => trim((string)($inputData['lms_label'] ?? ''))
         ]);
 
         apiResponseSuccess($createdTask, 201, 'Tugas berhasil dibuat.');
@@ -273,15 +280,23 @@ try {
             apiResponseError(400, 'Validasi pembaruan tugas gagal.', $errors);
         }
 
-        $updatedTask = $taskModel->updateTask($taskId, $userId, [
+        $updatePayload = [
             'title' => $inputData['title'] ?? null,
-            'description' => $inputData['description'] ?? null,
+            'description' => $inputData['description'] ?? ($inputData['instructions'] ?? null),
             'category_id' => $inputData['category_id'] ?? null,
             'category_name' => $inputData['category_name'] ?? ($inputData['course'] ?? null),
             'status' => $inputData['status'] ?? null,
             'priority' => $inputData['priority'] ?? null,
             'due_date' => $inputData['due_date'] ?? null
-        ]);
+        ];
+        if (array_key_exists('lms_url', $inputData)) {
+            $updatePayload['lms_url'] = $inputData['lms_url'];
+        }
+        if (array_key_exists('lms_label', $inputData)) {
+            $updatePayload['lms_label'] = $inputData['lms_label'];
+        }
+
+        $updatedTask = $taskModel->updateTask($taskId, $userId, $updatePayload);
 
         apiResponseSuccess($updatedTask, 200, 'Tugas berhasil diperbarui.');
     }

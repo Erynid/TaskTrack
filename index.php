@@ -32,7 +32,9 @@ $logged_user = $_SESSION['user'] ?? null;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $app_name ?> &mdash; Papan Alur Tugas &amp; Tenggat Kuliah Mahasiswa</title>
+    <title>TaskTrack</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="favicon.svg">
     <meta name="description" content="Pusat kendali visual tugas kuliah mahasiswa. Papan Kanban interaktif, hitung mundur batas waktu presisi, dan integrasi portal e-learning kampus.">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -42,6 +44,16 @@ $logged_user = $_SESSION['user'] ?? null;
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css?v=<?= time() ?>">
+    <script>
+        (function() {
+            try {
+                const saved = localStorage.getItem('tasktrack_theme');
+                if (saved === 'light' || saved === 'ronova') {
+                    document.documentElement.setAttribute('data-theme', saved);
+                }
+            } catch (e) {}
+        })();
+    </script>
 </head>
 
 <body class="site-body">
@@ -610,16 +622,19 @@ $logged_user = $_SESSION['user'] ?? null;
 
     <!-- INTERACTIVE JAVASCRIPT LOGIC -->
     <script>
-        // 1. Theme Toggle Persistence (Dark / Light)
+        // 1. Theme Toggle Persistence (Dark / Light / Ronova)
+        const THEMES = ['dark', 'light', 'ronova'];
         const themeBtn = document.getElementById('btn-theme-toggle');
         const html = document.documentElement;
-        const savedTheme = localStorage.getItem('tasktrack_theme') || 'dark';
+        let savedTheme = localStorage.getItem('tasktrack_theme') || 'dark';
+        if (!THEMES.includes(savedTheme)) savedTheme = 'dark';
         html.setAttribute('data-theme', savedTheme);
 
         if (themeBtn) {
             themeBtn.addEventListener('click', () => {
                 const current = html.getAttribute('data-theme') || 'dark';
-                const next = current === 'dark' ? 'light' : 'dark';
+                const currentIndex = THEMES.indexOf(current);
+                const next = THEMES[(currentIndex + 1) % THEMES.length];
                 html.setAttribute('data-theme', next);
                 localStorage.setItem('tasktrack_theme', next);
             });

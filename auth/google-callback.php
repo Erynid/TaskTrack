@@ -84,13 +84,16 @@ try {
     // 4. Cari atau Buat Akun Pengguna di Basis Data MySQL
     $userRecord = findOrCreateGoogleUser($googleUserData);
 
-    // 5. Inisialisasi Sesi Login Aman (Cegah Session Fixation)
+    // 5. Inisialisasi Sesi Login Aman (Cegah Session Fixation & Modul 12 State)
     session_regenerate_id(true);
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    $_SESSION['user_id'] = (int)$userRecord['id'];
+    $_SESSION['role'] = $userRecord['role'] ?? 'mahasiswa';
     $_SESSION['user'] = [
         'id'            => $userRecord['id'],
         'name'          => $userRecord['name'],
         'email'         => $userRecord['email'],
+        'role'          => $userRecord['role'] ?? 'mahasiswa',
         'avatar'        => $userRecord['avatar'] ?? null,
         'auth_provider' => 'google'
     ];
@@ -107,7 +110,9 @@ try {
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Mengalihkan ke Dashboard...</title>
+    <title>TaskTrack</title>
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <link rel="apple-touch-icon" href="../favicon.svg">
     <script>
         // Sinkronisasi data autentikasi ke LocalStorage untuk UI TaskTrack
         const authData = <?= json_encode($redirectUser ?? []) ?>;

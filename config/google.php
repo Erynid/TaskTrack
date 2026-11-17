@@ -172,6 +172,12 @@ function verifyGoogleIdToken(string $idToken): ?array
         return null;
     }
 
+    $validIssuers = ['accounts.google.com', 'https://accounts.google.com'];
+    if (!isset($payload['iss']) || !in_array($payload['iss'], $validIssuers, true)) {
+        error_log("[Google OAuth Error] ID Token issuer mismatch: " . ($payload['iss'] ?? 'null'));
+        return null;
+    }
+
     return $payload;
 }
 
@@ -197,8 +203,8 @@ function findOrCreateGoogleUser(array $googleData): array
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($user) {
-        // Update google_id & avatar_url jika belum tersimpan
-        $updateStmt = $pdo->prepare('UPDATE users SET google_id = :gid, avatar_url = :avatar WHERE id = :id');
+        // Update google_id & avatar_url jika belum tersimpan, dan tandai email terverifikasi
+        $updateStmt = $pdo->prepare('UPDATE users SET google_id = :gid, avatar_url = :avatar, email_verified_at = IFNULL(email_verified_at, NOW()) WHERE id = :id');
         $updateStmt->execute([
             'gid' => $googleId ?: ($user['google_id'] ?? null),
             'avatar' => $avatar ?: ($user['avatar_url'] ?? null),
@@ -210,11 +216,12 @@ function findOrCreateGoogleUser(array $googleData): array
             'name' => $name ?: $user['username'],
             'username' => $user['username'],
             'email' => $user['email'],
+            'role' => $user['role'] ?? 'mahasiswa',
             'avatar' => $avatar ?: ($user['avatar_url'] ?? null)
         ];
     }
 
-    // 2. Jika user belum ada, buat user baru di database
+    // 2. Jika user belum ada, buat user baru di database (otomatis terverifikasi via Google)
     $baseUsername = strtolower(preg_replace('/[^a-zA-Z0-9_]/', '', explode('@', $email)[0]));
     if (empty($baseUsername)) $baseUsername = 'user';
     $username = $baseUsername;
@@ -229,13 +236,14 @@ function findOrCreateGoogleUser(array $googleData): array
     $randomHash = password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT);
 
     $insertStmt = $pdo->prepare('
-        INSERT INTO users (username, email, password_hash, google_id, avatar_url, created_at)
-        VALUES (:username, :email, :password_hash, :google_id, :avatar_url, NOW())
+        INSERT INTO users (username, email, password_hash, role, google_id, avatar_url, email_verified_at, created_at)
+        VALUES (:username, :email, :password_hash, :role, :google_id, :avatar_url, NOW(), NOW())
     ');
     $insertStmt->execute([
         'username' => $username,
         'email' => $email,
         'password_hash' => $randomHash,
+        'role' => 'mahasiswa',
         'google_id' => $googleId ?: null,
         'avatar_url' => $avatar ?: null
     ]);
@@ -247,6 +255,7 @@ function findOrCreateGoogleUser(array $googleData): array
         'name' => $name ?: $username,
         'username' => $username,
         'email' => $email,
+        'role' => 'mahasiswa',
         'avatar' => $avatar ?: null
     ];
 }

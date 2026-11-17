@@ -282,3 +282,249 @@ Buka peramban pada alamat: `http://127.0.0.1:8000`
     "upcomingExam": "Sistem Basis Data (Senin Depan)"
   }
 }
+```
+
+---
+
+## Sistem Autentikasi & Verifikasi Email
+
+TaskTrack menerapkan alur verifikasi email standar industri untuk pendaftaran akun mahasiswa baru:
+
+### 1. Alur Pendaftaran & Verifikasi Akun
+1. **Registrasi Akun Baru (`login.php`):**
+   - Pengguna mengisi Nama, Email, dan Kata Sandi.
+   - Sistem membuat akun di MySQL dengan status `email_verified_at = NULL` dan membuat token acak kriptografis 64-karakter (`verification_token`) dengan masa berlaku 24 jam (`verification_expires_at`).
+   - Sistem memanggil modul pengirim email (`config/mailer.php`) untuk mengirimkan email aktivasi.
+   - Akun belum dapat langsung digunakan masuk sampai email berhasil diverifikasi.
+2. **Pengiriman Email & Fallback Lokal Aman:**
+   - Jika kredensial SMTP (`SMTP_USER` dan `SMTP_PASS`) terkonfigurasi di `.env`, email dikirim langsung melalui server SMTP (STARTTLS / TLS).
+   - Pada lingkungan pengujian / pengembangan lokal (*localhost*), jika SMTP belum diatur atau koneksi internet offline, modul mailer secara otomatis merender berkas pratinjau HTML responsif bernuansa Apple HIG di direktori `data/mail_previews/{token}.html`. Pengembang atau pengguna dapat langsung mengklik tautan pratinjau yang muncul di layar login untuk menguji verifikasi.
+3. **Aktivasi Akun (`verify.php`):**
+   - Mengklik tautan verifikasi pada email akan mengarahkan pengguna ke `verify.php?token=...`.
+   - Sistem memverifikasi token dan tanggal kedaluwarsa.
+   - Jika valid, `email_verified_at` diisi waktu saat ini (`NOW()`), token dibersihkan, dan pengguna dialihkan ke `login.php?verified=1` dengan lencana sukses.
+   - Jika token sudah kedaluwarsa atau tidak valid, sistem menampilkan halaman antarmuka Apple HIG dengan tombol menuju `resend-verification.php`.
+4. **Proteksi Login Guard (`login.php`):**
+   - Jika pengguna belum memverifikasi email mencoba masuk, form login akan memblokir akses dan menyajikan pesan peringatan ramah serta tautan langsung untuk meminta kirim ulang email aktivasi.
+5. **Kirim Ulang Tautan Verifikasi (`resend-verification.php`):**
+   - Pengguna yang tautannya kedaluwarsa atau hilang dapat memasukkan email untuk memperoleh token baru dengan masa aktif 24 jam yang baru.
+6. **Autentikasi Google OAuth 2.0 (`config/google.php`):**
+   - Pengguna yang masuk melalui Google OAuth otomatis berstatus terverifikasi (`email_verified_at = NOW()`) karena identitas email telah divalidasi oleh Google.
+
+### 2. Konfigurasi SMTP di `.env`
+```ini
+# Mailer / SMTP Configuration
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_ENCRYPTION=tls
+SMTP_USER=
+SMTP_PASS=
+SMTP_FROM_EMAIL=no-reply@tasktrack.local
+SMTP_FROM_NAME="TaskTrack Studio"
+```
+
+---
+
+## Sistem Tema: Dark, Light, & Ronova (Genshin Impact)
+
+Aplikasi TaskTrack mendukung 3 pilihan tema visual:
+1. **Dark Mode (Default):** Nuansa Sleek Dark Obsidian untuk kenyamanan mata saat bekerja malam hari.
+2. **Light Mode:** Nuansa bersih, terang, dan minimalis bernuansa Apple macOS.
+3. **Ronova Mode (`data-theme="ronova"`):**
+   - Terinspirasi dari karakter Ronova (Shade of Death) di Genshin Impact.
+   - Palet warna: Obsidian Deep Void (`#080407`), Crimson Shade (`#e11d48`, `#be123c`), Rose Fog, dan aksen emas astral (`#fb7185`).
+   - **Ronova Chibi Peeker:** Karakter Chibi Ronova interaktif yang "nyempil" di luar sudut grid Kanban di samping kolom Rencana dengan bubble ucapan interaktif saat disentuh/diklik.
+   - **Ronova Corner Character Art:** Sudut kanan bawah kanban board dihiasi portret wajah Ronova dengan efek vignette halus dan lencana *Shade of Death*.
+
+---
+
+## Modul 12: Authentication, Authorization, Session/JWT, & Password Hashing
+
+Modul 12 mengimplementasikan sistem keamanan akun *end-to-end* berbasis kurikulum Outcome-Based Education (OBE) 2026, mencakup hashing adaptif, keamanan siklus hidup sesi, otorisasi berbasis peran (RBAC), dan endpoint profil pengguna.
+
+### 1. Password Hashing & Verifikasi Aman
+- **Penyimpanan Password:** Kata sandi pengguna tidak pernah disimpan dalam format teks biasa (*plain text*). Menggunakan fungsi bawaan PHP `password_hash($password, PASSWORD_DEFAULT)` yang menghasilkan hash adaptif standar industri (BCrypt `$2y$`).
+- **Verifikasi Login:** Menggunakan `password_verify($password, $hash)` yang kebal terhadap serangan *timing attack*.
+- **Pembaruan Hash Otomatis:** Sistem mendeteksi `password_needs_rehash()` saat login berhasil untuk secara otomatis memperbarui *cost factor* algoritma tanpa mengganggu pengguna.
+
+### 2. Manajemen & Keamanan Sesi (Session Security)
+Sesuai standar OWASP dan Modul 12 Langkah 3 & 6:
+- **Konfigurasi Cookie Sesi (`config/auth.php`):**
+  - `HttpOnly = true`: Mencegah pembacaan cookie sesi oleh skrip JavaScript sisi klien (mitigasi serangan XSS).
+  - `SameSite = Lax`: Melindungi aplikasi dari serangan Cross-Site Request Forgery (CSRF).
+  - `Secure`: Otomatis aktif `true` pada koneksi produksi HTTPS.
+- **Pencegahan Session Fixation:** Pemanggilan `session_regenerate_id(true)` setiap kali login berhasil untuk mengganti ID sesi lama dengan ID sesi acak baru.
+- **Penyimpanan State:** Menyimpan `$_SESSION['user_id']` dan `$_SESSION['role']` di memori server.
+- **Pembersihan Logout Aman (`logout.php`):**
+  - Mendukung metode **POST** (dan fallback GET).
+  - Mengosongkan memori: `$_SESSION = [];`
+  - Menghapus cookie browser dengan masa kedaluwarsa lampau (`time() - 42000`).
+  - Menghancurkan file sesi di server menggunakan `session_destroy()`.
+
+### 3. Matriks Otorisasi Berbasis Peran (Role-Based Access Control / RBAC)
+Database `users` memiliki kolom `role` dengan tipe data `ENUM('admin', 'mahasiswa', 'viewer')`:
+
+| Aksi / Endpoint | Method | Anonymous (Belum Login) | Role: `viewer` | Role: `mahasiswa` | Role: `admin` |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Landing Page** (`index.php`) | GET | 200 OK | 200 OK | 200 OK | 200 OK |
+| **Halaman Login/Register** (`login.php`) | GET/POST | 200 OK | Alihkan ke Dashboard | Alihkan ke Dashboard | Alihkan ke Dashboard |
+| **Dashboard Utama** (`dashboard.php`) | GET | 302 (Redirect ke Login) | 200 OK (Read-only UI) | 200 OK | 200 OK |
+| **Profil Pengguna** (`/api/me.php`) | GET | **401 Unauthorized** | 200 OK | 200 OK | 200 OK |
+| **Lihat Daftar Tugas** (`/api/tasks.php`) | GET | **401 Unauthorized** | 200 OK | 200 OK | 200 OK |
+| **Tambah Tugas Baru** (`/api/tasks.php`) | POST | **401 Unauthorized** | **403 Forbidden** | **201 Created** | **201 Created** |
+| **Perbarui Tugas** (`/api/tasks.php?id=`) | PUT/PATCH | **401 Unauthorized** | **403 Forbidden** | **200 OK** | **200 OK** |
+| **Hapus Tugas** (`/api/tasks.php?id=`) | DELETE | **401 Unauthorized** | **403 Forbidden** | **200 OK** | **200 OK** |
+
+### 4. Diagram Alur: Session-Based vs JWT-Based Authentication
+
+#### A. Alur Session-Based (Digunakan di TaskTrack)
+```
+[Client / Browser]                      [TaskTrack Server]                 [MySQL Database]
+        |                                       |                                  |
+        |--- 1. POST /login (email, pass) ------>|                                  |
+        |                                       |--- 2. SELECT WHERE email ------->|
+        |                                       |<-- 3. Return user & hash --------|
+        |                                       |                                  |
+        |                                       |-- 4. password_verify() (Valid)   |
+        |                                       |-- 5. session_regenerate_id(true) |
+        |                                       |-- 6. Simpan user_id & role di    |
+        |                                       |      server session storage      |
+        |<-- 7. Set-Cookie: PHPSESSID (HttpOnly)|                                  |
+        |                                       |                                  |
+        |--- 8. GET /api/me (Cookie: PHPSESSID)->|                                  |
+        |                                       |-- 9. Lookup session via ID       |
+        |<-- 10. 200 OK (User Profile JSON) ----|                                  |
+        |                                       |                                  |
+        |--- 11. POST /logout ----------------->|                                  |
+        |                                       |-- 12. session_destroy() &        |
+        |                                       |       expire-kan cookie          |
+        |<-- 13. Sesi berakhir seketika --------|                                  |
+```
+
+#### B. Alur Hipotetis Berbasis JWT (JSON Web Token)
+```
+[Client / Mobile / SPA]                  [Auth Server / API]               [MySQL Database]
+        |                                       |                                  |
+        |--- 1. POST /api/login --------------->|                                  |
+        |                                       |--- 2. Validasi kredensial ------>|
+        |<-- 3. Return JWT (Header.Payload.Sign)|                                  |
+        |                                       |                                  |
+        |-- Simpan JWT di client storage        |                                  |
+        |   (Secure Cookie / Memory)            |                                  |
+        |                                       |                                  |
+        |--- 4. GET /api/data (Bearer Token) -->|                                  |
+        |                                       |-- 5. Verifikasi Signature & Exp  |
+        |                                       |   (Stateless: tanpa cek database)|
+        |<-- 6. 200 OK (Resource JSON) ---------|                                  |
+        |                                       |                                  |
+        |--- 7. Logout ------------------------>| (Memerlukan Blacklist/Redis atau |
+        |                                       |  tunggu expiry token berakhir)   |
+```
+
+#### Perbandingan State, Penyimpanan Token, dan Logout/Revocation:
+1. **State:**
+   - *Session:* **Stateful**. State pengguna disimpan di memori/file server. Server memiliki kontrol penuh atas sesi yang aktif.
+   - *JWT:* **Stateless**. Server tidak menyimpan state login; seluruh identitas (*claims*) tersimpan di dalam token terenkripsi/tertanda-tangan yang dibawa klien.
+2. **Penyimpanan:**
+   - *Session:* Token ID acak (*opaque identifier*) disimpan dalam cookie berbendera `HttpOnly` dan `SameSite`.
+   - *JWT:* Token disimpan di client-side (cookie atau memori aplikasi); jika disimpan di `localStorage`, rentan terhadap pencurian via XSS.
+3. **Logout & Revocation:**
+   - *Session:* **Instan dan pasti**. Cukup panggil `session_destroy()`, maka sesi klien langsung tidak berlaku.
+   - *JWT:* **Sulit di-revoke seketika**. Karena server tidak menyimpan state, token tetap sah hingga masa *exp* habis, kecuali server menerapkan *token blacklisting* (misal via Redis database) yang mengorbankan sifat aslinya yang *stateless*.
+
+---
+
+### 5. Jawaban Latihan Mandiri Modul 12
+
+#### Latihan 1: Mengapa UI Hidden Button Tidak Cukup sebagai Authorization?
+> **Jawaban:**  
+> Menyembunyikan tombol (*hidden button*) di antarmuka pengguna (UI) hanyalah kenyamanan visual sisi klien (*client-side UX*), **bukan mekanisme keamanan**. Siapa pun dapat membuka Developer Tools (F12) untuk memunculkan kembali elemen yang disembunyikan, atau mengirimkan *request* HTTP langsung menggunakan cURL, Postman, Fetch API, atau skrip eksternal.  
+> Oleh karena itu, otorisasi **wajib diverifikasi di sisi server (*server-side authorization*)** pada setiap *endpoint* API (seperti penggunaan `requireRole(['admin', 'mahasiswa'])` pada [`api/tasks.php`](file:///c:/laragon/www/TaskTrack/api/tasks.php)) agar setiap *request* yang tidak sah tetap ditolak dengan kode status `403 Forbidden` meskipun tombol di UI dimanipulasi.
+
+#### Latihan 2: Endpoint `/api/me.php`
+- **Tujuan:** Mengembalikan data profil pengguna yang sedang login tanpa membocorkan `password_hash` atau `verification_token`.
+- **Implementasi:** [`api/me.php`](file:///c:/laragon/www/TaskTrack/api/me.php).
+- **Contoh Response 200 OK:**
+  ```json
+  {
+      "status": "success",
+      "timestamp": "2026-11-17 18:31:00",
+      "data": {
+          "id": 2,
+          "username": "dzakirdzakwan9",
+          "email": "dzakirdzakwan9@gmail.com",
+          "role": "admin",
+          "avatar_url": "https://lh3.googleusercontent.com/...",
+          "email_verified_at": "2026-11-10 16:54:53",
+          "created_at": "2026-11-09 13:58:43",
+          "updated_at": "2026-11-17 18:11:58"
+      }
+  }
+  ```
+- **Contoh Response 401 Unauthorized (Jika belum login):**
+  ```json
+  {
+      "status": "error",
+      "error": "Silakan login",
+      "code": 401,
+      "message": "Autentikasi diperlukan untuk mengakses resource ini."
+  }
+  ```
+
+#### Latihan 3: Perbedaan Respon HTTP 401 vs 403
+- **HTTP 401 Unauthorized:** Pengguna belum terautentikasi (belum login atau sesi telah kedaluwarsa). Menjawab pertanyaan: *"Anda siapa? Silakan masuk terlebih dahulu."*
+- **HTTP 403 Forbidden:** Pengguna telah terautentikasi (sudah login), namun peran/hak aksesnya (*role*) tidak mencukupi untuk melakukan operasi tersebut (contoh: akun ber-role `viewer` mencoba menambah tugas baru via `POST /api/tasks.php`). Menjawab pernyataan: *"Kami tahu siapa Anda, namun Anda dilarang melakukan aksi ini."*
+
+---
+
+### 6. Matriks Hasil Pengujian Otomatis Modul 12
+Dijalankan melalui skrip pengujian: [`tests/test_modul12_auth.php`](file:///c:/laragon/www/TaskTrack/tests/test_modul12_auth.php)
+
+```text
+====================================================================
+ TEST SUITE: MODUL 12 AUTHENTICATION & AUTHORIZATION MATRIX
+====================================================================
+
+ [PASS] Test #1: Password Hashing (BCrypt/Argon2 & Adaptif)
+ [PASS] Test #2: Skema Database Users (Kolom role ENUM/VARCHAR)
+ [PASS] Test #3: Session Cookie Security (HttpOnly, SameSite=Lax)
+ [PASS] Test #4: Session Fixation Protection (session_regenerate_id)
+ [PASS] Test #5: Session State Storage ($_SESSION user_id & role)
+ [PASS] Test #6: Endpoint /api/me.php (Mengembalikan Profil Tanpa password_hash)
+ [PASS] Test #7: Protected Route Check (401 Unauthorized jika Belum Login)
+ [PASS] Test #8: Authorization Check (403 Forbidden jika Role Tidak Memiliki Izin)
+ [PASS] Test #9: Authorization Check (200 OK jika Role Mahasiswa / Admin)
+ [PASS] Test #10: Secure Logout Lifecycle (Pembersihan $_SESSION & Expire Cookie)
+
+====================================================================
+ HASIL PENGUJIAN MODUL 12: 10 / 10 Pengujian Berhasil Lolos!
+ STATUS: 100% SUKSES! Seluruh Kriteria Modul 12 OBE Terpenuhi Sempurna.
+====================================================================
+```
+
+---
+
+### 7. Refleksi Mahasiswa (Bab H)
+1. **Konsep yang paling dipahami:**
+   * Perbedaan mendasar antara *Authentication* (pemeriksaan identitas login dengan `password_verify`) dan *Authorization* (pembatasan hak akses berbasis *role* di server-side).
+   * Pentingnya perlindungan siklus hidup sesi melalui bendera *HttpOnly*, *SameSite*, dan pemanggilan `session_regenerate_id(true)` untuk memitigasi *Session Fixation*.
+2. **Masalah yang ditemukan dan solusinya:**
+   * *Masalah:* Manipulasi DOM dapat menampilkan kembali tombol aksi yang disembunyikan.
+   * *Solusi:* Memasang guard `requireRole(['admin', 'mahasiswa'])` langsung pada layer *router endpoint* API backend (`/api/tasks.php`) sehingga permintaan dari role `viewer` langsung ditolak dengan status HTTP 403.
+3. **Bukti bahwa hasil sudah benar:**
+   * Seluruh 10/10 pengujian otomatis pada `tests/test_modul12_auth.php` dan 12/12 pengujian CRUD pada `tests/test_crud_api.php` lulus 100% tanpa galat.
+4. **Pemanfaatan AI dan verifikasinya:**
+   * AI dimanfaatkan untuk merancang skenario uji batas (*edge cases*) dan struktur matriks peran.
+   * Verifikasi dilakukan secara independen dengan menjalankan unit test langsung di Laragon CLI dan memverifikasi isi database MySQL secara real-time.
+
+---
+
+### 8. Checklist Pengumpulan Modul 12 (Bab I)
+- [x] Register / login / logout berjalan lancar.
+- [x] Password tersimpan aman dalam bentuk hash adaptif (`$2y$`).
+- [x] *Protected route* dan otorisasi teruji pada layer server.
+- [x] Minimal dua level akses diterapkan (`admin`, `mahasiswa`, dan `viewer`).
+- [x] Bukti skenario akses berhasil (200/201) dan ditolak (401/403) tersedia lengkap.
+- [x] Riwayat *commit* git bersih dan terstruktur.
+
+

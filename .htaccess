@@ -27,10 +27,10 @@ Options -Indexes
     </IfModule>
 </FilesMatch>
 
-# 4. Blokir Akses Langsung ke Folder Data Internal
+# 4. Blokir Akses Langsung ke Folder Data Internal, Tests, & Dokumentasi
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteRule ^data/ - [F,L]
+    RewriteRule ^(data|tests|docs)/ - [F,L]
 </IfModule>
 
 # 5. Pasang HTTP Security Headers Standar (Defense in Depth)

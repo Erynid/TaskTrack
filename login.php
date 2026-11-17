@@ -38,6 +38,14 @@ $error_message = '';
 $success_message = '';
 $redirect_user = null;
 
+if (isset($_GET['verified']) && $_GET['verified'] === '1') {
+    $success_message = 'Alamat email Anda berhasil diverifikasi! Silakan masuk ke akun Anda.';
+    $active_tab = 'login';
+} elseif (isset($_GET['resent']) && $_GET['resent'] === '1') {
+    $success_message = 'Tautan verifikasi baru telah dikirimkan ke email Anda. Silakan periksa inbox atau spam.';
+    $active_tab = 'login';
+}
+
 require_once __DIR__ . '/config/google.php';
 $googleConfig = getGoogleConfig();
 $googleClientId = $googleConfig['client_id'];
@@ -62,45 +70,62 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             if (empty($email) || empty($password)) {
                 $error_message = 'Email dan kata sandi wajib diisi.';
                 $active_tab = 'login';
+            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $error_message = 'Format alamat email tidak valid.';
+                $active_tab = 'login';
             } else {
-                $name = 'Pengguna';
-                if (strpos($email, '@') !== false) {
-                    $parts = explode('@', $email);
-                    $name = ucwords(str_replace(['.', '_', '-'], ' ', $parts[0]));
-                } else {
-                    $name = 'Pengguna ' . htmlspecialchars($email);
-                }
-
-                // Cegah Session Fixation
-                session_regenerate_id(true);
-                $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-
-                $avatar_url = null;
-                $user_id = 1;
                 try {
                     require_once __DIR__ . '/config/database.php';
                     $pdo = Database::getInstance();
-                    $chk = $pdo->prepare('SELECT id, username, avatar_url FROM users WHERE email = :email LIMIT 1');
+                    $chk = $pdo->prepare('SELECT id, username, email, password_hash, role, google_id, avatar_url, email_verified_at FROM users WHERE email = :email LIMIT 1');
                     $chk->execute(['email' => $email]);
                     $usr = $chk->fetch(PDO::FETCH_ASSOC);
-                    if ($usr) {
-                        $user_id = (int)$usr['id'];
-                        if (!empty($usr['username']) && $name === 'Pengguna') {
-                            $name = $usr['username'];
+
+                    if (!$usr) {
+                        $error_message = 'Email atau kata sandi yang Anda masukkan salah.';
+                        $active_tab = 'login';
+                    } elseif (!password_verify($password, $usr['password_hash'] ?? '')) {
+                        if (!empty($usr['google_id'])) {
+                            $error_message = 'Kata sandi tidak cocok. Akun ini terdaftar via Google, silakan gunakan tombol "Masuk dengan Google".';
+                        } else {
+                            $error_message = 'Email atau kata sandi yang Anda masukkan salah.';
                         }
-                        $avatar_url = $usr['avatar_url'] ?? null;
+                        $active_tab = 'login';
+                    } elseif ($usr['email_verified_at'] === null) {
+                        // Perlindungan Akun Belum Terverifikasi
+                        $encodedEmail = urlencode($usr['email']);
+                        $error_message = 'Akun belum aktif. Silakan lakukan verifikasi email terlebih dahulu melalui tautan yang dikirim ke email Anda, atau <a href="resend-verification.php?email=' . $encodedEmail . '" style="color: var(--accent-primary, #38bdf8); text-decoration: underline; font-weight: 600;">Kirim Ulang Tautan Verifikasi</a>.';
+                        $active_tab = 'login';
+                    } else {
+                        // Rehash jika algoritma default PHP diperbarui
+                        if (password_needs_rehash($usr['password_hash'], PASSWORD_DEFAULT)) {
+                            $newHash = password_hash($password, PASSWORD_DEFAULT);
+                            $upd = $pdo->prepare('UPDATE users SET password_hash = :hash WHERE id = :id');
+                            $upd->execute(['hash' => $newHash, 'id' => $usr['id']]);
+                        }
+
+                        // Cegah Session Fixation & Simpan State Sesi (Modul 12 Langkah 3)
+                        session_regenerate_id(true);
+                        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+
+                        $userRole = $usr['role'] ?? 'mahasiswa';
+                        $_SESSION['user_id'] = (int)$usr['id'];
+                        $_SESSION['role'] = $userRole;
+
+                        $_SESSION['user'] = [
+                            'id' => (int)$usr['id'],
+                            'name' => $usr['username'] ?: 'Mahasiswa',
+                            'email' => $usr['email'],
+                            'role' => $userRole,
+                            'avatar' => $usr['avatar_url'] ?? null
+                        ];
+                        $redirect_user = $_SESSION['user'];
                     }
                 } catch (Throwable $e) {
-                    // Fallback gracefully
+                    error_log('[TaskTrack Login Error] ' . $e->getMessage());
+                    $error_message = 'Terjadi kesalahan sistem saat memproses login. Silakan coba lagi.';
+                    $active_tab = 'login';
                 }
-
-                $_SESSION['user'] = [
-                    'id' => $user_id,
-                    'name' => $name,
-                    'email' => $email,
-                    'avatar' => $avatar_url
-                ];
-                $redirect_user = $_SESSION['user'];
             }
         } elseif ($action === 'register') {
             $name = trim($_POST['name'] ?? '');
@@ -111,6 +136,9 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             if (empty($name) || empty($email) || empty($password)) {
                 $error_message = 'Nama lengkap, email, dan kata sandi wajib diisi.';
                 $active_tab = 'register';
+            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $error_message = 'Format alamat email tidak valid.';
+                $active_tab = 'register';
             } elseif ($password !== $password_confirm) {
                 $error_message = 'Konfirmasi kata sandi tidak cocok.';
                 $active_tab = 'register';
@@ -118,36 +146,60 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 $error_message = 'Kata sandi minimal harus terdiri dari 6 karakter.';
                 $active_tab = 'register';
             } else {
-                // Cegah Session Fixation
-                session_regenerate_id(true);
-                $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-
-                $avatar_url = null;
-                $user_id = 1;
                 try {
                     require_once __DIR__ . '/config/database.php';
                     $pdo = Database::getInstance();
-                    $chk = $pdo->prepare('SELECT id, username, avatar_url FROM users WHERE email = :email LIMIT 1');
+
+                    // Cek apakah email sudah terdaftar
+                    $chk = $pdo->prepare('SELECT id FROM users WHERE email = :email LIMIT 1');
                     $chk->execute(['email' => $email]);
-                    $usr = $chk->fetch(PDO::FETCH_ASSOC);
-                    if ($usr) {
-                        $user_id = (int)$usr['id'];
-                        if (!empty($usr['username']) && $name === 'Pengguna') {
-                            $name = $usr['username'];
+                    if ($chk->fetch()) {
+                        $error_message = 'Email sudah terdaftar. Silakan gunakan email lain atau langsung masuk.';
+                        $active_tab = 'register';
+                    } else {
+                        $baseUsername = strtolower(preg_replace('/[^a-zA-Z0-9_]/', '', explode('@', $email)[0]));
+                        if (empty($baseUsername)) $baseUsername = 'user';
+                        $username = $baseUsername;
+
+                        $chkU = $pdo->prepare('SELECT COUNT(*) FROM users WHERE username = :un');
+                        $chkU->execute(['un' => $username]);
+                        if ($chkU->fetchColumn() > 0) {
+                            $username = $baseUsername . '_' . substr(bin2hex(random_bytes(2)), 0, 4);
                         }
-                        $avatar_url = $usr['avatar_url'] ?? null;
+
+                        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+                        $verificationToken = bin2hex(random_bytes(32));
+                        $verificationExpires = date('Y-m-d H:i:s', time() + 86400);
+
+                        $ins = $pdo->prepare('
+                            INSERT INTO users (username, email, password_hash, role, email_verified_at, verification_token, verification_expires_at, created_at)
+                            VALUES (:username, :email, :password_hash, :role, NULL, :token, :expires, NOW())
+                        ');
+                        $displayName = !empty($name) ? $name : $username;
+                        $ins->execute([
+                            'username' => $displayName,
+                            'email' => $email,
+                            'password_hash' => $hashedPassword,
+                            'role' => 'mahasiswa',
+                            'token' => $verificationToken,
+                            'expires' => $verificationExpires
+                        ]);
+
+                        // Kirim email verifikasi
+                        require_once __DIR__ . '/config/mailer.php';
+                        $mailResult = sendVerificationEmail($email, $displayName, $verificationToken);
+
+                        $success_message = 'Pendaftaran berhasil! Tautan verifikasi telah dikirimkan ke <strong>' . htmlspecialchars($email) . '</strong>.<br>Silakan periksa kotak masuk atau spam Anda untuk mengaktifkan akun.';
+                        if (!empty($mailResult['preview_url'])) {
+                            $success_message .= '<br><span style="display:inline-block; margin-top:8px; font-size:0.85em; opacity:0.95;"><strong>Mode Pengujian / Dev:</strong> <a href="' . htmlspecialchars($mailResult['preview_url']) . '" target="_blank" style="color: #38bdf8; text-decoration: underline; font-weight: 600;">Buka Pratinjau Email Verifikasi &rarr;</a></span>';
+                        }
+                        $active_tab = 'login';
                     }
                 } catch (Throwable $e) {
-                    // Fallback gracefully
+                    error_log('[TaskTrack Register Error] ' . $e->getMessage());
+                    $error_message = 'Terjadi kesalahan sistem saat mendaftarkan akun. Silakan coba lagi.';
+                    $active_tab = 'register';
                 }
-
-                $_SESSION['user'] = [
-                    'id' => $user_id,
-                    'name' => $name,
-                    'email' => $email,
-                    'avatar' => $avatar_url
-                ];
-                $redirect_user = $_SESSION['user'];
             }
         }
     }
@@ -159,7 +211,9 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Masuk / Daftar Akun - <?= $app_name ?></title>
+    <title>TaskTrack</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="favicon.svg">
     <meta name="description" content="Halaman autentikasi masuk dan registrasi akun mahasiswa TaskTrack.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -216,7 +270,16 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                         <line x1="12" y1="8" x2="12" y2="12"></line>
                         <line x1="12" y1="16" x2="12.01" y2="16"></line>
                     </svg>
-                    <span><?= htmlspecialchars($error_message) ?></span>
+                    <span><?= $error_message ?></span>
+                </div>
+                <?php endif; ?>
+
+                <?php if (!empty($success_message)): ?>
+                <div class="auth-alert-box auth-alert-success" role="status">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span><?= $success_message ?></span>
                 </div>
                 <?php endif; ?>
 
